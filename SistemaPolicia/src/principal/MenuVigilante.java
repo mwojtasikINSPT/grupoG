@@ -1,4 +1,4 @@
-package sistemapolicia.Principal;
+package principal;
 
 // Consola específica para que el vigilante consulte sus propios contratos.
 public class MenuVigilante {
