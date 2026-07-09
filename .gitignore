@@ -1,13 +1,11 @@
+#GITIGNORE para que no molesten los archivos de compilacion individuales
+
 # Compilados de Java
 *.class
 
 # Archivos de log
-*.log
-
-# Archivos temporales
-*.tmp
-*.swp
-*~
+# Archivos compilados
+*.class
 
 # Directorios de build y distribución
 /build/
@@ -16,12 +14,10 @@
 
 # Configuración privada de NetBeans
 nbproject/private/
-
-# Configuración de NetBeans que no debería versionarse
 nbproject/configurations.xml
-nbproject/project.properties
+nbproject/genfiles.properties
 
-# Archivos generados por IDEs
+# Archivos de IDE
 /.idea/
 /.vscode/
 /*.iml
@@ -29,3 +25,7 @@ nbproject/project.properties
 # Archivos de sistema
 .DS_Store
 Thumbs.db
+
+# Logs y temporales
+*.log
+*.tmp
