@@ -1,20 +1,36 @@
 package models;
 
+// Defino al usuario con privilegios únicamente de consulta sobre sus propios datos.
 public class UsuarioVigilante extends Usuario {
-    private String codigoVigilante;
 
-    public UsuarioVigilante(String username, String password, String codigoVigilante) {
+    // Añado el identificador de versión para la persistencia
+    private static final long serialVersionUID = 1L;
+
+    // Vinculo directamente el objeto en lugar del String (ID)
+    private Vigilante vigilante;
+
+    public UsuarioVigilante() {
+        super();
+    }
+    
+    // Constructor principal
+    public UsuarioVigilante(String username, String password, Vigilante vigilante) {
         super(username, password); 
-        this.codigoVigilante = codigoVigilante;
+        this.vigilante = vigilante;
     }
 
-    public String getCodigoVigilante() {
-        return codigoVigilante;
+    // Getters y Setters
+    public Vigilante getVigilante() {
+        return vigilante;
+    }
+
+    public void setVigilante(Vigilante vigilante) {
+        this.vigilante = vigilante;
     }
 
     @Override
     public Rol obtenerRol() {
-        // Retornamos el valor del Enum. 
+        // Retorno el valor del Enum correspondiente a este perfil. 
         return Rol.VIGILANTE; 
     }
 }

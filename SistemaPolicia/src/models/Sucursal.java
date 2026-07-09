@@ -1,29 +1,34 @@
 package models;
 
-// Relacion 1-1 con EntidadBancaria. Representa el lugar fisico al que pertenece la entidad 
+import java.io.Serializable;
 
-public class Sucursal {
+// Relacion N-1 con EntidadBancaria, pero cada Sucursal pertenece SOLO a una entidad. Representa el lugar fisico al que pertenece la entidad.
+public class Sucursal implements Serializable {
+    
+    //Nro version de la estructura, Necesario si mas adelante agrego atributos a la clase
+    private static final long serialVersionUID = 1L;
+
     // 1. Atributos  
     private String codigo;
     private String domicilio;
     private int numeroEmpleados;
-    private String codigoEntidad;
+    private EntidadBancaria entidad;
 
     // 2. Constructor 
-    public Sucursal(String codigo, String domicilio, int numeroEmpleados, String codigoEntidad) {
+    public Sucursal(String codigo, String domicilio, int numeroEmpleados, EntidadBancaria entidad) {
         this.codigo = codigo;
         this.domicilio = domicilio;
-        this.numeroEmpleados = numeroEmpleados;
-        this.codigoEntidad = codigoEntidad;
+        setNumeroEmpleados(numeroEmpleados); // Llamo al setter para que valide al crear
+        this.entidad = entidad;
     }
 
     // 3. Getters y Setters 
     public void setNumeroEmpleados(int numeroEmpleados) {
-        
         if (numeroEmpleados >= 0) {
             this.numeroEmpleados = numeroEmpleados;
         } else {
-            System.out.println("Error: El número de empleados no puede ser negativo.");
+            // MVC: Lanzo excepción
+            throw new IllegalArgumentException("Error: El número de empleados no puede ser negativo.");
         }
     }
     
@@ -39,14 +44,11 @@ public class Sucursal {
         return numeroEmpleados;
     }
 
-    public String getCodigoEntidad() {
-        return codigoEntidad;
+    public EntidadBancaria getEntidad() {
+        return entidad;
     }
 
     public void setDomicilio(String domicilio) {
         this.domicilio = domicilio;
     }
-
-    
-    
 }

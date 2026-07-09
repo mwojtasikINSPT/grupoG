@@ -1,55 +1,74 @@
 package models;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-// Resuelve relación N:M. 
-//Representa el turno laboral de un vigilante en una sucursal específica en un día concreto.
-public class ContratoVigilancia {
+// Resuelvo la relación N:M. 
+// Represento el turno laboral de un vigilante en una sucursal específica en un día concreto.
+public class ContratoVigilancia implements Serializable {
     
-    private String codigoSucursal;
-    private String codigoVigilante;
+    // Añado el identificador de versión para la persistencia en archivos
+    private static final long serialVersionUID = 1L;
+    
+    // Defino los atributos utilizando las referencias a los objetos 
+    private Sucursal sucursal;
+    private Vigilante vigilante;
     private LocalDate fecha;
     private boolean conArma;
 
-    public ContratoVigilancia(String codigoSucursal, String codigoVigilante, LocalDate fecha, boolean conArma) {
-        this.codigoSucursal = codigoSucursal;
-        this.codigoVigilante = codigoVigilante;
+    // Constructor vacío
+    public ContratoVigilancia() {
+    }
+
+    // Constructor principal
+    public ContratoVigilancia(Sucursal sucursal, Vigilante vigilante, LocalDate fecha, boolean conArma) {
+        this.sucursal = sucursal;
+        this.vigilante = vigilante;
         this.fecha = fecha;
         this.conArma = conArma;
     }
 
-    public String getCodigoSucursal() {
-        return codigoSucursal;
+    // Getters y Setters
+    public Sucursal getSucursal() {
+        return sucursal;
     }
 
-    public String getCodigoVigilante() {
-        return codigoVigilante;
+    public void setSucursal(Sucursal sucursal) {
+        this.sucursal = sucursal;
+    }
+
+    public Vigilante getVigilante() {
+        return vigilante;
+    }
+
+    public void setVigilante(Vigilante vigilante) {
+        this.vigilante = vigilante;
     }
 
     public LocalDate getFecha() {
         return fecha;
     }
 
-    public boolean isConArma() {
-        return conArma;
-    }
-
-    public void setCodigoSucursal(String codigoSucursal) {
-        this.codigoSucursal = codigoSucursal;
-    }
-
-    public void setCodigoVigilante(String codigoVigilante) {
-        this.codigoVigilante = codigoVigilante;
-    }
-
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
+    }
+
+    public boolean isConArma() {
+        return conArma;
     }
 
     public void setConArma(boolean conArma) {
         this.conArma = conArma;
     }
     
-    
-    
+    // Sobrescribo el método para visualizar el contrato
+    @Override
+    public String toString() {
+        return "Contrato de Vigilancia [" +
+               "Sucursal: " + (sucursal != null ? sucursal.getCodigo() : "Desconocida") + 
+               ", Vigilante: " + (vigilante != null ? vigilante.getCodigo() : "Desconocido") + 
+               ", Fecha: " + fecha + 
+               ", Con Arma: " + (conArma ? "Sí" : "No") + 
+               "]";
+    }
 }

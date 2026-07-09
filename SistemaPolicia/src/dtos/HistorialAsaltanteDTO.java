@@ -9,9 +9,9 @@ public class HistorialAsaltanteDTO {
     private String nombreAsaltante;
     private String infoBanda;
     
-    private List<DetalleCrimenDTO> listaDeCrimenes;
+    private List<DetalleDelitoDTO> listaDeCrimenes;
 
-    public HistorialAsaltanteDTO(String idAsaltante, String nombreAsaltante, String infoBanda, List<DetalleCrimenDTO> listaDeCrimenes) {
+    public HistorialAsaltanteDTO(String idAsaltante, String nombreAsaltante, String infoBanda, List<DetalleDelitoDTO> listaDeCrimenes) {
         this.idAsaltante = idAsaltante;
         this.nombreAsaltante = nombreAsaltante;
         this.infoBanda = infoBanda;
@@ -19,7 +19,7 @@ public class HistorialAsaltanteDTO {
     }
 
     //Agregar delitos que cometió
-    public void agregarDelito(DetalleCrimenDTO delito){
+    public void agregarDelito(DetalleDelitoDTO delito){
         this.listaDeCrimenes.add(delito);
     }
 
@@ -29,5 +29,5 @@ public class HistorialAsaltanteDTO {
 
     public String getInfoBanda() {return infoBanda;}
 
-    public List<DetalleCrimenDTO> getListaDeCrimenes() {return listaDeCrimenes;}    
+    public List<DetalleDelitoDTO> getListaDeCrimenes() {return listaDeCrimenes;}    
 }

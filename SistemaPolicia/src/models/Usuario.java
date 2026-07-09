@@ -1,12 +1,21 @@
 package models;
 
-//  para el control de acceso y definir comportamientos.
-public abstract class Usuario {
-    //Atributos
+import java.io.Serializable;
+
+// Defino el control de acceso y los comportamientos base para los distintos perfiles.
+public abstract class Usuario implements Serializable {
+    
+    // Añado el identificador de versión para la persistencia
+    private static final long serialVersionUID = 1L;
+
+    // Defino los atributos comunes a todos los usuarios
     private String username;
     private String password;
     
-    //Constructor
+    public Usuario() {
+    }
+
+    // Constructor principal
     public Usuario(String username, String password) {
         this.username = username;
         this.password = password;
@@ -29,6 +38,6 @@ public abstract class Usuario {
         this.password = password;
     }
 
-    // Método abstracto para los obtener roles (en enum)
+    // Defino el método abstracto para obtener el rol (en enum) desde las clases hijas
     public abstract Rol obtenerRol();
 }

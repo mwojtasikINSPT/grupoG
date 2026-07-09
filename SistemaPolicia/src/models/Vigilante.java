@@ -1,13 +1,22 @@
 package models;
 
-// Relacion N-M con Sucursales
-public class Vigilante {
+import java.io.Serializable;
 
-    //Atributos
+// Resuelvo la relación N-M con Sucursales a través de la clase ContratoVigilancia.
+public class Vigilante implements Serializable {
+    
+    // Añado el identificador de versión para la persistencia en archivos
+    private static final long serialVersionUID = 1L;
+
+    // Defino los atributos
     private String codigo;
     private int edad;
 
-    // Constructor
+    // Constructor vacío
+    public Vigilante() {
+    }
+
+    // Constructor principal
     public Vigilante(String codigo, int edad) {
         this.codigo = codigo;
         this.edad = edad;
@@ -18,6 +27,9 @@ public class Vigilante {
         return codigo;
     }
 
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
+    }
 
     public int getEdad() {
         return edad;
@@ -25,5 +37,14 @@ public class Vigilante {
 
     public void setEdad(int edad) {
         this.edad = edad;
+    }
+    
+    // Sobrescribo el método para visualizar al vigilante 
+    @Override
+    public String toString() {
+        return "Vigilante [" +
+               "Código: " + codigo + 
+               ", Edad: " + edad + 
+               "]";
     }
 }
