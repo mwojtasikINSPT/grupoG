@@ -1,9 +1,34 @@
 package models;
 
 //  para el control de acceso y definir comportamientos.
-//(Clase con username, password, RolUsuario).
-public class Usuario {
+public abstract class Usuario {
+    //Atributos
     private String username;
     private String password;
-    private String rol; // "ADMIN", "INVESTIGADOR", "VIGILANTE"
+    
+    //Constructor
+    public Usuario(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    // Getters y Setters
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    // Método abstracto para los obtener roles (en enum)
+    public abstract Rol obtenerRol();
 }

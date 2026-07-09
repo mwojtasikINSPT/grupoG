@@ -1,13 +1,29 @@
 package models;
 
-// Hereda de Persona. Añade atributo: edad.
-public class Vigilante extends Persona{
+// Relacion N-M con Sucursales
+public class Vigilante {
+
+    //Atributos
+    private String codigo;
     private int edad;
-    private Usuario cuentaUsuario; // Composición: El vigilante "tiene" una cuenta para entrar al sistema
-    
-    public Vigilante(String codigo, String nombre, int edad, Usuario cuentaUsuario) {
-        super(codigo, nombre);
+
+    // Constructor
+    public Vigilante(String codigo, int edad) {
+        this.codigo = codigo;
         this.edad = edad;
-        this.cuentaUsuario = cuentaUsuario;
+    }
+
+    // Getters y Setters
+    public String getCodigo() {
+        return codigo;
+    }
+
+
+    public int getEdad() {
+        return edad;
+    }
+
+    public void setEdad(int edad) {
+        this.edad = edad;
     }
 }
