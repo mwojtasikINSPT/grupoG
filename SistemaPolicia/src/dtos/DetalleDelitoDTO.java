@@ -2,14 +2,14 @@
 //DTO para representar cada delito en particular
 package dtos;
 
-public class DetalleCrimenDTO {
+public class DetalleDelitoDTO {
     private String idAsalto; //ver si es int o string
     private String fechaAsalto;
     private String detalleSucursal; // Id sucursal - Domicilio
     private String nombreJuez;
     private String veredicto; //ver si dejarlo string o int
 
-    public DetalleCrimenDTO(String idAsalto, String fechaAsalto, String detalleSucursal, String nombreJuez, String veredicto) {
+    public DetalleDelitoDTO(String idAsalto, String fechaAsalto, String detalleSucursal, String nombreJuez, String veredicto) {
         this.idAsalto = idAsalto;
         this.fechaAsalto = fechaAsalto;
         this.detalleSucursal = detalleSucursal;
