@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import models.Asaltante;
 import models.Asalto;
+import models.Sucursal;
 
 public class AsaltoDAO implements IGenericDAO<Asalto> {
 
@@ -41,8 +43,8 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
             // Transformo el LocalDate a String automáticamente usando  método toString()
             String linea = entidad.getIdAsalto() + "," + 
-                           entidad.getClaveAsaltante() + "," + 
-                           entidad.getCodigoSucursal() + "," + 
+                           entidad.getAsaltante().getClave() + "," + 
+                           entidad.getSucursal().getCodigo() + "," + 
                            entidad.getFecha().toString();
             
             bw.write(linea);
@@ -67,10 +69,13 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
                     String idAsalto = partes[0];
                     String claveAsaltante = partes[1];
                     String codigoSucursal = partes[2];
-                    // Yo convierto el texto nuevamente a LocalDate
+                    // Convierto el texto nuevamente a LocalDate
                     LocalDate fecha = LocalDate.parse(partes[3]); 
 
-                    Asalto asalto = new Asalto(idAsalto, claveAsaltante, codigoSucursal, fecha);
+                    Asaltante asaltante = new Asaltante(claveAsaltante, "", null);
+                    Sucursal sucursal = new Sucursal(codigoSucursal, "", 0, null);
+
+                    Asalto asalto = new Asalto(idAsalto, asaltante, sucursal, fecha);
                     listaAsaltos.add(asalto);
                 }
             }
@@ -105,13 +110,13 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
             for (Asalto a : asaltos) {
                 if (a.getIdAsalto().equals(entidad.getIdAsalto())) {
                     bw.write(entidad.getIdAsalto() + "," + 
-                             entidad.getClaveAsaltante() + "," + 
-                             entidad.getCodigoSucursal() + "," + 
+                            entidad.getAsaltante().getClave() + "," + 
+                             entidad.getSucursal().getCodigo() + "," + 
                              entidad.getFecha().toString());
                 } else {
                     bw.write(a.getIdAsalto() + "," + 
-                             a.getClaveAsaltante() + "," + 
-                             a.getCodigoSucursal() + "," + 
+                             a.getAsaltante().getClave() + "," + 
+                             a.getSucursal().getCodigo() + "," + 
                              a.getFecha().toString());
                 }
                 bw.newLine();
@@ -135,8 +140,8 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
             for (Asalto a : asaltos) {
                 if (!a.getIdAsalto().equals(id)) { 
                     bw.write(a.getIdAsalto() + "," + 
-                             a.getClaveAsaltante() + "," + 
-                             a.getCodigoSucursal() + "," + 
+                             a.getAsaltante().getClave() + "," + 
+                             a.getSucursal().getCodigo() + "," + 
                              a.getFecha().toString());
                     bw.newLine();
                 }

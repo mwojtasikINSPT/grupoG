@@ -13,7 +13,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import models.Asalto;
 import models.CasoJudicial;
+import models.Juez;
 
 public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
 
@@ -38,13 +40,13 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
     @Override
     public void guardar(CasoJudicial entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            String linea = entidad.getIdAsalto() + "," + 
-                           entidad.getClaveJuez() + "," + 
-                           entidad.isCondenado() + "," + 
-                           entidad.getMesesCarcel();
-            
+            String linea = entidad.getAsalto().getIdAsalto() + ","
+                    + entidad.getJuez().getClaveInterna() + ","
+                    + entidad.isCondenado() + ","
+                    + entidad.getMesesCarcel();
+
             bw.write(linea);
-            bw.newLine(); 
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Caso Judicial", e.getMessage());
         }
@@ -56,7 +58,7 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(",");
 
@@ -67,7 +69,11 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
                     boolean condenado = Boolean.parseBoolean(partes[2]);
                     int mesesCarcel = Integer.parseInt(partes[3]);
 
-                    CasoJudicial caso = new CasoJudicial(idAsalto, claveJuez, condenado, mesesCarcel);
+                    // Armo objetos temporales con los datos leidos
+                    Asalto asalto = new Asalto(idAsalto, null, null, null);
+                    Juez juez = new Juez(claveJuez, 0, "");
+
+                    CasoJudicial caso = new CasoJudicial(asalto, juez, condenado, mesesCarcel);
                     listaCasos.add(caso);
                 }
             }
@@ -80,9 +86,11 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
     @Override
     public CasoJudicial buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<CasoJudicial> casos = obtenerTodos();
+        // Le pregunto el ID al objeto Asalto que está adentro del caso
         for (CasoJudicial caso : casos) {
-            if (caso.getIdAsalto().equals(id)) {
-                return caso; 
+            // Le pregunto el ID al objeto Asalto que está adentro del caso
+            if (caso.getAsalto().getIdAsalto().equals(id)) {
+                return caso;
             }
         }
         throw new ObjetoNoEncontradoException("Caso Judicial", id);
@@ -100,16 +108,16 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         //Intento Actualizar
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (CasoJudicial c : casos) {
-                if (c.getIdAsalto().equals(entidad.getIdAsalto())) {
-                    bw.write(entidad.getIdAsalto() + "," + 
-                             entidad.getClaveJuez() + "," + 
-                             entidad.isCondenado() + "," + 
-                             entidad.getMesesCarcel());
+                if (c.getAsalto().getIdAsalto().equals(entidad.getAsalto().getIdAsalto())) {
+                    bw.write(entidad.getAsalto().getIdAsalto() + ","
+                            + entidad.getJuez().getClaveInterna() + ","
+                            + entidad.isCondenado() + ","
+                            + entidad.getMesesCarcel());
                 } else {
-                    bw.write(c.getIdAsalto() + "," + 
-                             c.getClaveJuez() + "," + 
-                             c.isCondenado() + "," + 
-                             c.getMesesCarcel());
+                    bw.write(c.getAsalto().getIdAsalto() + ","
+                            + c.getJuez().getClaveInterna() + ","
+                            + c.isCondenado() + ","
+                            + c.getMesesCarcel());
                 }
                 bw.newLine();
             }
@@ -130,11 +138,11 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (CasoJudicial c : casos) {
-                if (!c.getIdAsalto().equals(id)) { 
-                    bw.write(c.getIdAsalto() + "," + 
-                             c.getClaveJuez() + "," + 
-                             c.isCondenado() + "," + 
-                             c.getMesesCarcel());
+                if (!c.getAsalto().getIdAsalto().equals(id)) {
+                    bw.write(c.getAsalto().getIdAsalto() + ","
+                            + c.getJuez().getClaveInterna() + ","
+                            + c.isCondenado() + ","
+                            + c.getMesesCarcel());
                     bw.newLine();
                 }
             }

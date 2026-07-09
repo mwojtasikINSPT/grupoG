@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import models.ContratoVigilancia;
+import models.Sucursal;
+import models.Vigilante;
 
 public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
@@ -37,19 +39,19 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
     // Armo un ID único uniendo los 3 datos principales, capaz sirve para busquedas 
     private String generarIdCompuesto(ContratoVigilancia c) {
-        return c.getCodigoSucursal() + "-" + c.getCodigoVigilante() + "-" + c.getFecha().toString();
+        return c.getSucursal().getCodigo() + "-" + c.getVigilante().getCodigo() + "-" + c.getFecha().toString();
     }
 
     @Override
     public void guardar(ContratoVigilancia entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            String linea = entidad.getCodigoSucursal() + "," + 
-                           entidad.getCodigoVigilante() + "," + 
-                           entidad.getFecha().toString() + "," + 
-                           entidad.isConArma();
-            
+            String linea = entidad.getSucursal().getCodigo() + ","
+                    + entidad.getVigilante().getCodigo() + ","
+                    + entidad.getFecha().toString() + ","
+                    + entidad.isConArma();
+
             bw.write(linea);
-            bw.newLine(); 
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Contrato Vigilancia", e.getMessage());
         }
@@ -61,7 +63,7 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(",");
 
@@ -69,10 +71,14 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
                     String codigoSucursal = partes[0];
                     String codigoVigilante = partes[1];
                     //Parseo fecha y  booleano del txt 
-                    LocalDate fecha = LocalDate.parse(partes[2]); 
+                    LocalDate fecha = LocalDate.parse(partes[2]);
                     boolean conArma = Boolean.parseBoolean(partes[3]);
 
-                    ContratoVigilancia contrato = new ContratoVigilancia(codigoSucursal, codigoVigilante, fecha, conArma);
+                    //obj temporal con dato obtenido
+                    Sucursal sucursal = new Sucursal(codigoSucursal, "", 0, null);
+                    Vigilante vigilante = new Vigilante(codigoVigilante, 0);
+
+                    ContratoVigilancia contrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
                     listaContratos.add(contrato);
                 }
             }
@@ -88,7 +94,7 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         for (ContratoVigilancia contrato : contratos) {
             // Comparo el ID compuesto que llegue con el generado 
             if (generarIdCompuesto(contrato).equals(id)) {
-                return contrato; 
+                return contrato;
             }
         }
         throw new ObjetoNoEncontradoException("Contrato Vigilancia", id);
@@ -107,15 +113,15 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (ContratoVigilancia c : contratos) {
                 if (generarIdCompuesto(c).equals(generarIdCompuesto(entidad))) {
-                    bw.write(entidad.getCodigoSucursal() + "," + 
-                             entidad.getCodigoVigilante() + "," + 
-                             entidad.getFecha().toString() + "," + 
-                             entidad.isConArma());
+                    bw.write(entidad.getSucursal().getCodigo() + ","
+                            + entidad.getVigilante().getCodigo() + ","
+                            + entidad.getFecha().toString() + ","
+                            + entidad.isConArma());
                 } else {
-                    bw.write(c.getCodigoSucursal() + "," + 
-                             c.getCodigoVigilante() + "," + 
-                             c.getFecha().toString() + "," + 
-                             c.isConArma());
+                    bw.write(c.getSucursal().getCodigo() + ","
+                            + c.getVigilante().getCodigo() + ","
+                            + c.getFecha().toString() + ","
+                            + c.isConArma());
                 }
                 bw.newLine();
             }
@@ -136,11 +142,11 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (ContratoVigilancia c : contratos) {
-                if (!generarIdCompuesto(c).equals(id)) { 
-                    bw.write(c.getCodigoSucursal() + "," + 
-                             c.getCodigoVigilante() + "," + 
-                             c.getFecha().toString() + "," + 
-                             c.isConArma());
+                if (!generarIdCompuesto(c).equals(id)) {
+                    bw.write(c.getSucursal().getCodigo() + ","
+                            + c.getVigilante().getCodigo() + ","
+                            + c.getFecha().toString() + ","
+                            + c.isConArma());
                     bw.newLine();
                 }
             }

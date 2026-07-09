@@ -45,7 +45,7 @@ public class BandaDAO implements IGenericDAO<Banda> {
         // El 'true' en FileWriter significa modo "Append" (agrega al final sin borrar lo anterior)
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
             // Armamos la línea separada por comas
-            String linea = entidad.getNumeroBanda() + "," + entidad.getcantMiembros();
+            String linea = entidad.getNumeroBanda() + "," + entidad.getCantMiembros();
             bw.write(linea);
             bw.newLine(); // Salto de línea para el próximo registro
         } catch (IOException e) {
@@ -107,9 +107,9 @@ public class BandaDAO implements IGenericDAO<Banda> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Banda b : bandas) {
                 if (b.getNumeroBanda().equals(entidad.getNumeroBanda())) {
-                    bw.write(entidad.getNumeroBanda() + "," + entidad.getcantMiembros());
+                    bw.write(entidad.getNumeroBanda() + "," + entidad.getCantMiembros());
                 } else {
-                    bw.write(b.getNumeroBanda() + "," + b.getcantMiembros());
+                    bw.write(b.getNumeroBanda() + "," + b.getCantMiembros());
                 }
                 bw.newLine();
             }
@@ -134,7 +134,7 @@ public class BandaDAO implements IGenericDAO<Banda> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Banda b : bandas) {
                 if (!b.getNumeroBanda().equals(id)) { 
-                    bw.write(b.getNumeroBanda() + "," + b.getcantMiembros());
+                    bw.write(b.getNumeroBanda() + "," + b.getCantMiembros());
                     bw.newLine();
                 }
             }

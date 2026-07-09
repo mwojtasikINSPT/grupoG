@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import models.Asaltante;
+import models.Banda;
 
 public class AsaltanteDAO implements IGenericDAO<Asaltante> {
 
@@ -38,14 +39,14 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
     @Override
     public void guardar(Asaltante entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            
+
             // Armo la línea separada por comas
-            String linea = entidad.getClave() + "," + 
-                           entidad.getNombreCompleto() + "," + 
-                           entidad.getBanda();
-            
+            String linea = entidad.getClave() + ","
+                    + entidad.getNombreCompleto() + ","
+                    + (entidad.getBanda() != null ? entidad.getBanda().getNumeroBanda() : "null");
+
             bw.write(linea);
-            bw.newLine(); 
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Asaltante", e.getMessage());
         }
@@ -57,10 +58,10 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             // Leo línea por línea hasta que el archivo termine
             while ((linea = br.readLine()) != null) {
-                
+
                 // Separo los datos usando la coma
                 String[] partes = linea.split(",");
 
@@ -68,7 +69,9 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
                 if (partes.length == 3) {
                     String clave = partes[0];
                     String nombreCompleto = partes[1];
-                    String banda = partes[2];
+                    String numeroBanda = partes[2];
+
+                    Banda banda = numeroBanda.equals("null") ? null : new Banda(numeroBanda, 0);
 
                     // Reconstruyo el objeto y lo agrego a la lista
                     Asaltante asaltante = new Asaltante(clave, nombreCompleto, banda);
@@ -87,7 +90,7 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
         for (Asaltante asaltante : asaltantes) {
             // Busco usando la clave como ID único
             if (asaltante.getClave().equals(id)) {
-                return asaltante; 
+                return asaltante;
             }
         }
         throw new ObjetoNoEncontradoException("Asaltante", id);
@@ -108,13 +111,13 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Asaltante a : asaltantes) {
                 if (a.getClave().equals(entidad.getClave())) {
-                    bw.write(entidad.getClave() + "," + 
-                             entidad.getNombreCompleto() + "," + 
-                             entidad.getBanda());
+                    bw.write(entidad.getClave() + ","
+                            + entidad.getNombreCompleto() + ","
+                            + (entidad.getBanda() != null ? entidad.getBanda().getNumeroBanda() : "null"));
                 } else {
-                    bw.write(a.getClave() + "," + 
-                             a.getNombreCompleto() + "," + 
-                             a.getBanda());
+                    bw.write(a.getClave() + ","
+                            + a.getNombreCompleto() + ","
+                            + (a.getBanda() != null ? a.getBanda().getNumeroBanda() : "null"));
                 }
                 bw.newLine();
             }
@@ -137,10 +140,10 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
         // 2. Intento escribir (sobrescribir omitiendo el id)
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Asaltante a : asaltantes) {
-                if (!a.getClave().equals(id)) { 
-                    bw.write(a.getClave() + "," + 
-                             a.getNombreCompleto() + "," + 
-                             a.getBanda());
+                if (!a.getClave().equals(id)) {
+                    bw.write(a.getClave() + ","
+                            + a.getNombreCompleto() + ","
+                            + (a.getBanda() != null ? a.getBanda().getNumeroBanda() : "null"));
                     bw.newLine();
                 }
             }

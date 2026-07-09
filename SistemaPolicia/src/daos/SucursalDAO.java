@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import models.EntidadBancaria;
 import models.Sucursal;
 
 public class SucursalDAO implements IGenericDAO<Sucursal> {
@@ -38,15 +39,15 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
     @Override
     public void guardar(Sucursal entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            
+
             // Armo la línea separada por comas
-            String linea = entidad.getCodigo() + "," + 
-                           entidad.getDomicilio() + "," + 
-                           entidad.getNumeroEmpleados() + "," + 
-                           entidad.getCodigoEntidad();
-            
+            String linea = entidad.getCodigo() + ","
+                    + entidad.getDomicilio() + ","
+                    + entidad.getNumeroEmpleados() + ","
+                    + entidad.getEntidad().getCodigo();
+
             bw.write(linea);
-            bw.newLine(); 
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Sucursal", e.getMessage());
         }
@@ -58,10 +59,10 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             // Leo línea por línea hasta que el archivo termine
             while ((linea = br.readLine()) != null) {
-                
+
                 // Separo los datos usando la coma
                 String[] partes = linea.split(",");
 
@@ -69,14 +70,17 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
                 if (partes.length == 4) {
                     String codigo = partes[0];
                     String domicilio = partes[1];
-                    
-                    // Parseo el texto a int para el número de empleados
+
+                    // Parseo a texto el int para el número de empleados
                     int numeroEmpleados = Integer.parseInt(partes[2]);
-                    
+
                     String codigoEntidad = partes[3];
 
-                    // Reconstruyo el objeto y  agrego a la lista
-                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, codigoEntidad);
+                    //Instancio un banco temporal con el código leído
+                    EntidadBancaria entidad = new EntidadBancaria(codigoEntidad, "");
+
+                    // Reconstruyo el objeto y agrego a la lista pasando la entidad
+                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, entidad); 
                     listaSucursales.add(sucursal);
                 }
             }
@@ -92,7 +96,7 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         for (Sucursal sucursal : sucursales) {
             // Busco usando el código de la sucursal como ID único
             if (sucursal.getCodigo().equals(id)) {
-                return sucursal; 
+                return sucursal;
             }
         }
         throw new ObjetoNoEncontradoException("Sucursal", id);
@@ -113,15 +117,15 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Sucursal s : sucursales) {
                 if (s.getCodigo().equals(entidad.getCodigo())) {
-                    bw.write(entidad.getCodigo() + "," + 
-                             entidad.getDomicilio() + "," + 
-                             entidad.getNumeroEmpleados() + "," + 
-                             entidad.getCodigoEntidad());
+                    bw.write(entidad.getCodigo() + ","
+                            + entidad.getDomicilio() + ","
+                            + entidad.getNumeroEmpleados() + ","
+                            + entidad.getEntidad().getCodigo());
                 } else {
-                    bw.write(s.getCodigo() + "," + 
-                             s.getDomicilio() + "," + 
-                             s.getNumeroEmpleados() + "," + 
-                             s.getCodigoEntidad());
+                    bw.write(s.getCodigo() + ","
+                            + s.getDomicilio() + ","
+                            + s.getNumeroEmpleados() + ","
+                            + s.getEntidad().getCodigo());
                 }
                 bw.newLine();
             }
@@ -144,11 +148,11 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         // 2. Intento escribir (sobrescribir omitiendo el id)
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Sucursal s : sucursales) {
-                if (!s.getCodigo().equals(id)) { 
-                    bw.write(s.getCodigo() + "," + 
-                             s.getDomicilio() + "," + 
-                             s.getNumeroEmpleados() + "," + 
-                             s.getCodigoEntidad());
+                if (!s.getCodigo().equals(id)) {
+                    bw.write(s.getCodigo() + ","
+                            + s.getDomicilio() + ","
+                            + s.getNumeroEmpleados() + ","
+                            + s.getEntidad().getCodigo());
                     bw.newLine();
                 }
             }

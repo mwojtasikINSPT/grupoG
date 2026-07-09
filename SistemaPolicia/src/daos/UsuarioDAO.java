@@ -18,6 +18,7 @@ import models.Usuario;
 import models.UsuarioAdministrador;
 import models.UsuarioInvestigador;
 import models.UsuarioVigilante;
+import models.Vigilante;
 
 public class UsuarioDAO implements IGenericDAO<Usuario> {
 
@@ -40,16 +41,16 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
 
     // Método auxiliar para armar la línea de texto dependiendo del tipo de usuario
     private String armarLinea(Usuario entidad) {
-        String linea = entidad.getUsername() + "," + 
-                       entidad.getPassword() + "," + 
-                       entidad.obtenerRol().name();
-        
+        String linea = entidad.getUsername() + ","
+                + entidad.getPassword() + ","
+                + entidad.obtenerRol().name();
+
         // Si el usuario es un Vigilante, agrego la 4ta columna con su código
         if (entidad instanceof UsuarioVigilante) {
             // Transformo (casteo) la variable a UsuarioVigilante para poder usar su getter
             UsuarioVigilante vigilante = (UsuarioVigilante) entidad;
-            linea += "," + vigilante.getCodigoVigilante(); 
-        }        
+            linea += "," + vigilante.getVigilante().getCodigo();
+        }
         return linea;
     }
 
@@ -57,7 +58,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
     public void guardar(Usuario entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
             bw.write(armarLinea(entidad));
-            bw.newLine(); 
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Usuario", e.getMessage());
         }
@@ -69,7 +70,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(",");
 
@@ -93,12 +94,12 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
                             usuario = new UsuarioInvestigador(username, password);
                             break;
                         case VIGILANTE:
-                            // Si es vigilante, busco la 4ta columna (índice 3)
+                        // Si es vigilante, busco la 4ta columna (índice 3)
                             String codigoVigilante = "";
                             if (partes.length == 4) {
                                 codigoVigilante = partes[3];
                             }
-                            usuario = new UsuarioVigilante(username, password, codigoVigilante);
+                            usuario = new UsuarioVigilante(username, password, new Vigilante(codigoVigilante, 0));
                             break;
                     }
 
@@ -118,7 +119,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
         List<Usuario> usuarios = obtenerTodos();
         for (Usuario usuario : usuarios) {
             if (usuario.getUsername().equals(id)) {
-                return usuario; 
+                return usuario;
             }
         }
         throw new ObjetoNoEncontradoException("Usuario", id);
@@ -160,7 +161,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Usuario u : usuarios) {
-                if (!u.getUsername().equals(id)) { 
+                if (!u.getUsername().equals(id)) {
                     bw.write(armarLinea(u));
                     bw.newLine();
                 }
