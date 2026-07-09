@@ -1,0 +1,31 @@
+# Compilados de Java
+*.class
+
+# Archivos de log
+*.log
+
+# Archivos temporales
+*.tmp
+*.swp
+*~
+
+# Directorios de build y distribución
+/build/
+/dist/
+/target/
+
+# Configuración privada de NetBeans
+nbproject/private/
+
+# Configuración de NetBeans que no debería versionarse
+nbproject/configurations.xml
+nbproject/project.properties
+
+# Archivos generados por IDEs
+/.idea/
+/.vscode/
+/*.iml
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
