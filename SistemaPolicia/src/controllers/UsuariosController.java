@@ -12,6 +12,7 @@ import models.Usuario;
 import models.UsuarioAdministrador;
 import models.UsuarioInvestigador;
 import models.UsuarioVigilante;
+import models.Vigilante;
 
 public class UsuariosController {
 
@@ -51,7 +52,10 @@ public class UsuariosController {
                     if (codigoVigilante == null || codigoVigilante.trim().isEmpty()) {
                         throw new Exception("El rol VIGILANTE requiere especificar su código de vigilante.");
                      }
-                    nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, codigoVigilante);
+                    
+                    //Envuelvo el texto en un objeto Vigilante temporal
+                    Vigilante vigilante = new Vigilante(codigoVigilante, 0); 
+                    nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, vigilante);
                     break;
             }
             usuarioDAO.guardar(nuevoUsuario);

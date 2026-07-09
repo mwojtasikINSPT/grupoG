@@ -6,6 +6,7 @@ import daos.CasoJudicialDAO;
 import daos.JuezDAO;
 import exceptions.ErrorAlGuardarException;
 import exceptions.ObjetoNoEncontradoException;
+import models.Asalto;
 import models.CasoJudicial;
 import models.Juez;
 
@@ -61,14 +62,20 @@ public class JudicialController {
         
         try {
             // Verificamos primero que el juez exista en el archivo de texto
+            //Si existe, lo guardo en variable temporal
+            Juez juezReal;
             try {
-                juezDAO.buscarPorId(claveJuez);
+                juezReal = juezDAO.buscarPorId(claveJuez);
             } catch (ObjetoNoEncontradoException e) {
                 throw new Exception("Operación inválida: El juez con clave '" + claveJuez + "' no existe en el sistema.");
             }
             
+            Asalto asaltoTemp = new Asalto(idAsalto, null, null, null);
+            CasoJudicial casoJucidial = new CasoJudicial(asaltoTemp, juezReal, condenado, mesesEfectivos);
             //crear el caso judicial
-            CasoJudicial nuevoCaso = new CasoJudicial(idAsalto, claveJuez, condenado, mesesEfectivos);
+            CasoJudicial nuevoCaso = new CasoJudicial(asaltoTemp, juezReal, condenado, mesesEfectivos);
+            // Guardo el caso en el archivo usando su DAO
+            casoJudicialDAO.guardar(nuevoCaso);
             
         }catch (ErrorAlGuardarException e){
             throw new Exception("Error al guardar el caso judicial en el archivo: " + e.getMessage());
