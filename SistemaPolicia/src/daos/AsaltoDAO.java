@@ -5,11 +5,11 @@ import exceptions.ErrorAlEliminarException;
 import exceptions.ErrorAlGuardarException;
 import exceptions.ErrorAlLeerException;
 import exceptions.ObjetoNoEncontradoException;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.BufferedReader; // Lee texto de forma rápida y eficiente (línea por línea) usando memoria temporal.
+import java.io.BufferedWriter; // Escribe texto de forma eficiente acumulándolo en memoria antes de pasarlo al disco.
+import java.io.File;           // Representa la ruta o la existencia del archivo físico en el disco duro.
+import java.io.FileReader;     // Abre la conexión directa para leer los caracteres del archivo.
+import java.io.FileWriter;     // Abre la conexión directa para escribir caracteres dentro del archivo.
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
