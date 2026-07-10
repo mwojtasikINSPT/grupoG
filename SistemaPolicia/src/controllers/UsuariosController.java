@@ -1,6 +1,5 @@
 package controllers;
 
-//Gestiona usuariodao
 import daos.UsuarioDAO;
 import exceptions.ErrorAlEliminarException;
 import exceptions.ErrorAlGuardarException;
@@ -21,26 +20,31 @@ public class UsuariosController {
     public UsuariosController() {
         this.usuarioDAO = new UsuarioDAO();
     }
-
-    //Registra un nuevo usuario en el sistema (.txt)  respetando su rol
-    
-    public void registrarUsuario(String nombreUsuario, String password, String rolEmp, String codigoVigilante) throws Exception {
-        //Validamos 
+        
+    //Registra un nuevo usuario en .txt, asignando rol desde Enum (no String)    
+    public void registrarUsuario(String nombreUsuario, String password, Rol rol, String codigoVigilante) throws Exception {
+        // Valido datos no vacíos
         if (nombreUsuario.trim().isEmpty() || password.trim().isEmpty()) {
             throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
         }
-        try {
-            try {
-                //Validamos que no sea duplicado (nombre de usuario unico)
-                usuarioDAO.buscarPorId(nombreUsuario);
-                throw new Exception("El nombre de usuario '" + nombreUsuario + "' ya está en uso.");
-            } catch (ObjetoNoEncontradoException e) {
-                //si no lo encuentra, se puede usar
-            }
 
-            //Creamos el usuario ya verificado
+        // Valido que el rol no sea nulo
+        if (rol == null) {
+            throw new Exception("El rol del usuario es obligatorio.");
+        }
+
+        // Valido nombre de usuario único
+        try {
+            usuarioDAO.buscarPorId(nombreUsuario);
+            throw new Exception("El nombre de usuario '" + nombreUsuario + "' ya está en uso.");
+        } catch (ObjetoNoEncontradoException e) {
+            // Si salta esta excepción significa que no lo encontró, entonces se puede usar
+        }
+
+        try {
+            // Creo el usuario dependiendo del rol recibido
             Usuario nuevoUsuario = null;
-            Rol rol = Rol.valueOf(rolEmp.toUpperCase());
+            
             switch (rol) {
                 case ADMINISTRADOR:
                     nuevoUsuario = new UsuarioAdministrador(nombreUsuario, password);
@@ -53,15 +57,16 @@ public class UsuariosController {
                         throw new Exception("El rol VIGILANTE requiere especificar su código de vigilante.");
                      }
                     
-                    //Envuelvo el texto en un objeto Vigilante temporal
+                    // Envuelvo el texto en un objeto Vigilante temporal
                     Vigilante vigilante = new Vigilante(codigoVigilante, 0); 
                     nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, vigilante);
                     break;
             }
+            
+            // Guardo el usuario validado
             usuarioDAO.guardar(nuevoUsuario);
-            }catch(IllegalArgumentException e) {
-                throw new Exception("El rol '" + rolEmp + "' no es válido en el sistema.");
-        }catch (ErrorAlGuardarException e) {
+            
+        } catch (ErrorAlGuardarException e) {
             throw new Exception("No se pudo guardar el usuario: " + e.getMessage());
         }
     }
