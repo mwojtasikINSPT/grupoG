@@ -20,7 +20,7 @@ public class BancarioController {
 
     private final SucursalDAO sucursalDAO;
     private final VigilanteDAO vigilanteDAO;
-    private final ContratoVigilanciaDAO contratoVigilanciaDAO;
+    private final ContratoVigilanciaDAO contratoDAO;
     
     //Constructor para inicializar los DAOs
     public BancarioController() {
@@ -68,7 +68,7 @@ public class BancarioController {
             } catch (ObjetoNoEncontradoException e) {
             }
             EntidadBancaria bancoAsociado = new EntidadBancaria(codigoBanco, "");
-            Sucursal nuevaSucursal = new Sucursal(codigoSucursal, domicilio, nroEmpleado, bancoAsociado);
+            Sucursal nuevaSucursal = new Sucursal(codigoSucursal, domicilio, numEmpleado, bancoAsociado);
    
             sucursalDAO.guardar(nuevaSucursal);
         } catch (ErrorAlGuardarException e){
@@ -99,9 +99,8 @@ public class BancarioController {
            LocalDate fecha = LocalDate.parse(fechaStr);
            
            //Armar contrato
-           
-           //ContratoVigilancia nuevoContrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
-           
+           ContratoVigilancia nuevoContrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
+           contratoDAO.guardar(nuevoContrato);
        }catch (java.time.format.DateTimeParseException e){
            throw new Exception("Formato de fecha inválido. Por favor use el formato correcto.");
        }catch (ErrorAlGuardarException e){
@@ -114,7 +113,7 @@ public class BancarioController {
        try{
            return contratoDAO.obtenerTodos();
        }catch(ErrorAlLeerException e){
-           throw new Exception(e.get(Message()));
+           throw new Exception(e.getMessage());
        }
    }
    
