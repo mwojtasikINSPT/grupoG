@@ -102,7 +102,7 @@ public class BancarioController {
            ContratoVigilancia nuevoContrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
            contratoDAO.guardar(nuevoContrato);
        }catch (java.time.format.DateTimeParseException e){
-           throw new Exception("Formato de fecha inválido. Por favor use el formato correcto.");
+           throw new Exception("Formato de fecha inválido. Por favor use el formato YYYY-MM-DD.");
        }catch (ErrorAlGuardarException e){
            throw new Exception(e.getMessage());
        }

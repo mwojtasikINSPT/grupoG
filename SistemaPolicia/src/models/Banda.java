@@ -9,7 +9,7 @@ public class Banda implements Serializable {
     private static final long serialVersionUID = 1L;
     
     // Defino los atributos
-    private String numeroBanda;
+    private String numeroBanda; 
     private int cantMiembros;
 
     public Banda() {
