@@ -1,18 +1,19 @@
 package views;
 
-// Consola específica con acceso total (CRUD completo).
 import controllers.BancarioController;
 import controllers.UsuariosController;
+import models.Rol;
 import models.Usuario;
 
+// Consola específica con acceso total (CRUD completo).
 public class MenuAdministrador {
 
     private final UsuariosController usuariosController;
-    private final BancarioController bancarioControler;
+    private final BancarioController bancarioController;
 
     public MenuAdministrador() {
         this.usuariosController = new UsuariosController();
-        this.bancarioControler = new BancarioController();
+        this.bancarioController = new BancarioController();
     }
 
     //Mostrar menu del administrador
@@ -65,11 +66,33 @@ public class MenuAdministrador {
 
     //METODOS QUE LLAMAN A LOS CONTROLLERS
     //falta armar
-    public void ejecutarRegistrarUsuario() {
+    private void ejecutarRegistrarUsuario() {
+        UIHelper.mostrarTitulo("REGISTRO DE NUEVO USUARIO");
+
+        // Pido los datos 
+        String nombreUsuario = UIHelper.leerTexto("Ingrese el nombre de usuario");
+        String password = UIHelper.leerTexto("Ingrese la contraseña");
+        Rol rol = UIHelper.leerRol("Ingrese el rol (ADMINISTRADOR, INVESTIGADOR, VIGILANTE)");
+
+        // Verifico si es vigilante para pedirle su código 
+        String codigoVigilante = null;
+        if (rol == Rol.VIGILANTE) {
+            codigoVigilante = UIHelper.leerTexto("Ingrese el código único del vigilante");
+        }
+
+        // Mando al controlador 
+        try {
+            usuariosController.registrarUsuario(nombreUsuario, password, rol, codigoVigilante);
+            UIHelper.imprimirExito("El usuario '\" + nombreUsuario + \"' fue registrado correctamente.\"");
+        } catch (Exception e) {
+            // Si el controlador se queja (usuario repetido, vacíos, etc.), lo atajamos acá
+            UIHelper.imprimirError(e.getMessage());
+        }
+        UIHelper.pausar(); 
     }
 
     public void ejecutarListarUsuarios() {
-    }
+            }
 
     public void ejecutarEliminarUsuario() {
     }
