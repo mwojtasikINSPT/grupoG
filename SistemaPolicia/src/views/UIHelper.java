@@ -3,6 +3,7 @@ package views;
 // Clase utilitaria para manejar la E/S por consola (Scanner, validaciones).
 
 import java.util.Scanner;
+import models.Rol;
 
 public class UIHelper {
 
@@ -48,6 +49,46 @@ public class UIHelper {
             if(entrada.equals("S")) return true;
             if(entrada.equals("N")) return false;
             System.out.println("Opción inválida. Ingrese 'S' para Sí o 'N' para No.");
+        }
+    }
+    
+    
+    // Muestra un mensaje 
+    public static void imprimirMensaje(String mensaje) {
+        System.out.println(mensaje);
+    }
+
+    // Muestra un mensaje de error, despues deberiamos usar exceptions ?
+    public static void imprimirError(String mensaje) {
+        System.out.println("\n[ERROR] " + mensaje);
+    }
+
+    // Muestra un mensaje de ok
+    public static void imprimirExito(String mensaje) {
+        System.out.println("\n[ÉXITO] " + mensaje);
+    }
+
+    // Pausa el sistema hasta que el usuario presione ENTER 
+    public static void pausar() {
+        System.out.print("\nPresione ENTER para continuar...");
+        teclado.nextLine(); 
+    }
+    
+    // Leo el texto del usuario y lo convierto obligatoriamente en un Rol válido
+    public static Rol leerRol(String mensaje) {
+        while (true) {
+            // Pido el Rol 
+            String entrada = leerTexto(mensaje).toUpperCase();
+            
+            try {
+                // Intento transformar el texto en rol valido del Enum
+                return Rol.valueOf(entrada);
+                
+            } catch (IllegalArgumentException e) {
+                // Si el texto no coincide con ningún Enum, atrapo el error y aviso al admin
+                System.out.println("[ERROR] Rol inválido. Escriba exactamente: ADMINISTRADOR, INVESTIGADOR o VIGILANTE.");
+                
+            }
         }
     }
 }
