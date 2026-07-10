@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args) {
         LoginController loginController = new LoginController();
         UIHelper.mostrarTitulo("SISTEMA DE SEGURIDAD BANCARIA");
-        System.out.println("Por favor, inicie sesión para continuar.");
+        UIHelper.imprimirMensaje("Por favor, inicie sesión para continuar.");
         
         boolean loginExitoso = false;
         
