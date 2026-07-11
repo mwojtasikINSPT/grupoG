@@ -10,23 +10,26 @@ public class LoginController {
 
     private final UsuarioDAO usuarioDAO;
     private final MenuController menuController;
-    
-    public LoginController(){
+
+    public LoginController() {
         this.usuarioDAO = new UsuarioDAO();
         this.menuController = new MenuController();
     }
-    
-   public Usuario procesarLogin(UsuarioLoginDTO loginDTO) throws Exception {
+
+    public Usuario procesarLogin(UsuarioLoginDTO loginDTO) throws Exception {
         // Validar datos vacíos
-        if(loginDTO.getNombreUsuario().trim().isEmpty() || loginDTO.getPassword().trim().isEmpty()){
+        if (loginDTO.getNombreUsuario().trim().isEmpty() || loginDTO.getPassword().trim().isEmpty()) {
             throw new Exception("El usuario y la contraseña no pueden estar vacíos.");
         }
 
         try {
+            // Normalizamos el nombre ingresado
+            String nombreNormalizado = loginDTO.getNombreUsuario().trim().toLowerCase();
+            
             // Busco el usuario en el archivo .txt
-            Usuario usuario = usuarioDAO.buscarPorId(loginDTO.getNombreUsuario());
+            Usuario usuario = usuarioDAO.buscarPorId(nombreNormalizado);
 
-            if(usuario.getPassword().equals(loginDTO.getPassword())){
+            if (usuario.getPassword().equals(loginDTO.getPassword())) {
                 // Si coinciden, devolvemos la variable encontrada
                 return usuario;
             } else {

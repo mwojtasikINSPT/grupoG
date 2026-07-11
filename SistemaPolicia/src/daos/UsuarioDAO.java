@@ -126,8 +126,11 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
     @Override
     public Usuario buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<Usuario> usuarios = obtenerTodos();
+        
+        String idBuscado = id.toLowerCase(); // Normalizo
+        
         for (Usuario usuario : usuarios) {
-            if (usuario.getUsername().equals(id)) {
+            if (usuario.getUsername().equals(idBuscado)) {
                 return usuario;
             }
         }
