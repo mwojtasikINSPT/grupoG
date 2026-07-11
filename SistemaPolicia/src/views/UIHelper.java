@@ -34,6 +34,7 @@ public class UIHelper {
         while(true){
             try{
                 System.out.println(mensaje + ": ");
+                 // Usamos nextLine para consumir todo, incluido el \n, sino fallaba en Pausar
                 return Integer.parseInt(teclado.nextLine().trim());
             }catch(NumberFormatException e){
                 System.out.println("Debe ingresar un número entero válido.");
