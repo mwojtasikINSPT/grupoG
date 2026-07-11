@@ -20,7 +20,7 @@ public class UsuariosController {
     public UsuariosController() {
         this.usuarioDAO = new UsuarioDAO();
     }
-        
+
     //Registra un nuevo usuario en .txt, asignando rol desde Enum (no String)    
     public void registrarUsuario(String nombreUsuario, String password, Rol rol, String codigoVigilante) throws Exception {
         // Valido datos no vacíos
@@ -44,7 +44,7 @@ public class UsuariosController {
         try {
             // Creo el usuario dependiendo del rol recibido
             Usuario nuevoUsuario = null;
-            
+
             switch (rol) {
                 case ADMINISTRADOR:
                     nuevoUsuario = new UsuarioAdministrador(nombreUsuario, password);
@@ -55,44 +55,44 @@ public class UsuariosController {
                 case VIGILANTE:
                     if (codigoVigilante == null || codigoVigilante.trim().isEmpty()) {
                         throw new Exception("El rol VIGILANTE requiere especificar su código de vigilante.");
-                     }
-                    
+                    }
+
                     // Envuelvo el texto en un objeto Vigilante temporal
-                    Vigilante vigilante = new Vigilante(codigoVigilante, 0); 
+                    Vigilante vigilante = new Vigilante(codigoVigilante, 0);
                     nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, vigilante);
                     break;
             }
-            
+
             // Guardo el usuario validado
             usuarioDAO.guardar(nuevoUsuario);
-            
+
         } catch (ErrorAlGuardarException e) {
             throw new Exception("No se pudo guardar el usuario: " + e.getMessage());
         }
     }
 
     // listar todos los usuarios
-    public List<Usuario> listarUsuarios() throws Exception{
-        try{
-            return usuarioDAO.obtenerTodos(); 
-        }catch(ErrorAlLeerException e){
+    public List<Usuario> listarUsuarios() throws Exception {
+        try {
+            return usuarioDAO.obtenerTodos();
+        } catch (ErrorAlLeerException e) {
             throw new Exception("Error al recuperar la lista de usuarios: " + e.getMessage());
         }
     }
-    
-    // eliminar usuario mediante su nombre de usuario (es unico)
-    
-    public void eliminarUsuario(String nombreUsuario) throws Exception{
-        if (nombreUsuario.equals("admin")){
-            throw new Exception("Por motivos de seguridad, no se puede eliminar el usuario del admin.");
+
+    // eliminar usuario mediante su nombre de usuario
+    public void eliminarUsuario(String usuarioAEliminar, String usuarioLogueado) throws Exception {
+        // Evito que el administrador se elimine a sí mismo 
+        if (usuarioAEliminar.equalsIgnoreCase(usuarioLogueado)) {
+            throw new Exception("Por motivos de seguridad, no podés eliminar tu propia cuenta.");
         }
-        
-        try{
-            usuarioDAO.buscarPorId(nombreUsuario);
-            usuarioDAO.eliminar(nombreUsuario);
-        }catch (ObjetoNoEncontradoException e){
-            throw new Exception ("El usuario '" + nombreUsuario + "' no existe en el sistema.");
-        }catch (ErrorAlEliminarException e){
+
+        try {
+            usuarioDAO.buscarPorId(usuarioAEliminar);
+            usuarioDAO.eliminar(usuarioAEliminar);
+        } catch (ObjetoNoEncontradoException e) {
+            throw new Exception("El usuario '" + usuarioAEliminar + "' no existe en el sistema.");
+        } catch (ErrorAlEliminarException e) {
             throw new Exception("No se pudo eliminar el usuario: " + e.getMessage());
         }
     }

@@ -2,6 +2,7 @@ package views;
 
 import controllers.BancarioController;
 import controllers.UsuariosController;
+import java.util.List;
 import models.Rol;
 import models.Usuario;
 
@@ -21,7 +22,7 @@ public class MenuAdministrador {
         int opcion = -1;
 
         while (opcion != 0) {
-            UIHelper.mostrarTitulo("Menú de Administrador - Hola, " + usuarioLogueado.getUsername());
+            UIHelper.mostrarTitulo("MENÚ DE ADMIN - Hola, " + usuarioLogueado.getUsername());
             UIHelper.imprimirMensaje("--- GESTIÓN DE USUARIOS ---\n"
                     + "1. Registrar un nuevo Usuario en el sistema\n"
                     + "2. Listar todos los Usuarios\n"
@@ -43,7 +44,7 @@ public class MenuAdministrador {
                     ejecutarListarUsuarios();
                     break;
                 case 3:
-                    ejecutarEliminarUsuario();
+                    ejecutarEliminarUsuario(usuarioLogueado);
                     break;
                 case 4:
                     ejecutarRegistrarVigilante();
@@ -65,7 +66,6 @@ public class MenuAdministrador {
     }
 
     //METODOS QUE LLAMAN A LOS CONTROLLERS
-    //falta armar
     private void ejecutarRegistrarUsuario() {
         UIHelper.mostrarTitulo("REGISTRO DE NUEVO USUARIO");
 
@@ -83,27 +83,130 @@ public class MenuAdministrador {
         // Mando al controlador 
         try {
             usuariosController.registrarUsuario(nombreUsuario, password, rol, codigoVigilante);
-            UIHelper.imprimirExito("El usuario '\" + nombreUsuario + \"' fue registrado correctamente.\"");
+            UIHelper.imprimirExito("El usuario " + nombreUsuario + " fue registrado correctamente.");
         } catch (Exception e) {
-            // Si el controlador se queja (usuario repetido, vacíos, etc.), lo atajamos acá
+            // Si usuario repetido, vacíos, etc.
             UIHelper.imprimirError(e.getMessage());
         }
-        UIHelper.pausar(); 
+        UIHelper.pausar();
     }
 
-    public void ejecutarListarUsuarios() {
+    private void ejecutarListarUsuarios() {
+        UIHelper.mostrarTitulo("LISTADO DE USUARIOS");
+
+        try {
+            // Pido la lista de usuarios al controlador
+            List<Usuario> listaUsuarios = usuariosController.listarUsuarios();
+
+            // Verifico si el archivo vino vacío 
+            if (listaUsuarios.isEmpty()) {
+                UIHelper.imprimirMensaje("\n No hay usuarios registrados en el sistema actualmente.");
+                return;
             }
 
-    public void ejecutarEliminarUsuario() {
+            // Cabecera 
+            UIHelper.imprimirMensaje(
+                    "--------------------------------------------------\n"
+                    + "NOMBRE DE USUARIO         | ROL\n"
+                    + "--------------------------------------------------"
+            );
+
+            // Recorro la lista e imprimo cada usuario respetando el espaciado
+            for (Usuario u : listaUsuarios) {
+                System.out.printf("%-25s | %-20s%n", u.getUsername(), u.obtenerRol().name());
+            }
+
+            UIHelper.imprimirMensaje("--------------------------------------------------");
+
+        } catch (Exception e) {
+            // Excepción si el DAO falla al leer el .txt
+            UIHelper.imprimirError(e.getMessage());
+        }
     }
 
-    public void ejecutarRegistrarVigilante() {
+    private void ejecutarEliminarUsuario(Usuario usuarioLogueado) {
+        UIHelper.mostrarTitulo("ELIMINAR USUARIO");
+
+        // Pido el nombre del usuario a borrar
+        String usuarioAEliminar = UIHelper.leerTexto("Ingrese el nombre de usuario que desea eliminar");
+
+        // Pido la doble confirmación usando la herramienta que ya tenés
+        boolean confirmar = UIHelper.leerBooleano("¿Está seguro que desea eliminar al usuario '" + usuarioAEliminar + "'? Esta acción no se puede deshacer.");
+
+        // 'N' cancela operación
+        if (!confirmar) {
+            UIHelper.imprimirMensaje("\nOperación cancelada. El usuario no fue eliminado.");
+            return;
+        }
+
+        try {
+            // 'S' paso al controlador
+            usuariosController.eliminarUsuario(usuarioAEliminar, usuarioLogueado.getUsername());
+            UIHelper.imprimirExito("\nEl usuario '" + usuarioAEliminar + "' fue eliminado correctamente.");
+
+        } catch (Exception e) {
+            // Error si no existe o si intenta borrarse a sí mismo
+            UIHelper.imprimirError(e.getMessage());
+        }
     }
 
-    public void ejecutarRegistrarSucursal() {
+    private void ejecutarRegistrarVigilante() {
+        UIHelper.mostrarTitulo("REGISTRO DE EMPLEADO: VIGILANTE");
+
+        // Pido los datos
+        String codigo = UIHelper.leerTexto("Ingrese el código identificador del vigilante");
+        int edad = UIHelper.leerEntero("Ingrese la edad del vigilante (mínimo 18)");
+
+        try {
+            // Llamamos al controlador
+            bancarioController.registrarVigilante(codigo, edad);
+            UIHelper.imprimirExito("\nEl vigilante con código '" + codigo + "' fue registrado en la base de datos operativa.");
+
+        } catch (Exception e) {
+            // Atajamos edad < 18, código duplicado, etc.
+            UIHelper.imprimirError(e.getMessage());
+        }
     }
 
-    public void ejecutarRegistrarContrato() {
+   private void ejecutarRegistrarSucursal() {
+        UIHelper.mostrarTitulo("REGISTRO DE SUCURSAL BANCARIA");
+
+        // Pedimos los datos 
+        String codigoSucursal = UIHelper.leerTexto("Ingrese el código de la nueva sucursal");
+        String domicilio = UIHelper.leerTexto("Ingrese el domicilio de la sucursal");
+        int numEmpleados = UIHelper.leerEntero("Ingrese la cantidad de empleados de la sucursal");
+        String codigoBanco = UIHelper.leerTexto("Ingrese el código de la Entidad Bancaria a la que pertenece");
+
+        try {
+            // Mandamos los datos al controlador
+            bancarioController.registrarSucursal(codigoSucursal, domicilio, numEmpleados, codigoBanco);
+            UIHelper.imprimirExito("\nLa sucursal '" + codigoSucursal + "' fue registrada y vinculada al banco '" + codigoBanco + "' correctamente.");
+            
+        } catch (Exception e) {
+            // Atajamos sucursal duplicada, banco inexistente, vacíos, etc.
+            UIHelper.imprimirError(e.getMessage());
+        }
+    }
+
+  private void ejecutarRegistrarContrato() {
+        UIHelper.mostrarTitulo("REGISTRO DE CONTRATO DE VIGILANCIA");
+
+        // Pedimos los datos 
+        String codigoSucursal = UIHelper.leerTexto("Ingrese el código de la sucursal bancaria");
+        String codigoVigilancia = UIHelper.leerTexto("Ingrese un código identificador para este contrato");
+        String codigoVigilante = UIHelper.leerTexto("Ingrese el código del vigilante a contratar");
+        String fechaStr = UIHelper.leerTexto("Ingrese la fecha del contrato (Formato obligatorio: AAAA-MM-DD)");
+        boolean conArma = UIHelper.leerBooleano("¿El vigilante portará arma durante este contrato?");
+
+        try {
+            // Mandamos los datos al controlador
+            bancarioController.registrarContratoVigilancia(codigoSucursal, codigoVigilancia, codigoVigilante, fechaStr, conArma);
+            UIHelper.imprimirExito("\nEl contrato '" + codigoVigilancia + "' fue registrado correctamente.");
+            
+        } catch (Exception e) {
+            // Atajamos sucursal inexistente, vigilante inexistente, mal formato de fecha, etc.
+            UIHelper.imprimirError(e.getMessage());
+        }
     }
 
 }
