@@ -79,6 +79,7 @@ public class UsuariosController {
             throw new Exception("Error al recuperar la lista de usuarios: " + e.getMessage());
         }
     }
+    
 
     // eliminar usuario mediante su nombre de usuario
     public void eliminarUsuario(String usuarioAEliminar, String usuarioLogueado) throws Exception {

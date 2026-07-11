@@ -8,11 +8,14 @@ public class UIHelper {
 
     private static final Scanner teclado = new Scanner(System.in);
 
-    //Mostrar titulo
+    // Mostrar Título principal
     public static void mostrarTitulo(String titulo) {
-        System.out.println("\n========================================\n");
-        System.out.println(titulo.toUpperCase());
-        System.out.println("\n========================================");
+        // Defino un margen de espacios para el centrado
+        String margen = "    ";
+        
+        System.out.println("\n########################################");
+        System.out.println( margen+ titulo.toUpperCase());
+        System.out.println("########################################\n");
     }
 
     public static void mostrarSubtitulo(String subtitulo) {
