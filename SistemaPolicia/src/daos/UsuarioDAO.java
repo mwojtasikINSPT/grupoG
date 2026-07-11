@@ -72,8 +72,17 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
             String linea;
 
             while ((linea = br.readLine()) != null) {
+
+                if (linea.trim().isEmpty()) {
+                    continue; // Ignora líneas vacías
+                }
                 String[] partes = linea.split(",");
 
+                // Si no tiene comas, el split devuelve solo 1 parte. Saltamos la línea corrupta.
+                if (partes.length < 3) {
+                    System.out.println("ADVERTENCIA: Línea corrupta ignorada: " + linea);
+                    continue;
+                }
                 // Verifico que haya AL MENOS 3 datos
                 if (partes.length >= 3) {
                     String username = partes[0];
@@ -94,7 +103,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
                             usuario = new UsuarioInvestigador(username, password);
                             break;
                         case VIGILANTE:
-                        // Si es vigilante, busco la 4ta columna (índice 3)
+                            // Si es vigilante, busco la 4ta columna (índice 3)
                             String codigoVigilante = "";
                             if (partes.length == 4) {
                                 codigoVigilante = partes[3];

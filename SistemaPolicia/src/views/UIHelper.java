@@ -28,7 +28,7 @@ public class UIHelper {
     public static String leerTexto(String mensaje) {
         String entrada;
         do {
-            System.out.println(mensaje + ": ");
+            System.out.println(mensaje+ ": ");
             entrada = teclado.nextLine().trim();
             if (entrada.isEmpty()) {
                 System.out.println("El campo no puede estar vacío.");

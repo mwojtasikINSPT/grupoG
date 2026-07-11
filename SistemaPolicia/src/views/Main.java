@@ -27,7 +27,7 @@ public class Main {
             // 2. Verifico credenciales válidas
             while (!loginExitoso) {
                 UIHelper.mostrarSubtitulo(" INICIO DE SESIÓN (0: Salir del Sistema)");
-                String username = UIHelper.leerTexto("Usuario:");
+                String username = UIHelper.leerTexto("Usuario");
 
                 // Verifico si quiere salir
                 if (username.equals("0")) {

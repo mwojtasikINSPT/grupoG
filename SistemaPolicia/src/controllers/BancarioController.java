@@ -134,4 +134,8 @@ public class BancarioController {
         }
     }
    
+    //Busco Vigilante x id
+    public Vigilante buscarVigilantePorId(String codigo) throws Exception {
+    return vigilanteDAO.buscarPorId(codigo);
+}
 }

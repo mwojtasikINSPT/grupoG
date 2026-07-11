@@ -1,6 +1,7 @@
 package controllers;
 
 import daos.UsuarioDAO;
+import daos.VigilanteDAO;
 import exceptions.ErrorAlEliminarException;
 import exceptions.ErrorAlGuardarException;
 import exceptions.ErrorAlLeerException;
@@ -16,9 +17,11 @@ import models.Vigilante;
 public class UsuariosController {
 
     private final UsuarioDAO usuarioDAO;
+    private final VigilanteDAO vigilanteDAO;
 
     public UsuariosController() {
         this.usuarioDAO = new UsuarioDAO();
+        this.vigilanteDAO = new VigilanteDAO();
     }
 
     //Registra un nuevo usuario en .txt, asignando rol desde Enum (no String)    
@@ -54,12 +57,18 @@ public class UsuariosController {
                     break;
                 case VIGILANTE:
                     if (codigoVigilante == null || codigoVigilante.trim().isEmpty()) {
-                        throw new Exception("El rol VIGILANTE requiere especificar su código de vigilante.");
+                        throw new Exception("El rol VIGILANTE requiere especificar su código.");
                     }
 
-                    // Envuelvo el texto en un objeto Vigilante temporal
-                    Vigilante vigilante = new Vigilante(codigoVigilante, 0);
-                    nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, vigilante);
+                    Vigilante v;
+                    try {
+                        // Busco si ya existe
+                        v = vigilanteDAO.buscarPorId(codigoVigilante);
+                    } catch (ObjetoNoEncontradoException e) {
+                        // Si no existe, creamos uno "en blanco" para que el usuario pueda crearse
+                        v = new Vigilante(codigoVigilante, 0);
+                    }
+                    nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, v);
                     break;
             }
 
@@ -79,7 +88,6 @@ public class UsuariosController {
             throw new Exception("Error al recuperar la lista de usuarios: " + e.getMessage());
         }
     }
-    
 
     // eliminar usuario mediante su nombre de usuario
     public void eliminarUsuario(String usuarioAEliminar, String usuarioLogueado) throws Exception {
