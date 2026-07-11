@@ -5,7 +5,9 @@ package controllers;
 import daos.CasoJudicialDAO;
 import daos.JuezDAO;
 import exceptions.ErrorAlGuardarException;
+import exceptions.ErrorAlLeerException;
 import exceptions.ObjetoNoEncontradoException;
+import java.util.List;
 import models.Asalto;
 import models.CasoJudicial;
 import models.Juez;
@@ -20,8 +22,7 @@ public class JudicialController {
         this.casoJudicialDAO = new CasoJudicialDAO();
     }
     
-    //Registrar un nuevo Juez al sistema
-    
+    //Registrar  nuevo Juez  
     public void registrarJuez(String claveInterna, int aniosServicio, String nombre) throws Exception{
     
         if(claveInterna.trim().isEmpty() || nombre.trim().isEmpty()){
@@ -46,14 +47,13 @@ public class JudicialController {
         }
     }
     
-    //Registrar veredicto final o expediente de asalto
-    
+    //Registrar Caso, Asalto    
     public void registrarCasoJudicial(String idAsalto, String claveJuez, boolean condenado, int mesesCarcel) throws Exception{
         if (idAsalto.trim().isEmpty() || claveJuez.trim().isEmpty()) {
             throw new Exception("El ID del asalto y la clave del juez son campos obligatorios.");
         }
         
-        //Si no esta condenado, los meses en la carcel deben de ser 0
+        //Si no esta condenado,  meses en la carcel= 0
         int mesesEfectivos = condenado ? mesesCarcel : 0;
     
         if(condenado && mesesEfectivos <= 0){
@@ -72,13 +72,29 @@ public class JudicialController {
             
             Asalto asaltoTemp = new Asalto(idAsalto, null, null, null);
             CasoJudicial casoJucidial = new CasoJudicial(asaltoTemp, juezReal, condenado, mesesEfectivos);
-            //crear el caso judicial
-            CasoJudicial nuevoCaso = new CasoJudicial(asaltoTemp, juezReal, condenado, mesesEfectivos);
-            // Guardo el caso en el archivo usando su DAO
-            casoJudicialDAO.guardar(nuevoCaso);
+           // Guardo el caso en el archivo usando su DAO
+            casoJudicialDAO.guardar(casoJucidial);
             
         }catch (ErrorAlGuardarException e){
             throw new Exception("Error al guardar el caso judicial en el archivo: " + e.getMessage());
+        }
+    }
+    
+    // Lista de los jueces registrados
+    public List<Juez> listarJueces() throws Exception { 
+        try {
+            return juezDAO.obtenerTodos();
+        } catch (ErrorAlLeerException e) {
+            throw new Exception("Error al recuperar la lista de jueces: " + e.getMessage());
+        }
+    }
+    
+    // Lista de todos los casos 
+    public List<CasoJudicial> listarCasosJudiciales() throws Exception { 
+        try {
+            return casoJudicialDAO.obtenerTodos();
+        } catch (ErrorAlLeerException e) {
+            throw new Exception("Error al recuperar la lista de casos judiciales: " + e.getMessage());
         }
     }
        

@@ -29,8 +29,7 @@ public class BancarioController {
         this.contratoDAO = new ContratoVigilanciaDAO();
     }
     
-    // Registrar nuevo vigilante validando datos
-    
+    // Registro nuevo vigilante validando datos    
     public void registrarVigilante(String codigo, int edad) throws Exception{
         if(codigo.trim().isEmpty()){
             throw new Exception("El código del vigilante no puede estar vacío.");
@@ -116,5 +115,23 @@ public class BancarioController {
            throw new Exception(e.getMessage());
        }
    }
+   
+   // Lista de todos los vigilantes registrados operativamente
+    public List<Vigilante> listarVigilantes() throws Exception {
+        try {
+            return vigilanteDAO.obtenerTodos();
+        } catch (ErrorAlLeerException e) {
+            throw new Exception("Error al recuperar la lista de vigilantes: " + e.getMessage());
+        }
+    }
+    
+    // Lista de todas las sucursales bancarias registradas
+    public List<Sucursal> listarSucursales() throws Exception {
+        try {
+            return sucursalDAO.obtenerTodos();
+        } catch (ErrorAlLeerException e) {
+            throw new Exception("Error al recuperar la lista de sucursales: " + e.getMessage());
+        }
+    }
    
 }
