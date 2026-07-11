@@ -98,4 +98,18 @@ public class JudicialController {
         }
     }
        
+    // Filtro para obtener solo los casos con condena 
+    public List<CasoJudicial> listarDetenidos() throws Exception {
+        try {
+            List<CasoJudicial> todosLosCasos = casoJudicialDAO.obtenerTodos();
+            
+            // Me quedo solo con los condenados
+            return todosLosCasos.stream()
+                    .filter(CasoJudicial::isCondenado)
+                    .toList();
+                    
+        } catch (ErrorAlLeerException e) {
+            throw new Exception("Error al recuperar el registro de detenidos: " + e.getMessage());
+        }
+    }
 }

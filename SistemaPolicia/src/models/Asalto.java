@@ -60,7 +60,7 @@ public class Asalto implements Serializable {
         return "Asalto [" +
                "ID: " + idAsalto + 
                ", Fecha: " + fecha + 
-               ", Asaltante: " + (asaltante != null ? asaltante.getNombreCompleto() : "Desconocido") + 
+               ", Asaltante: " + (asaltante != null ? asaltante.getNombreCompleto() + " (Clave: " + asaltante.getClave() + ")" : "Desconocido") +
                ", Sucursal: " + (sucursal != null ? sucursal.getCodigo() : "Desconocida") + 
                "]";
     }

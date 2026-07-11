@@ -19,14 +19,14 @@ public class Main {
         // 1. General - Si un usuario cierra sesión, el sistema vuelve a esta pantalla.
         while (true) {
             UIHelper.mostrarTitulo("SISTEMA DE SEGURIDAD BANCARIA");
-            UIHelper.imprimirMensaje("Por favor, inicie sesión para continuar.");
+            UIHelper.imprimirMensaje("Por favor, inicie sesión para continuar.\n");
 
             Usuario usuarioLogueado = null;
             boolean loginExitoso = false;
 
             // 2. Verifico credenciales válidas
             while (!loginExitoso) {
-                UIHelper.mostrarTitulo("\n--- INICIO DE SESIÓN ---");
+                UIHelper.mostrarSubtitulo(" INICIO DE SESIÓN");
                 String username = UIHelper.leerTexto("Usuario (0 para Salir del Sistema)");
 
                 // Verifico si quiere salir
