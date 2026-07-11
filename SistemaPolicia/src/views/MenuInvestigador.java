@@ -52,10 +52,13 @@ public class MenuInvestigador {
                     break;
                 // Judicial
                 case 5:
+                    //Pendiente
                 case 6:
+                    //Pendiente
                 case 7:
+                    //Pendiente
                 case 8:
-                    UIHelper.imprimirMensaje("\n[INFO] Módulo Judicial en desarrollo...");
+                    UIHelper.imprimirMensaje("\nMódulo Judicial en desarrollo...");
                     break;
                 case 0:
                     UIHelper.imprimirMensaje("\n[SISTEMA] Cerrando sesión de investigador. Volviendo al login...");
@@ -100,7 +103,6 @@ public class MenuInvestigador {
             UIHelper.imprimirError(e.getMessage());
         }
     }
-
    
 
     private void ejecutarListarVigilantes() {
