@@ -7,12 +7,13 @@ import models.Banda;
 import models.Asalto;
 import views.UIHelper;
 import java.util.List;
+import models.Rol;
 
 public class GestionJudicial {
     private final JudicialController judicialController = new JudicialController();
     private final AsaltosController asaltosController = new AsaltosController();
 
-    public void mostrar() {
+    public void mostrar(Rol rolUsuario) {
         int opcion;
         do {
             UIHelper.mostrarSubtitulo("GESTIÓN JUDICIAL - CONSULTAS");

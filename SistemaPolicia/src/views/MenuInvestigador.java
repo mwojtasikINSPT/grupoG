@@ -20,7 +20,7 @@ public class MenuInvestigador {
                 // Al pasar ROL.INVESTIGADOR, las clases ya bloquean las opciones de escritura
                 case 1 -> new GestionUsuarios().mostrar(Rol.INVESTIGADOR, usuarioLogueado.getUsername());
                 case 2 -> new GestionOperativa().mostrar(Rol.INVESTIGADOR);
-                case 3 -> new GestionJudicial().mostrar();
+                case 3 -> new GestionJudicial().mostrar(Rol.INVESTIGADOR);
                 case 0 -> UIHelper.imprimirMensaje("Cerrando sesión...");
                 default -> UIHelper.imprimirError("Opción no válida.");
             }

@@ -13,6 +13,7 @@ public class ConsultaVigilante {
 
     public void mostrar(String miCodigo) {
         int opcion;
+
         do {
             UIHelper.mostrarSubtitulo("MENÚ DE VIGILANTE");
             UIHelper.imprimirMensaje("1. Consultar mis datos personales\n2. Consultar mis contratos\n0. Volver");
@@ -23,8 +24,11 @@ public class ConsultaVigilante {
                     ejecutarVerMisDatos(miCodigo);
                 case 2 ->
                     ejecutarVerMisContratos(miCodigo);
-                case 0 ->
-                    UIHelper.imprimirMensaje("Cerrando sesión...");
+                case 0 -> {
+                    UIHelper.limpiarPantalla();
+                    UIHelper.imprimirMensaje("Sesión cerrada.\nVolviendo al Login...");
+                    UIHelper.pausar();
+                }
                 default ->
                     UIHelper.imprimirError("Opción no válida.");
             }
@@ -32,27 +36,26 @@ public class ConsultaVigilante {
     }
 
     private void ejecutarVerMisDatos(String miCodigo) {
-    UIHelper.mostrarSubtitulo("MIS DATOS PERSONALES");
-    try {
-        //Buscar al vigilante
-        Vigilante v = bancarioController.buscarVigilantePorId(miCodigo);
-        
-        if (v.getEdad() == 0) {
-            System.out.println("Código: " + v.getCodigo());
-            System.out.println("Estado: Pendiente (Faltan datos).");
-        } else {
-            System.out.println("Código: " + v.getCodigo() + "\nEdad: " + v.getEdad() + " años");
+        UIHelper.mostrarSubtitulo("MIS DATOS PERSONALES");
+        try {
+            //Buscar al vigilante
+            Vigilante v = bancarioController.buscarVigilantePorId(miCodigo);
+
+            if (v.getEdad() == 0) {
+                System.out.println("Código: " + v.getCodigo());
+                System.out.println("Estado: Pendiente (Faltan datos).");
+            } else {
+                System.out.println("Código: " + v.getCodigo() + "\nEdad: " + v.getEdad() + " años");
+            }
+        } catch (ObjetoNoEncontradoException e) {
+            // Si no está en vigilantes.txt, avisamos al vigilante
+            System.out.println("Código: " + miCodigo);
+            System.out.println("Estado: Pendiente de registro - Consulte a ADMIN");
+        } catch (Exception e) {
+            UIHelper.imprimirError("Error: " + e.getMessage());
         }
-    } catch (ObjetoNoEncontradoException e) {
-        // Si no está en vigilantes.txt, avisamos al vigilante
-        System.out.println("Código: " + miCodigo);
-        System.out.println("Estado: Pendiente de registro - Consulte a ADMIN");
-    } catch (Exception e) {
-        UIHelper.imprimirError("Error: " + e.getMessage());
+        UIHelper.pausar();
     }
-    UIHelper.pausar();
-}
-    
 
     private void ejecutarVerMisContratos(String miCodigo) {
         UIHelper.mostrarSubtitulo("MIS CONTRATOS");

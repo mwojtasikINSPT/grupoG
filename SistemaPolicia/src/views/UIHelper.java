@@ -12,9 +12,9 @@ public class UIHelper {
     public static void mostrarTitulo(String titulo) {
         // Defino un margen de espacios para el centrado
         String margen = "    ";
-        
+
         System.out.println("\n########################################");
-        System.out.println( margen+ titulo.toUpperCase());
+        System.out.println(margen + titulo.toUpperCase());
         System.out.println("########################################\n");
     }
 
@@ -28,7 +28,7 @@ public class UIHelper {
     public static String leerTexto(String mensaje) {
         String entrada;
         do {
-            System.out.println(mensaje+ ": ");
+            System.out.println(mensaje + ": ");
             entrada = teclado.nextLine().trim();
             if (entrada.isEmpty()) {
                 System.out.println("El campo no puede estar vacío.");
@@ -100,6 +100,25 @@ public class UIHelper {
                 // Si el texto no coincide con ningún Enum, atrapo el error y aviso al admin
                 System.out.println("[ERROR] Rol inválido. Escriba exactamente: ADMINISTRADOR, INVESTIGADOR o VIGILANTE.");
 
+            }
+        }
+    }
+
+    //Metodo para limpiar consultas de user anterior
+    public static void limpiarPantalla() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                // Comando  de Windows para limpiar pantalla
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                // Comando  de Linux/Mac
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            }
+        } catch (Exception e) {
+            // Si  falla, imprimimos muchas líneas
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
             }
         }
     }
