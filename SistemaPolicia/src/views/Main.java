@@ -2,12 +2,17 @@ package views;
 
 import controllers.LoginController;
 import dtos.UsuarioLoginDTO;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import models.Usuario;
 
 // Punto de entrada del programa. Inicializa servicios y muestra el login.
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        
+        System.setOut(new PrintStream(System.out, true, "UTF-8")); //Objeto para q muestre caracteres ASCII, necesita exception
+
         LoginController loginController = new LoginController();
         
         // 1. General - Si un usuario cierra sesión, el sistema vuelve a esta pantalla.
