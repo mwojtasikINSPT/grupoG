@@ -1,9 +1,6 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
+import exceptions.*;
 import exceptions.ObjetoNoEncontradoException;
 import java.io.BufferedReader; // Lee texto de forma rápida y eficiente (línea por línea) usando memoria temporal.
 import java.io.BufferedWriter; // Escribe texto de forma eficiente acumulándolo en memoria antes de pasarlo al disco.
@@ -18,15 +15,26 @@ import models.Asaltante;
 import models.Asalto;
 import models.Sucursal;
 
+/**
+ * Data Access Object para la gestión de entidades {@link Asalto} en
+ * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
+ * archivo asaltos.txt.
+ */
 public class AsaltoDAO implements IGenericDAO<Asalto> {
 
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "asaltos.txt";
 
+    /**
+     * Constructor. Inicializa el DAO y asegura la existencia del archivo.
+     */
     public AsaltoDAO() {
         crearArchivoSiNoExiste();
     }
 
+    /**
+     * Verifica si el archivo de datos existe; en caso contrario, lo crea.
+     */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
@@ -38,29 +46,69 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         }
     }
 
+    /**
+     * Método auxiliar que centraliza el formato de texto para guardar en el
+     * archivo.
+     */
+    private String formatearParaArchivo(Asalto a) {
+        return a.getIdAsalto() + ","
+                + a.getAsaltante().getClave() + ","
+                + a.getSucursal().getCodigo() + ","
+                + a.getFecha().toString();
+    }
+
+    /**
+     * Verifica si un asalto existe en el sistema.
+     *
+     * @param id ID del asalto.
+     * @return true si existe, false si no.
+     */
+    public boolean existe(String id) {
+        try {
+            buscarPorId(id);
+            return true;
+        } catch (ObjetoNoEncontradoException | ErrorAlLeerException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Guarda un nuevo asalto en el archivo, validando duplicados.
+     *
+     * @param entidad El objeto {@link Asalto} a persistir.
+     * @throws ErrorAlGuardarException si ocurre un error de E/S o el ID ya
+     * existe.
+     */
     @Override
     public void guardar(Asalto entidad) throws ErrorAlGuardarException {
+        if (existe(entidad.getIdAsalto())) {
+            throw new ErrorAlGuardarException("Asalto", "Ya existe un asalto con ID " + entidad.getIdAsalto());
+        }
+
+        //abre el archivo en modo "añadir" (true) 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            // Transformo el LocalDate a String automáticamente usando  método toString()
-            String linea = entidad.getIdAsalto() + "," + 
-                           entidad.getAsaltante().getClave() + "," + 
-                           entidad.getSucursal().getCodigo() + "," + 
-                           entidad.getFecha().toString();
-            
-            bw.write(linea);
-            bw.newLine(); 
+            //escribe los datos formateados
+            bw.write(formatearParaArchivo(entidad));
+            //salta a la siguiente línea, asegurando que el archivo se cierre al terminar.
+            bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Asalto", e.getMessage());
         }
     }
 
+    /**
+     * Recupera todos los asaltos almacenados en el archivo.
+     *
+     * @return Lista de objetos {@link Asalto}.
+     * @throws ErrorAlLeerException si ocurre un error durante la lectura.
+     */
     @Override
     public List<Asalto> obtenerTodos() throws ErrorAlLeerException {
         List<Asalto> listaAsaltos = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
             String linea;
-            
+
             while ((linea = br.readLine()) != null) {
                 String[] partes = linea.split(",");
 
@@ -70,7 +118,7 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
                     String claveAsaltante = partes[1];
                     String codigoSucursal = partes[2];
                     // Convierto el texto nuevamente a LocalDate
-                    LocalDate fecha = LocalDate.parse(partes[3]); 
+                    LocalDate fecha = LocalDate.parse(partes[3]);
 
                     Asaltante asaltante = new Asaltante(claveAsaltante, "", null);
                     Sucursal sucursal = new Sucursal(codigoSucursal, "", 0, null);
@@ -85,17 +133,32 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         return listaAsaltos;
     }
 
+    /**
+     * Busca un asalto específico por su ID único.
+     *
+     * @param id El identificador del asalto.
+     * @return El objeto {@link Asalto} encontrado.
+     * @throws ObjetoNoEncontradoException si no existe el ID.
+     * @throws ErrorAlLeerException si ocurre un error de lectura.
+     */
     @Override
     public Asalto buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<Asalto> asaltos = obtenerTodos();
         for (Asalto asalto : asaltos) {
             if (asalto.getIdAsalto().equals(id)) {
-                return asalto; 
+                return asalto;
             }
         }
         throw new ObjetoNoEncontradoException("Asalto", id);
     }
 
+    /**
+     * Actualiza un asalto existente sobrescribiendo el archivo.
+     *
+     * @param entidad El objeto {@link Asalto} actualizado.
+     * @throws ErrorAlActualizarException si ocurre un error durante la
+     * escritura.
+     */
     @Override
     public void actualizar(Asalto entidad) throws ErrorAlActualizarException {
         List<Asalto> asaltos;
@@ -109,15 +172,9 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Asalto a : asaltos) {
                 if (a.getIdAsalto().equals(entidad.getIdAsalto())) {
-                    bw.write(entidad.getIdAsalto() + "," + 
-                            entidad.getAsaltante().getClave() + "," + 
-                             entidad.getSucursal().getCodigo() + "," + 
-                             entidad.getFecha().toString());
+                    bw.write(formatearParaArchivo(entidad));
                 } else {
-                    bw.write(a.getIdAsalto() + "," + 
-                             a.getAsaltante().getClave() + "," + 
-                             a.getSucursal().getCodigo() + "," + 
-                             a.getFecha().toString());
+                    bw.write(formatearParaArchivo(a));
                 }
                 bw.newLine();
             }
@@ -126,6 +183,13 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         }
     }
 
+    /**
+     * Elimina un asalto del registro mediante su ID.
+     *
+     * @param id El identificador del asalto a borrar.
+     * @throws ErrorAlEliminarException si ocurre un error durante la
+     * eliminación.
+     */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {
         List<Asalto> asaltos;
@@ -138,11 +202,8 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (Asalto a : asaltos) {
-                if (!a.getIdAsalto().equals(id)) { 
-                    bw.write(a.getIdAsalto() + "," + 
-                             a.getAsaltante().getClave() + "," + 
-                             a.getSucursal().getCodigo() + "," + 
-                             a.getFecha().toString());
+                if (!a.getIdAsalto().equals(id)) {
+                    bw.write(formatearParaArchivo(a));
                     bw.newLine();
                 }
             }

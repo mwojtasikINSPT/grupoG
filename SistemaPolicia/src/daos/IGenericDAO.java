@@ -1,25 +1,48 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
-import exceptions.ObjetoNoEncontradoException;
+import exceptions.*;
 import java.util.List;
 
-// Interfaz genérica con métodos: crear(), leer(), actualizar(), eliminar() para todos los DAO.
+/**
+ * Interfaz generica para operaciones CRUD.
+ * @param <T> Tipo de objeto gestionado.
+ */
 public interface IGenericDAO<T> {
     
-    // C - Create (Crear/Guardar)
+    /**
+     * Guarda una entidad.
+     * @param entidad Objeto a guardar.
+     * @throws ErrorAlGuardarException Error en persistencia.
+     */
     void guardar(T entidad) throws ErrorAlGuardarException;
     
-    // R - Read (Leer)
+    /**
+     * Obtiene todos los registros.
+     * @return Lista de objetos.
+     * @throws ErrorAlLeerException Error en lectura.
+     */
     List<T> obtenerTodos() throws ErrorAlLeerException;
+    
+    /**
+     * Busca por ID.
+     * @param id Identificador.
+     * @return Objeto encontrado.
+     * @throws ObjetoNoEncontradoException Si no existe.
+     * @throws ErrorAlLeerException Error en lectura.
+     */
     T buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException;
     
-    // U - Update (Actualizar)
+    /**
+     * Actualiza una entidad.
+     * @param entidad Objeto con cambios.
+     * @throws ErrorAlActualizarException Error al actualizar.
+     */
     void actualizar(T entidad) throws ErrorAlActualizarException;
     
-    // D - Delete (Eliminar)
+    /**
+     * Elimina por ID.
+     * @param id Identificador.
+     * @throws ErrorAlEliminarException Error al eliminar.
+     */
     void eliminar(String id) throws ErrorAlEliminarException;
 }

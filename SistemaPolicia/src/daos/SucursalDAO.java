@@ -1,10 +1,6 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
-import exceptions.ObjetoNoEncontradoException;
+import exceptions.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,15 +12,27 @@ import java.util.List;
 import models.EntidadBancaria;
 import models.Sucursal;
 
+/**
+ * Clase que implementa la persistencia de datos para la entidad
+ * {@link Sucursal} utilizando un archivo de texto plano.
+ */
 public class SucursalDAO implements IGenericDAO<Sucursal> {
 
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "sucursales.txt";
 
+    /**
+     * Constructor que inicializa el DAO y asegura la existencia del archivo de
+     * datos.
+     */
     public SucursalDAO() {
         crearArchivoSiNoExiste();
     }
 
+    /**
+     * Verifica si el archivo de almacenamiento existe; en caso contrario, lo
+     * crea.
+     */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
@@ -36,23 +44,63 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         }
     }
 
+    /**
+     * Convierte un objeto Sucursal en una línea de texto CSV.
+     *
+     * @param sucursal La sucursal a formatear.
+     * @return Una cadena de texto separada por comas.
+     */
+    private String formatearParaCSV(Sucursal sucursal) {
+        return sucursal.getCodigo() + ","
+                + sucursal.getDomicilio() + ","
+                + sucursal.getNumeroEmpleados() + ","
+                + sucursal.getEntidad().getCodigo();
+    }
+
+    /**
+     * Verifica si ya existe una sucursal con el código proporcionado.
+     *
+     * @param codigo El código a buscar.
+     * @return true si la sucursal existe, false en caso contrario.
+     */
+    private boolean existeSucursal(String codigo) {
+        try {
+            buscarPorId(codigo);
+            return true;
+        } catch (ObjetoNoEncontradoException | ErrorAlLeerException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Guarda una nueva sucursal al final del archivo de texto.
+     *
+     * * @param entidad La sucursal a persistir.
+     * @throws ErrorAlGuardarException Si ocurre un error de E/S al escribir en
+     * el archivo.
+     */
     @Override
     public void guardar(Sucursal entidad) throws ErrorAlGuardarException {
+        // Valido duplicados
+        if (existeSucursal(entidad.getCodigo())) {
+            throw new ErrorAlGuardarException("Sucursal", "El código " + entidad.getCodigo() + " ya existe.");
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-
-            // Armo la línea separada por comas
-            String linea = entidad.getCodigo() + ","
-                    + entidad.getDomicilio() + ","
-                    + entidad.getNumeroEmpleados() + ","
-                    + entidad.getEntidad().getCodigo();
-
-            bw.write(linea);
+            bw.write(formatearParaCSV(entidad));
             bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Sucursal", e.getMessage());
         }
     }
 
+    /**
+     * Obtiene todas las sucursales almacenadas en el archivo.
+     *
+     * * @return Una {@link List} de objetos {@link Sucursal}.
+     * @throws ErrorAlLeerException Si ocurre un error al acceder o leer el
+     * archivo.
+     */
     @Override
     public List<Sucursal> obtenerTodos() throws ErrorAlLeerException {
         List<Sucursal> listaSucursales = new ArrayList<>();
@@ -80,7 +128,7 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
                     EntidadBancaria entidad = new EntidadBancaria(codigoEntidad, "");
 
                     // Reconstruyo el objeto y agrego a la lista pasando la entidad
-                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, entidad); 
+                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, entidad);
                     listaSucursales.add(sucursal);
                 }
             }
@@ -90,6 +138,15 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         return listaSucursales;
     }
 
+    /**
+     * Busca una sucursal específica por su código identificador.
+     *
+     * * @param id El código de la sucursal a buscar.
+     * @return El objeto {@link Sucursal} encontrado.
+     * @throws ObjetoNoEncontradoException Si no existe ninguna sucursal con
+     * dicho ID.
+     * @throws ErrorAlLeerException Si hay problemas de acceso al archivo.
+     */
     @Override
     public Sucursal buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<Sucursal> sucursales = obtenerTodos();
@@ -102,6 +159,13 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         throw new ObjetoNoEncontradoException("Sucursal", id);
     }
 
+    /**
+     * Actualiza los datos de una sucursal existente en el archivo.
+     *
+     * * @param entidad La sucursal con los datos actualizados.
+     * @throws ErrorAlActualizarException Si ocurre un error durante el proceso
+     * de sobrescritura.
+     */
     @Override
     public void actualizar(Sucursal entidad) throws ErrorAlActualizarException {
         List<Sucursal> sucursales;
@@ -134,6 +198,13 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         }
     }
 
+    /**
+     * Elimina una sucursal del archivo según su código identificador.
+     *
+     * * @param id El código de la sucursal que se desea eliminar.
+     * @throws ErrorAlEliminarException Si el proceso de escritura o lectura
+     * falla.
+     */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {
         List<Sucursal> sucursales;

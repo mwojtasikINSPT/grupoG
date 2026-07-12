@@ -1,10 +1,6 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
-import exceptions.ObjetoNoEncontradoException;
+import exceptions.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,14 +14,26 @@ import models.ContratoVigilancia;
 import models.Sucursal;
 import models.Vigilante;
 
+/**
+ * Data Access Object para la gestión de entidades {@link ContratoVigilancia} en
+ * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
+ * archivo contratos_vigilancia.txt.
+ */
 public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
     private final String RUTA_ARCHIVO = "contratos_vigilancia.txt";
 
+    /**
+     * Constructor. Inicializa el DAO y asegura la existencia del archivo de
+     * persistencia.
+     */
     public ContratoVigilanciaDAO() {
         crearArchivoSiNoExiste();
     }
 
+    /**
+     * Verifica si el archivo de datos existe; en caso contrario, lo crea.
+     */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
@@ -37,26 +45,68 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         }
     }
 
-    // Armo un ID único uniendo los 3 datos principales, capaz sirve para busquedas 
-    private String generarIdCompuesto(ContratoVigilancia c) {
+    /**
+     * Genera un ID único compuesto por sucursal, vigilante y fecha para
+     * facilitar búsquedas.
+     *
+     * @param c El contrato a procesar.
+     * @return String con el formato ID compuesto.
+     */
+    private String generarIdCompuesto(ContratoVigilancia c) { //ver si sirve p busquedas
         return c.getSucursal().getCodigo() + "-" + c.getVigilante().getCodigo() + "-" + c.getFecha().toString();
     }
 
+    /**
+     * Método auxiliar que centraliza el formato de texto para guardar en el
+     * archivo.
+     *
+     * @param c El contrato a formatear.
+     * @return String con los datos separados por comas.
+     */
+    private String formatearParaArchivo(ContratoVigilancia c) {
+        return c.getSucursal().getCodigo() + ","
+                + c.getVigilante().getCodigo() + ","
+                + c.getFecha().toString() + ","
+                + c.isConArma();
+    }
+
+    /**
+     * Verifica si un contrato existe en el sistema.
+     *
+     * @param id El ID compuesto del contrato.
+     * @return true si el contrato existe, false en caso contrario.
+     */
+    public boolean existe(String id) {
+        try {
+            buscarPorId(id);
+            return true;
+        } catch (ObjetoNoEncontradoException | ErrorAlLeerException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Guarda un nuevo contrato en el archivo.
+     *
+     * @param entidad El objeto {@link ContratoVigilancia} a persistir.
+     * @throws ErrorAlGuardarException si ocurre un error de escritura.
+     */
     @Override
     public void guardar(ContratoVigilancia entidad) throws ErrorAlGuardarException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            String linea = entidad.getSucursal().getCodigo() + ","
-                    + entidad.getVigilante().getCodigo() + ","
-                    + entidad.getFecha().toString() + ","
-                    + entidad.isConArma();
-
-            bw.write(linea);
+            bw.write(formatearParaArchivo(entidad));
             bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Contrato Vigilancia", e.getMessage());
         }
     }
 
+    /**
+     * Recupera todos los contratos almacenados en el archivo.
+     *
+     * @return Lista de objetos {@link ContratoVigilancia}.
+     * @throws ErrorAlLeerException si ocurre un error durante la lectura.
+     */
     @Override
     public List<ContratoVigilancia> obtenerTodos() throws ErrorAlLeerException {
         List<ContratoVigilancia> listaContratos = new ArrayList<>();
@@ -88,6 +138,14 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         return listaContratos;
     }
 
+    /**
+     * Busca un contrato específico por su ID compuesto.
+     *
+     * @param id El identificador único generado.
+     * @return El objeto {@link ContratoVigilancia} encontrado.
+     * @throws ObjetoNoEncontradoException si no existe el contrato.
+     * @throws ErrorAlLeerException si ocurre un error de lectura.
+     */
     @Override
     public ContratoVigilancia buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<ContratoVigilancia> contratos = obtenerTodos();
@@ -100,6 +158,11 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         throw new ObjetoNoEncontradoException("Contrato Vigilancia", id);
     }
 
+    /**
+     * Actualiza un contrato existente.
+     * @param entidad El contrato con los datos actualizados.
+     * @throws ErrorAlActualizarException si ocurre un error de escritura.
+     */
     @Override
     public void actualizar(ContratoVigilancia entidad) throws ErrorAlActualizarException {
         List<ContratoVigilancia> contratos;
@@ -113,15 +176,9 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (ContratoVigilancia c : contratos) {
                 if (generarIdCompuesto(c).equals(generarIdCompuesto(entidad))) {
-                    bw.write(entidad.getSucursal().getCodigo() + ","
-                            + entidad.getVigilante().getCodigo() + ","
-                            + entidad.getFecha().toString() + ","
-                            + entidad.isConArma());
+                    bw.write(formatearParaArchivo(entidad));
                 } else {
-                    bw.write(c.getSucursal().getCodigo() + ","
-                            + c.getVigilante().getCodigo() + ","
-                            + c.getFecha().toString() + ","
-                            + c.isConArma());
+                    bw.write(formatearParaArchivo(c));
                 }
                 bw.newLine();
             }
@@ -130,6 +187,11 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         }
     }
 
+    /**
+     * Elimina un contrato del sistema.
+     * @param id El ID del contrato a eliminar.
+     * @throws ErrorAlEliminarException si ocurre un error durante la eliminación.
+     */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {
         List<ContratoVigilancia> contratos;
@@ -142,11 +204,8 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (ContratoVigilancia c : contratos) {
-                if (!generarIdCompuesto(c).equals(id)) {
-                    bw.write(c.getSucursal().getCodigo() + ","
-                            + c.getVigilante().getCodigo() + ","
-                            + c.getFecha().toString() + ","
-                            + c.isConArma());
+               if (!generarIdCompuesto(c).equals(id)) {
+                    bw.write(formatearParaArchivo(c));
                     bw.newLine();
                 }
             }

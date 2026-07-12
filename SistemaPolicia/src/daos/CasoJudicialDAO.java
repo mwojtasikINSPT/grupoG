@@ -1,10 +1,6 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
-import exceptions.ObjetoNoEncontradoException;
+import exceptions.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,11 +13,20 @@ import models.Asalto;
 import models.CasoJudicial;
 import models.Juez;
 
+/**
+ * Data Access Object para la gestión de entidades {@link CasoJudicial} en
+ * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
+ * archivo casos_judiciales.txt.
+ */
 public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
 
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "casos_judiciales.txt";
 
+    /**
+     * Constructor. Inicializa el DAO y asegura la existencia del archivo de
+     * persistencia.
+     */
     public CasoJudicialDAO() {
         crearArchivoSiNoExiste();
     }
@@ -37,21 +42,65 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         }
     }
 
+    /**
+     * Método auxiliar que centraliza el formato de texto para guardar en el
+     * archivo CSV.
+     *
+     * @param c El caso judicial a formatear.
+     * @return String con los datos separados por comas.
+     */
+    private String formatearParaArchivo(CasoJudicial c) {
+        return c.getAsalto().getIdAsalto() + ","
+                + c.getJuez().getClaveInterna() + ","
+                + c.isCondenado() + ","
+                + c.getMesesCarcel();
+    }
+
+    /**
+     * Verifica si un caso judicial existe en el sistema basándose en el ID del
+     * asalto.
+     *
+     * @param id El ID del asalto asociado al caso.
+     * @return true si existe, false en caso contrario.
+     */
+    public boolean existe(String id) {
+        try {
+            buscarPorId(id);
+            return true;
+        } catch (ObjetoNoEncontradoException | ErrorAlLeerException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Guarda un nuevo caso judicial en el archivo, validando que no exista
+     * previamente.
+     *
+     * @param entidad El objeto {@link CasoJudicial} a persistir.
+     * @throws ErrorAlGuardarException si ocurre un error de escritura o
+     * duplicidad.
+     */
     @Override
     public void guardar(CasoJudicial entidad) throws ErrorAlGuardarException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            String linea = entidad.getAsalto().getIdAsalto() + ","
-                    + entidad.getJuez().getClaveInterna() + ","
-                    + entidad.isCondenado() + ","
-                    + entidad.getMesesCarcel();
+        if (existe(entidad.getAsalto().getIdAsalto())) {
+            throw new ErrorAlGuardarException("Caso Judicial", "Ya existe un caso para el asalto ID " + entidad.getAsalto().getIdAsalto());
+        }
 
-            bw.write(linea);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
+            bw.write(formatearParaArchivo(entidad));
             bw.newLine();
         } catch (IOException e) {
             throw new ErrorAlGuardarException("Caso Judicial", e.getMessage());
         }
     }
 
+    /**
+     * Recupera todos los casos judiciales almacenados en el archivo.
+     *
+     * @return Lista de objetos {@link CasoJudicial}.
+     * @throws ErrorAlLeerException si ocurre un error durante la lectura del
+     * archivo.
+     */
     @Override
     public List<CasoJudicial> obtenerTodos() throws ErrorAlLeerException {
         List<CasoJudicial> listaCasos = new ArrayList<>();
@@ -69,7 +118,7 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
                     boolean condenado = Boolean.parseBoolean(partes[2]);
                     int mesesCarcel = Integer.parseInt(partes[3]);
 
-                    // Armo objetos temporales con los datos leidos
+                    // Armo objetos temporales con los datos leídos
                     Asalto asalto = new Asalto(idAsalto, null, null, null);
                     Juez juez = new Juez(claveJuez, 0, "");
 
@@ -83,6 +132,14 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         return listaCasos;
     }
 
+    /**
+     * Busca un caso judicial por el ID de su asalto asociado.
+     *
+     * @param id El ID del asalto.
+     * @return El objeto {@link CasoJudicial} encontrado.
+     * @throws ObjetoNoEncontradoException si no se encuentra el caso.
+     * @throws ErrorAlLeerException si ocurre un error de lectura.
+     */
     @Override
     public CasoJudicial buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<CasoJudicial> casos = obtenerTodos();
@@ -96,28 +153,29 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         throw new ObjetoNoEncontradoException("Caso Judicial", id);
     }
 
+    /**
+     * Actualiza los datos de un caso judicial existente.
+     *
+     * @param entidad El objeto {@link CasoJudicial} con los nuevos datos.
+     * @throws ErrorAlActualizarException si ocurre un error durante la
+     * actualización.
+     */
     @Override
     public void actualizar(CasoJudicial entidad) throws ErrorAlActualizarException {
         List<CasoJudicial> casos;
-        //Intento Leer
+
         try {
             casos = obtenerTodos();
         } catch (ErrorAlLeerException e) {
             throw new ErrorAlActualizarException("Caso Judicial", "No se pudo leer el archivo original: " + e.getMessage());
         }
-        //Intento Actualizar
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (CasoJudicial c : casos) {
                 if (c.getAsalto().getIdAsalto().equals(entidad.getAsalto().getIdAsalto())) {
-                    bw.write(entidad.getAsalto().getIdAsalto() + ","
-                            + entidad.getJuez().getClaveInterna() + ","
-                            + entidad.isCondenado() + ","
-                            + entidad.getMesesCarcel());
+                    bw.write(formatearParaArchivo(entidad));
                 } else {
-                    bw.write(c.getAsalto().getIdAsalto() + ","
-                            + c.getJuez().getClaveInterna() + ","
-                            + c.isCondenado() + ","
-                            + c.getMesesCarcel());
+                    bw.write(formatearParaArchivo(c));
                 }
                 bw.newLine();
             }
@@ -126,6 +184,13 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         }
     }
 
+    /**
+     * Elimina un caso judicial basándose en el ID del asalto.
+     *
+     * @param id El ID del asalto asociado al caso a eliminar.
+     * @throws ErrorAlEliminarException si ocurre un error durante la
+     * eliminación.
+     */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {
         List<CasoJudicial> casos;
@@ -139,10 +204,7 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
             for (CasoJudicial c : casos) {
                 if (!c.getAsalto().getIdAsalto().equals(id)) {
-                    bw.write(c.getAsalto().getIdAsalto() + ","
-                            + c.getJuez().getClaveInterna() + ","
-                            + c.isCondenado() + ","
-                            + c.getMesesCarcel());
+                    bw.write(formatearParaArchivo(c));
                     bw.newLine();
                 }
             }

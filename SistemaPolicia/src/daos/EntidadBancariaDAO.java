@@ -1,10 +1,6 @@
 package daos;
 
-import exceptions.ErrorAlActualizarException;
-import exceptions.ErrorAlEliminarException;
-import exceptions.ErrorAlGuardarException;
-import exceptions.ErrorAlLeerException;
-import exceptions.ObjetoNoEncontradoException;
+import exceptions.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,11 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 import models.EntidadBancaria;
 
+/**
+ * Data Access Object para la gestión de entidades {@link EntidadBancaria} en
+ * persistencia de archivos. Implementa las operaciones CRUD básicas mediante la
+ * carga en memoria y reescritura del archivo.
+ */
 public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
 
     // Defino la ruta del archivo de texto
     private static final String RUTA_ARCHIVO = "entidades_bancarias.txt";
 
+    /**
+     * Guarda una nueva entidad bancaria en el archivo.
+     *
+     * @param entidad La {@link EntidadBancaria} a persistir.
+     * @throws ErrorAlGuardarException si ocurre un error durante el proceso de
+     * escritura.
+     */
     @Override
     public void guardar(EntidadBancaria entidad) throws ErrorAlGuardarException {
         try {
@@ -28,6 +36,13 @@ public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
         }
     }
 
+    /**
+     * Actualiza los datos de una entidad bancaria existente en el archivo.
+     *
+     * @param entidad La entidad con los datos actualizados.
+     * @throws ErrorAlActualizarException si no se encuentra la entidad o falla
+     * la escritura.
+     */
     @Override
     public void actualizar(EntidadBancaria entidad) throws ErrorAlActualizarException {
         try {
@@ -53,7 +68,13 @@ public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
         }
     }
 
-    // --- MÉTODO AUX ---
+    /**
+     * Método auxiliar que sobrescribe el archivo con la lista actualizada de
+     * entidades.
+     *
+     * @param entidades La lista completa de entidades a persistir.
+     * @throws ErrorAlGuardarException si ocurre un error de E/S.
+     */
     private void reescribirArchivo(List<EntidadBancaria> entidades) throws ErrorAlGuardarException {
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(RUTA_ARCHIVO))) {
             for (EntidadBancaria entidad : entidades) {
@@ -66,6 +87,12 @@ public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
         }
     }
 
+    /**
+     * Recupera todas las entidades bancarias almacenadas.
+     *
+     * @return Una lista con todas las entidades leídas del archivo.
+     * @throws ErrorAlLeerException si ocurre un error al acceder al archivo.
+     */
     @Override
     public List<EntidadBancaria> obtenerTodos() throws ErrorAlLeerException {
         List<EntidadBancaria> listaEntidades = new ArrayList<>();
@@ -95,6 +122,15 @@ public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
         return listaEntidades;
     }
 
+    /**
+     * Busca una entidad bancaria por su código único.
+     *
+     * @param id El código de la entidad a buscar.
+     * @return La {@link EntidadBancaria} encontrada.
+     * @throws ObjetoNoEncontradoException si no existe ninguna entidad con ese
+     * código.
+     * @throws ErrorAlLeerException si ocurre un error de lectura.
+     */
     @Override
     public EntidadBancaria buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
         List<EntidadBancaria> entidades = obtenerTodos();
@@ -107,6 +143,13 @@ public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
         throw new ObjetoNoEncontradoException("Entidad Bancaria", id);
     }
 
+    /**
+     * Elimina una entidad bancaria del sistema mediante su código.
+     *
+     * @param id El código de la entidad a eliminar.
+     * @throws ErrorAlEliminarException si no se encuentra el ID o falla la
+     * escritura.
+     */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {
         try {
