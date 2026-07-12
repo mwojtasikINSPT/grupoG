@@ -1,7 +1,6 @@
 package views.submenues;
 
 import controllers.BancarioController;
-import controllers.UsuariosController;
 import java.util.List;
 import models.ContratoVigilancia;
 import models.Rol;
@@ -9,16 +8,40 @@ import models.Sucursal;
 import models.Vigilante;
 import views.UIHelper;
 
+/**
+ * Clase responsable de gestionar las operaciones principales del sistema.
+ * Permite listar y registrar vigilantes, sucursales y contratos de vigilancia,
+ * mostrando un menú interactivo en consola.
+ *
+ * Las opciones disponibles dependen del rol del usuario: - Los usuarios con rol
+ * ADMINISTRADOR pueden acceder a las operaciones de escritura (registro de
+ * vigilantes, sucursales y contratos). - Los demás roles solo pueden consultar
+ * listados.
+ *
+ * Esta clase actúa como puente entre la capa de presentación (UIHelper) y los
+ * controladores de negocio BancarioController.
+ *
+ * @author GrupoG
+ */
 public class GestionOperativa {
 
-    private final UsuariosController usuariosController;
     private final BancarioController bancarioController;
 
+    /**
+     * Constructor por defecto. Inicializa los controladores de usuarios y
+     * bancario para gestionar las operaciones disponibles.
+     */
     public GestionOperativa() {
-        this.usuariosController = new UsuariosController();
         this.bancarioController = new BancarioController();
     }
 
+    /**
+     * Muestra el menú de gestión operativa en consola. Permite listar y
+     * registrar entidades según el rol del usuario.
+     *
+     * @param rolUsuario Rol del usuario que accede al menú. Determina las
+     * opciones disponibles.
+     */
     public void mostrar(Rol rolUsuario) {
         int opcion;
         do {
@@ -56,7 +79,10 @@ public class GestionOperativa {
         } while (opcion != 0);
     }
 
-    //METODOS 
+    /**
+     * Lista todos los vigilantes registrados en el sistema. Muestra código y
+     * edad de cada vigilante. Captura y muestra errores en caso de fallos.
+     */
     private void ejecutarListarVigilantes() {
         UIHelper.mostrarSubtitulo("LISTADO DE VIGILANTES");
         try {
@@ -77,6 +103,11 @@ public class GestionOperativa {
         UIHelper.pausar();
     }
 
+    /**
+     * Lista todas las sucursales bancarias registradas. Muestra código,
+     * domicilio y número de empleados. Captura y muestra errores en caso de
+     * fallos.
+     */
     private void ejecutarListarSucursales() {
         UIHelper.mostrarSubtitulo("LISTADO DE SUCURSALES");
         try {
@@ -99,6 +130,11 @@ public class GestionOperativa {
         UIHelper.pausar();
     }
 
+    /**
+     * Lista todos los contratos de vigilancia registrados. Muestra sucursal,
+     * vigilante, fecha y si porta arma. Captura y muestra errores en caso de
+     * fallos.
+     */
     private void ejecutarListarContratos() {
         UIHelper.mostrarSubtitulo("LISTADO DE CONTRATOS");
         try {
@@ -122,6 +158,11 @@ public class GestionOperativa {
         UIHelper.pausar();
     }
 
+    /**
+     * Registra un nuevo vigilante en el sistema. Solicita código y edad,
+     * validando que sea mayor de edad. Captura y muestra errores en caso de
+     * datos inválidos.
+     */
     private void ejecutarRegistrarVigilante() {
         UIHelper.mostrarSubtitulo("REGISTRO DE EMPLEADO: VIGILANTE");
 
@@ -141,6 +182,11 @@ public class GestionOperativa {
         UIHelper.pausar();
     }
 
+    /**
+     * Registra una nueva sucursal bancaria en el sistema. Solicita código,
+     * domicilio, número de empleados y banco asociado. Captura y muestra
+     * errores en caso de datos inválidos.
+     */
     private void ejecutarRegistrarSucursal() {
         UIHelper.mostrarSubtitulo("REGISTRO DE SUCURSAL BANCARIA");
 
@@ -162,6 +208,11 @@ public class GestionOperativa {
         UIHelper.pausar();
     }
 
+    /**
+     * Registra un nuevo contrato de vigilancia. Solicita sucursal, código de
+     * contrato, vigilante, fecha y si porta arma. Captura y muestra errores en
+     * caso de datos inválidos.
+     */
     private void ejecutarRegistrarContrato() {
         UIHelper.mostrarSubtitulo("REGISTRO DE CONTRATO DE VIGILANCIA");
 
@@ -183,6 +234,5 @@ public class GestionOperativa {
         }
         UIHelper.pausar();
     }
-
 
 }

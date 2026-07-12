@@ -6,15 +6,46 @@ import models.Usuario;
 import views.UIHelper;
 import java.util.List;
 
+/**
+ * Clase encargada de la gestión de cuentas de usuario dentro del sistema.
+ * Proporciona un menú interactivo en consola que permite listar, registrar
+ * y eliminar usuarios, con acceso restringido según el rol del usuario activo.
+ *
+ * Funcionalidades principales:
+ * - Listar usuarios existentes con sus roles.
+ * - Registrar nuevos usuarios con credenciales y rol asignado.
+ * - Eliminar usuarios, validando privilegios y confirmación del usuario activo.
+ *
+ * Esta clase actúa como interfaz entre la capa de presentación (UIHelper)
+ * y el controlador de usuarios (UsuariosController), garantizando que las
+ * operaciones se realicen de acuerdo a los privilegios del rol.
+ *
+ * @author GrupoG
+ */
 public class GestionUsuarios {
-    private final UsuariosController usuariosController = new UsuariosController();
 
-    public void mostrar(Rol rolUsuario, String usuarioLogueado) {
+    
+    //Ver - Inyectar dependencias en lugar de instanciar controladores cada vez
+    private final UsuariosController usuariosController = new UsuariosController();
+    // Variable de instancia para el usuario activo
+    private Usuario usuarioActual;
+
+    /**
+     * Muestra el menú principal de gestión de usuarios y procesa la navegación.
+     *
+     * @param rolUsuario El rol del usuario que está utilizando el sistema.
+     * @param usuarioLogueado El objeto {@link Usuario} que inició sesión.
+     */
+    public void mostrar(Rol rolUsuario, Usuario usuarioLogueado) {
         int opcion;
+
+        // Asigno el objeto a nuestra variable de instancia
+        this.usuarioActual = usuarioLogueado;
+
         do {
             UIHelper.mostrarSubtitulo("GESTIÓN DE USUARIOS");
             UIHelper.imprimirMensaje("1. Listar Usuarios");
-            
+
             if (rolUsuario == Rol.ADMINISTRADOR) {
                 UIHelper.imprimirMensaje("2. Registrar nuevo Usuario\n3. Eliminar Usuario");
             }
@@ -28,13 +59,19 @@ public class GestionUsuarios {
             }
 
             switch (opcion) {
-                case 1 -> ejecutarListarUsuarios();
-                case 2 -> ejecutarRegistrarUsuario();
-                case 3 -> ejecutarEliminarUsuario(usuarioLogueado);
+                case 1 ->
+                    ejecutarListarUsuarios();
+                case 2 ->
+                    ejecutarRegistrarUsuario();
+                case 3 ->
+                    ejecutarEliminarUsuario();
             }
         } while (opcion != 0);
     }
 
+    /**
+     * Solicita al controlador el listado de usuarios y los imprime en consola.
+     */
     private void ejecutarListarUsuarios() {
         UIHelper.mostrarSubtitulo("LISTADO DE USUARIOS");
         try {
@@ -52,6 +89,10 @@ public class GestionUsuarios {
         UIHelper.pausar();
     }
 
+    /**
+     * Captura los datos necesarios del usuario a registrar y solicita la
+     * operación al controlador.
+     */
     private void ejecutarRegistrarUsuario() {
         UIHelper.mostrarSubtitulo("REGISTRO DE USUARIO");
         String user = UIHelper.leerTexto("Nombre de usuario");
@@ -68,13 +109,19 @@ public class GestionUsuarios {
         UIHelper.pausar();
     }
 
-    private void ejecutarEliminarUsuario(String usuarioLogueado) {
+    /**
+     * Solicita el nombre del usuario a eliminar y confirma la acción con el
+     * usuario activo.
+     */
+    private void ejecutarEliminarUsuario() {
         UIHelper.mostrarSubtitulo("ELIMINAR USUARIO");
         String nombre = UIHelper.leerTexto("Nombre de usuario a eliminar");
-        
+
         if (UIHelper.leerBooleano("¿Confirma la eliminación?")) {
             try {
-                usuariosController.eliminarUsuario(nombre, usuarioLogueado);
+                // Paso el objeto usuarioActual 
+                usuariosController.eliminarUsuario(nombre, this.usuarioActual);
+
                 UIHelper.imprimirExito("Usuario eliminado correctamente.");
             } catch (Exception e) {
                 UIHelper.imprimirError(e.getMessage());

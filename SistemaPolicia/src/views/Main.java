@@ -6,8 +6,30 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import models.Usuario;
 
-
-// Punto de entrada del programa. Inicializa servicios y muestra el login.
+/**
+ * Clase principal y punto de entrada del sistema de seguridad bancaria.
+ * Inicializa los servicios necesarios y gestiona el flujo de inicio de sesión
+ * de los usuarios, mostrando la interfaz correspondiente según su rol.
+ *
+ * Funcionalidades principales: - Configurar la salida estándar para soportar
+ * caracteres UTF-8. - Mostrar la pantalla de login y validar credenciales de
+ * usuario. - Permitir cierre de sesión o salida del sistema. - Redirigir al
+ * menú correspondiente según el rol del usuario: ADMINISTRADOR, INVESTIGADOR o
+ * VIGILANTE.
+ *
+ * Esta clase coordina la interacción inicial del usuario con el sistema,
+ * delegando la lógica específica a los controladores y menús especializados.
+ *
+ * @author GrupoG
+ */
+/**
+ * Método principal que inicializa el sistema y mantiene el bucle de inicio de
+ * sesión.
+ *
+ * * @param args Argumentos de línea de comandos (no utilizados).
+ * @throws UnsupportedEncodingException Si la codificación UTF-8 no es soportada
+ * por el entorno.
+ */
 public class Main {
 
     public static void main(String[] args) throws UnsupportedEncodingException {

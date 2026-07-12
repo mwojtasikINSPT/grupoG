@@ -7,10 +7,34 @@ import models.Vigilante;
 import views.UIHelper;
 import java.util.List;
 
+/**
+ * Clase que gestiona las consultas disponibles para un vigilante en el sistema.
+ * Permite al vigilante visualizar sus datos personales y los contratos de
+ * vigilancia que tiene asignados, a través de un menú interactivo en consola.
+ *
+ * Funcionalidades principales: - Consultar datos personales: muestra código y
+ * edad del vigilante, o estado pendiente si faltan datos. - Consultar
+ * contratos: lista los contratos asociados, incluyendo fecha, sucursal y si
+ * porta arma.
+ *
+ * Esta clase actúa como interfaz entre la capa de presentación (UIHelper) y el
+ * controlador bancario (BancarioController), brindando acceso restringido a la
+ * información relevante para cada vigilante.
+ *
+ * @author GrupoG
+ *
+ */
 public class ConsultaVigilante {
 
+    
+    //Ver - Inyectar dependencias en lugar de instanciar controladores cada vez
     private final BancarioController bancarioController = new BancarioController();
 
+    /**
+     * Muestra el menú principal de consultas para el vigilante.
+     *
+     * @param miCodigo El identificador único del vigilante logueado.
+     */
     public void mostrar(String miCodigo) {
         int opcion;
 
@@ -35,6 +59,12 @@ public class ConsultaVigilante {
         } while (opcion != 0);
     }
 
+    /**
+     * Recupera y muestra la información personal del vigilante desde el
+     * sistema.
+     *
+     * @param miCodigo Código del vigilante a consultar.
+     */
     private void ejecutarVerMisDatos(String miCodigo) {
         UIHelper.mostrarSubtitulo("MIS DATOS PERSONALES");
         try {
@@ -57,6 +87,13 @@ public class ConsultaVigilante {
         UIHelper.pausar();
     }
 
+    /**
+     * Filtra y despliega los contratos de vigilancia asociados al código del
+     * vigilante logueado.
+     *
+     * @param miCodigo Código del vigilante cuyos contratos se desean
+     * visualizar.
+     */
     private void ejecutarVerMisContratos(String miCodigo) {
         UIHelper.mostrarSubtitulo("MIS CONTRATOS");
         try {
