@@ -1,32 +1,28 @@
 #GITIGNORE para que no molesten los archivos de compilacion individuales
 
 # Compilados de Java
+# --- Compilados y Build ---
+# Aplica a cualquier nivel de subdirectorio
+**/build/
+**/dist/
+**/target/
 *.class
 
-# Archivos de log
-# Archivos compilados
-*.class
-
-# Directorios de build y distribución
-/build/
-/dist/
-/target/
-
-# Configuración privada de NetBeans
+# --- Configuración específica de NetBeans ---
+# Eliminamos la barra inicial para que actúe en cualquier subcarpeta
 nbproject/private/
 nbproject/configurations.xml
 nbproject/genfiles.properties
+# General para netbeans
+nbproject/build-impl.xml
 
-# Archivos de IDE
-/.idea/
-/.vscode/
-/*.iml
+# --- Archivos de IDE ---
+.idea/
+.vscode/
+*.iml
 
-# Archivos de sistema
+# --- Sistema y temporales ---
 .DS_Store
 Thumbs.db
-
-# Logs y temporales
 *.log
 *.tmp
-/SistemaPolicia/dist/
