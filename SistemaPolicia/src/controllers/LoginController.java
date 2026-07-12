@@ -6,38 +6,65 @@ import exceptions.ErrorAlLeerException;
 import exceptions.ObjetoNoEncontradoException;
 import models.Usuario;
 
+/**
+ * Controlador encargado de gestionar el proceso de autenticación de los
+ * usuarios en el sistema.
+ */
 public class LoginController {
 
     private final UsuarioDAO usuarioDAO;
     private final MenuController menuController;
 
+    /**
+     * Inicializa el controlador con los DAOs y componentes necesarios para el
+     * login.
+     */
     public LoginController() {
         this.usuarioDAO = new UsuarioDAO();
         this.menuController = new MenuController();
     }
 
+    /**
+     * Procesa las credenciales de inicio de sesión de un usuario.
+     *
+     * * @param loginDTO Objeto que contiene las credenciales (usuario y
+     * contraseña).
+     * @return El objeto {@link Usuario} autenticado si las credenciales son
+     * correctas.
+     * @throws Exception Si el usuario o contraseña son inválidos (mensaje
+     * genérico por seguridad).
+     */
     public Usuario procesarLogin(UsuarioLoginDTO loginDTO) throws Exception {
-        // Validar datos vacíos
-        if (loginDTO.getNombreUsuario().trim().isEmpty() || loginDTO.getPassword().trim().isEmpty()) {
-            throw new Exception("El usuario y la contraseña no pueden estar vacíos.");
+
+        // Valido que el DTO no sea nulo
+        if (loginDTO == null) {
+            throw new Exception("Credenciales no proporcionadas.");
+        }
+
+        // Validar datos 
+        if (loginDTO.getNombreUsuario() == null || loginDTO.getNombreUsuario().trim().isEmpty()
+                || loginDTO.getPassword() == null || loginDTO.getPassword().trim().isEmpty()) {
+            throw new Exception("Usuario o contraseña incorrectos.");
         }
 
         try {
             // Normalizamos el nombre ingresado
             String nombreNormalizado = loginDTO.getNombreUsuario().trim().toLowerCase();
-            
+
             // Busco el usuario en el archivo .txt
             Usuario usuario = usuarioDAO.buscarPorId(nombreNormalizado);
 
-            if (usuario.getPassword().equals(loginDTO.getPassword())) {
-                // Si coinciden, devolvemos la variable encontrada
+            //Valido contrasena
+            if (loginDTO.getPassword().equals(usuario.getPassword())) {
+                // Si coinciden, devuelvo el usuario
                 return usuario;
             } else {
-                throw new Exception("La contraseña es incorrecta. Intente nuevamente.");
+                throw new Exception("Usuario o contraseña incorrectos.");
             }
 
         } catch (ObjetoNoEncontradoException e) {
-            throw new Exception("El usuario '" + loginDTO.getNombreUsuario() + "' no está registrado.");
+            // Mensaje genérico para no revelar si el usuario existe o no
+            throw new Exception("Usuario o contraseña incorrectos.");
         } catch (ErrorAlLeerException e) {
             throw new Exception("Error en el sistema: " + e.getMessage());
         }

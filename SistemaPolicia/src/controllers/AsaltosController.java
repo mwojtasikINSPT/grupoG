@@ -1,6 +1,5 @@
 package controllers;
 
-//Aca relacionamos AsaltoDAO, AsaltanteDAO, BandaDAO y SucursalDAO.
 import daos.AsaltanteDAO;
 import daos.AsaltoDAO;
 import daos.BandaDAO;
@@ -15,7 +14,11 @@ import models.Asalto;
 import models.Banda;
 import models.Sucursal;
 
-//cargar bandas, registrar asaltantes o asaltos
+/**
+ * Controlador encargado de gestionar las operaciones relacionadas con asaltos,
+ * bandas y asaltantes, actuando como intermediario entre la capa de
+ * persistencia (DAO) y la lógica de negocio.
+ */
 public class AsaltosController {
 
     private final BandaDAO bandaDAO;
@@ -23,6 +26,9 @@ public class AsaltosController {
     private final AsaltoDAO asaltoDAO;
     private final SucursalDAO sucursalDAO;
 
+    /**
+     * Inicializa el controlador y sus respectivas dependencias DAO.
+     */
     public AsaltosController() {
         this.bandaDAO = new BandaDAO();
         this.asaltanteDAO = new AsaltanteDAO();
@@ -30,7 +36,13 @@ public class AsaltosController {
         this.sucursalDAO = new SucursalDAO();
     }
 
-    //Registrar una nueva banda
+    /**
+     * Registra una nueva banda criminal en el sistema tras validar los datos.
+     *
+     * @param numeroBanda Identificador único de la banda.
+     * @param cantMiembro Cantidad de integrantes de la banda.
+     * @throws Exception Si la banda ya existe o los datos son inválidos.
+     */
     public void registrarBanda(String numeroBanda, int cantMiembro) throws Exception {
         if (numeroBanda.trim().isEmpty()) {
             throw new Exception("El numero de banda no puede estar vacío.");
@@ -41,11 +53,16 @@ public class AsaltosController {
         }
 
         try {
+            // Verificamos si existe antes de intentar guardar
+            boolean existe = true;
             try {
                 bandaDAO.buscarPorId(numeroBanda);
-                throw new Exception("La banda número '" + numeroBanda + "' ya está registrada.");
             } catch (ObjetoNoEncontradoException e) {
-                //Si no la encuentra, se puede crear
+                existe = false;
+            }
+
+            if (existe) {
+                throw new Exception("La banda número '" + numeroBanda + "' ya está registrada.");
             }
 
             Banda nuevaBanda = new Banda(numeroBanda, cantMiembro);
@@ -55,55 +72,68 @@ public class AsaltosController {
         }
     }
 
-    //Registrar un asaltante y asignarle una banda existente
+    /**
+     * Registra un nuevo asaltante vinculándolo a una banda ya existente.
+     *
+     * @param clave Identificador único del asaltante.
+     * @param nombreCompleto Nombre del asaltante.
+     * @param numeroBanda Código de la banda a la cual se asigna.
+     * @throws Exception Si la banda no existe o la clave ya está en uso.
+     */
     public void registrarAsaltante(String clave, String nombreCompleto, String numeroBanda) throws Exception {
         try {
             // Verificar que la banda existe
-            Banda banda;
-            try {
-                banda = bandaDAO.buscarPorId(numeroBanda);
-            } catch (ObjetoNoEncontradoException e) {
-                throw new Exception("La banda '" + numeroBanda + "' no existe.");
-            }
-            // Verificar que la clave del asaltante no este duplicado
+            Banda banda = bandaDAO.buscarPorId(numeroBanda);
 
+            // Verificar que la clave del asaltante no este duplicado
+            boolean existe = true;
             try {
                 asaltanteDAO.buscarPorId(clave);
-                throw new Exception("La clave del asaltante '" + clave + "' ya se encuentra en uso.");
             } catch (ObjetoNoEncontradoException e) {
+                existe = false;
+            }
+
+            if (existe) {
+                throw new Exception("La clave del asaltante '" + clave + "' ya se encuentra en uso.");
             }
 
             //Armar el asaltante asociando la banda
             Asaltante nuevoAsaltante = new Asaltante(clave, nombreCompleto, banda);
             asaltanteDAO.guardar(nuevoAsaltante);
+
         } catch (ErrorAlGuardarException e) {
             throw new Exception(e.getMessage());
         }
     }
 
-    //Registrar un asalto vinculando asaltante, sucursal, y fecha.
+    /**
+     * Registra un nuevo asalto en el sistema validando la existencia de los
+     * involucrados.
+     *
+     * @param idAsalto ID único del asalto.
+     * @param claveAsaltante ID del asaltante involucrado.
+     * @param codigoSucursal ID de la sucursal afectada.
+     * @param fechaStr Fecha del asalto en formato YYYY-MM-DD.
+     * @throws Exception Si los IDs no existen, el ID de asalto está duplicado o
+     * la fecha es inválida.
+     */
     public void registrarAsalto(String idAsalto, String claveAsaltante, String codigoSucursal, String fechaStr) throws Exception {
         try {
-            // Verificar que el asaltante existe
-            Asaltante asaltante;
-            try {
-                asaltante = asaltanteDAO.buscarPorId(claveAsaltante);
-            } catch (ObjetoNoEncontradoException e) {
-                throw new Exception("El asaltante '" + claveAsaltante + "' no existe.");
-            }
-            // Verificar que la sucursal existe
-            Sucursal sucursal;
-            try {
-                sucursal = sucursalDAO.buscarPorId(codigoSucursal);
-            } catch (ObjetoNoEncontradoException e) {
-                throw new Exception("La sucursal '" + codigoSucursal + "' no existe.");
-            }
-            // Verigicar que la id del asalto no sea duplicado.
+            // Verificar que el id del asalto no se duplique.
+            boolean existe = true;
             try {
                 asaltoDAO.buscarPorId(idAsalto);
             } catch (ObjetoNoEncontradoException e) {
+                existe = false;
+            }
+            if (existe) {
                 throw new Exception("El id de asalto '" + idAsalto + "' ya está en uso.");
             }
+            // Verificar que el asaltante existe
+            Asaltante asaltante = asaltanteDAO.buscarPorId(claveAsaltante);
+
+            // Verificar que la sucursal existe
+            Sucursal sucursal = sucursalDAO.buscarPorId(codigoSucursal);
 
             //Fecha
             LocalDate fecha = LocalDate.parse(fechaStr);
@@ -111,6 +141,9 @@ public class AsaltosController {
             //Armar asalto
             Asalto nuevoAsalto = new Asalto(idAsalto, asaltante, sucursal, fecha);
             asaltoDAO.guardar(nuevoAsalto);
+
+        } catch (ObjetoNoEncontradoException e) {
+            throw new Exception("Entidad no encontrada: " + e.getMessage());
         } catch (java.time.format.DateTimeParseException e) {
             throw new Exception("Formato de fecha inválido. Por favor use el formato  YYYY-MM-DD.");
         } catch (ErrorAlGuardarException e) {
@@ -118,7 +151,12 @@ public class AsaltosController {
         }
     }
 
-    //Lista de todos los asaltos
+    /**
+     * Recupera el listado completo de asaltos registrados.
+     *
+     * @return Lista de objetos {@link Asalto}.
+     * @throws Exception Si ocurre un error durante la lectura.
+     */
     public List<Asalto> listarAsaltos() throws Exception {
         try {
             return asaltoDAO.obtenerTodos();
@@ -127,7 +165,12 @@ public class AsaltosController {
         }
     }
 
-    // Lista de todas las bandas
+    /**
+     * Recupera el listado completo de bandas registradas.
+     *
+     * @return Lista de objetos {@link Banda}.
+     * @throws Exception Si ocurre un error durante la lectura.
+     */
     public List<Banda> listarBandas() throws Exception {
         try {
             return bandaDAO.obtenerTodos();
