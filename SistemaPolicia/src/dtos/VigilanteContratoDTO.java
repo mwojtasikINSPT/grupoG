@@ -1,15 +1,53 @@
 package dtos;
 
-// DTO para mostrar al Vigilante solo los datos que le interesan (sus fechas y sucursales).
+/**
+ * Objeto de transferencia de datos (DTO) diseñado para proporcionar al
+ * vigilante únicamente la información relevante de su contrato, vinculando sus
+ * datos personales con los detalles de la sucursal asignada y las condiciones
+ * laborales.
+ */
 public class VigilanteContratoDTO {
 
-    private String codigoVigilante;
-    private int edadVigilante;
-    private String codigoSucursal;
-    private String domicilioSucursal;
-    private String fecha;           //String para que muestre mejor la fecha 
-    private String portacionArma;   //String para que muestre SI / NO
+    /**
+     * Código único del vigilante.
+     */
+    private final String codigoVigilante;
 
+    /**
+     * Edad actual del vigilante.
+     */
+    private int edadVigilante;
+
+    /**
+     * Código de la sucursal asignada.
+     */
+    private String codigoSucursal;
+
+    /**
+     * Dirección física de la sucursal.
+     */
+    private String domicilioSucursal;
+
+    /**
+     * Fecha de vigencia del contrato o asignación.
+     */
+    private String fecha;
+
+    /**
+     * Condición de portación de arma del vigilante ("SI" o "NO").
+     */
+    private String portacionArma;
+
+    /**
+     * Construye un nuevo VigilanteContratoDTO.
+     *
+     * * @param codigoVigilante Identificador del vigilante.
+     * @param edadVigilante Edad del vigilante.
+     * @param codigoSucursal Identificador de la sucursal.
+     * @param domicilioSucursal Ubicación de la sucursal.
+     * @param fecha Fecha de la asignación.
+     * @param portacionArma Estado de portación de arma.
+     */
     public VigilanteContratoDTO(String codigoVigilante, int edadVigilante, String codigoSucursal, String domicilioSucursal, String fecha, String portacionArma) {
         this.codigoVigilante = codigoVigilante;
         this.edadVigilante = edadVigilante;
@@ -19,15 +57,45 @@ public class VigilanteContratoDTO {
         this.portacionArma = portacionArma;
     }
 
-    public String getCodigoVigilante() {return codigoVigilante;}
+    /**
+     * @return El código del vigilante.
+     */
+    public String getCodigoVigilante() {
+        return codigoVigilante;
+    }
 
-    public int getEdadVigilante() {return edadVigilante;}
+    /**
+     * @return La edad del vigilante.
+     */
+    public int getEdadVigilante() {
+        return edadVigilante;
+    }
 
-    public String getCodigoSucursal() {return codigoSucursal;}
+    /**
+     * @return El código de la sucursal asignada.
+     */
+    public String getCodigoSucursal() {
+        return codigoSucursal;
+    }
 
-    public String getDomicilioSucursal() {return domicilioSucursal;}
+    /**
+     * @return El domicilio de la sucursal.
+     */
+    public String getDomicilioSucursal() {
+        return domicilioSucursal;
+    }
 
-    public String getFecha() {return fecha;}
+    /**
+     * @return La fecha de la asignación.
+     */
+    public String getFecha() {
+        return fecha;
+    }
 
-    public String getPortacionArma() {return portacionArma;}    
+    /**
+     * @return El estado de portación de arma ("SI" o "NO").
+     */
+    public String getPortacionArma() {
+        return portacionArma;
+    }
 }

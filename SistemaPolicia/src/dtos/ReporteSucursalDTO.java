@@ -1,23 +1,56 @@
 package dtos;
 
-// DTO para consolidar información de una sucursal (vigilantes asignados y asaltos sufridos).
-
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Objeto de transferencia de datos (DTO) que consolida la información técnica y
+ * operativa de una sucursal, incluyendo los detalles de su entidad bancaria,
+ * estadísticas de seguridad y el listado de personal de vigilancia asignado.
+ */
 public class ReporteSucursalDTO {
-    private String codigoSucursal; //ver si es int o string
-    private String domicilioSucursal;
-    private int cantEmpleados;
-    
-    //datos de la entidad a la que pertenece la sucursal
-    private String codigoBanco;
-    private String domicilioCentralBanco;
-    
-    private int cantAsaltosSufridos;
-    
-    private List <VigilanteAsignadoDTO> listadoVigilantes;  
 
+    /**
+     * Código único de la sucursal.
+     */
+    private final String codigoSucursal;
+    /**
+     * Dirección física de la sucursal.
+     */
+    private String domicilioSucursal;
+    /**
+     * Cantidad total de empleados activos en la sucursal.
+     */
+    private int cantEmpleados;
+    //datos de la entidad a la que pertenece la sucursal
+    /**
+     * Código de identificación del banco al que pertenece la sucursal.
+     */
+    private final String codigoBanco;
+    /**
+     * Domicilio de la casa central de la entidad bancaria.
+     */
+    private String domicilioCentralBanco;
+    /**
+     * Contador de asaltos sufridos por la sucursal.
+     */
+    private int cantAsaltosSufridos;
+
+    /**
+     * Lista de vigilantes actualmente asignados a esta sucursal.
+     */
+    private List<VigilanteAsignadoDTO> listadoVigilantes;
+
+    /**
+     * Construye un nuevo ReporteSucursalDTO.
+     *
+     * * @param codigoSucursal Identificador de la sucursal.
+     * @param domicilioSucursal Ubicación de la sucursal.
+     * @param cantEmpleados Número de personal empleado.
+     * @param codigoBanco Identificador de la entidad bancaria.
+     * @param domicilioCentralBanco Dirección de la sede central del banco.
+     * @param cantAsaltosSufridos Total de incidencias delictivas registradas.
+     * @param listadoVigilantes Listado inicial de vigilantes asignados.
+     */
     public ReporteSucursalDTO(String codigoSucursal, String domicilioSucursal, int cantEmpleados, String codigoBanco, String domicilioCentralBanco, int cantAsaltosSufridos, List<VigilanteAsignadoDTO> listadoVigilantes) {
         this.codigoSucursal = codigoSucursal;
         this.domicilioSucursal = domicilioSucursal;
@@ -25,28 +58,66 @@ public class ReporteSucursalDTO {
         this.codigoBanco = codigoBanco;
         this.domicilioCentralBanco = domicilioCentralBanco;
         this.cantAsaltosSufridos = cantAsaltosSufridos;
-        this.listadoVigilantes = new ArrayList<>();
+        this.listadoVigilantes = listadoVigilantes;
     }
-    
-    //agregar vigilante a la sucursal
-    public void agregarVigilante(VigilanteAsignadoDTO vigilante){
+
+    /**
+     * Asocia un nuevo vigilante al reporte de la sucursal.
+     *
+     * * @param vigilante Objeto {@link VigilanteAsignadoDTO} con los datos del
+     * vigilante.
+     */
+    public void agregarVigilante(VigilanteAsignadoDTO vigilante) {
         this.listadoVigilantes.add(vigilante);
     }
-    
+
     //getters
+    /**
+     * @return El código de la sucursal.
+     */
+    public String getCodigoSucursal() {
+        return codigoSucursal;
+    }
 
-    public String getCodigoSucursal() {return codigoSucursal;}
+    /**
+     * @return El domicilio de la sucursal.
+     */
+    public String getDomicilioSucursal() {
+        return domicilioSucursal;
+    }
 
-    public String getDomicilioSucursal() {return domicilioSucursal;}
+    /**
+     * @return La cantidad de empleados en la sucursal.
+     */
+    public int getCantEmpleados() {
+        return cantEmpleados;
+    }
 
-    public int getCantEmpleados() {return cantEmpleados;}
+    /**
+     * @return El código del banco asociado.
+     */
+    public String getCodigoBanco() {
+        return codigoBanco;
+    }
 
-    public String getCodigoBanco() {return codigoBanco;}
+    /**
+     * @return El domicilio de la central bancaria.
+     */
+    public String getDomicilioCentralBanco() {
+        return domicilioCentralBanco;
+    }
 
-    public String getDomicilioCentralBanco() {return domicilioCentralBanco;}
+    /**
+     * @return El número total de asaltos registrados.
+     */
+    public int getCantAsaltosSufridos() {
+        return cantAsaltosSufridos;
+    }
 
-    public int getCantAsaltosSufridos() {return cantAsaltosSufridos;}
-
-    public List<VigilanteAsignadoDTO> getListadoVigilantes() {return listadoVigilantes;}
+    /**
+     * @return La lista de vigilantes asignados.
+     */
+    public List<VigilanteAsignadoDTO> getListadoVigilantes() {
+        return listadoVigilantes;
+    }
 }
-
