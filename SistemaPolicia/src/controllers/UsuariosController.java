@@ -42,6 +42,11 @@ public class UsuariosController {
         if (nombreUsuario.trim().isEmpty() || password.trim().isEmpty()) {
             throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
         }
+        
+        // Valido largo pass
+        if (password.length() < 5) {
+            throw new Exception("La contraseña debe tener al menos 5 caracteres.");
+        }
 
         // Valido que el rol no sea nulo
         if (rol == null) {
