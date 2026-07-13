@@ -2,6 +2,10 @@ package views.submenues;
 
 import controllers.JudicialController;
 import controllers.AsaltosController;
+import daos.AsaltanteDAO;
+import daos.AsaltoDAO;
+import daos.BandaDAO;
+import daos.SucursalDAO;
 import models.CasoJudicial;
 import models.Banda;
 import models.Asalto;
@@ -30,9 +34,14 @@ import models.Rol;
  */
 public class GestionJudicial {
 
-    //Ver - Inyectar dependencias en lugar de instanciar controladores cada vez
-    private final JudicialController judicialController = new JudicialController();
-    private final AsaltosController asaltosController = new AsaltosController();
+    /**
+     * Controlador encargado de gestionar las operaciones relacionadas con los
+     * asaltos. Se inicializa con los objetos de acceso a datos (DAO) necesarios
+     * para interactuar con la banda, los asaltantes y las sucursales.
+     */
+    //NO va aca, pero es la unica forma de que no se rompa todo por errores en creacion de entidades sin datos completos
+    private final AsaltosController asaltosController = new AsaltosController(new BandaDAO(), new AsaltanteDAO(), new SucursalDAO());
+    private final JudicialController judicialController = new JudicialController(new AsaltoDAO());
 
     /**
      * Muestra el menú principal de gestión judicial y procesa las opciones
@@ -69,6 +78,7 @@ public class GestionJudicial {
         UIHelper.mostrarSubtitulo("REGISTRO DE DETENIDOS");
         try {
             List<CasoJudicial> lista = judicialController.listarDetenidos();
+
             if (lista.isEmpty()) {
                 UIHelper.imprimirMensaje("No hay detenidos registrados.");
             } else {

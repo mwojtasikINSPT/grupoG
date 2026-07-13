@@ -27,28 +27,40 @@ public class AsaltosController {
     private final SucursalDAO sucursalDAO;
 
     /**
-     * Inicializa el controlador y sus respectivas dependencias DAO.
+     * Constructor del controlador de asaltos.
+     *
+     * Inyecta las dependencias necesarias para gestionar la lógica de asaltos:
+     * - BandaDAO: acceso a datos de bandas. - AsaltanteDAO: acceso a datos de
+     * asaltantes. - SucursalDAO: acceso a datos de sucursales.
+     *
+     * Además, inicializa el AsaltoDAO utilizando AsaltanteDAO y SucursalDAO, ya
+     * que son requeridos para la gestión de los asaltos.
+     *
+     * @param bandaDAO DAO para operaciones sobre bandas
+     * @param asaltanteDAO DAO para operaciones sobre asaltantes
+     * @param sucursalDAO DAO para operaciones sobre sucursales
      */
-    public AsaltosController() {
-        this.bandaDAO = new BandaDAO();
-        this.asaltanteDAO = new AsaltanteDAO();
-        this.asaltoDAO = new AsaltoDAO();
-        this.sucursalDAO = new SucursalDAO();
+    public AsaltosController(BandaDAO bandaDAO, AsaltanteDAO asaltanteDAO, SucursalDAO sucursalDAO) {
+        this.bandaDAO = bandaDAO;
+        this.asaltanteDAO = asaltanteDAO;
+        this.sucursalDAO = sucursalDAO;
+        // inyecto DAOs necesarios al AsaltoDAO
+        this.asaltoDAO = new AsaltoDAO(asaltanteDAO, sucursalDAO);
     }
 
     /**
      * Registra una nueva banda criminal en el sistema tras validar los datos.
      *
      * @param numeroBanda Identificador único de la banda.
-     * @param cantMiembro Cantidad de integrantes de la banda.
+     * @param cantMiembros Cantidad de integrantes de la banda.
      * @throws Exception Si la banda ya existe o los datos son inválidos.
      */
-    public void registrarBanda(String numeroBanda, int cantMiembro) throws Exception {
+    public void registrarBanda(String numeroBanda, int cantMiembros) throws Exception {
         if (numeroBanda.trim().isEmpty()) {
             throw new Exception("El numero de banda no puede estar vacío.");
         }
 
-        if (cantMiembro < 0) {
+        if (cantMiembros < 0) {
             throw new Exception("La cantidad de miembros no puede ser negativa.");
         }
 
@@ -65,7 +77,7 @@ public class AsaltosController {
                 throw new Exception("La banda número '" + numeroBanda + "' ya está registrada.");
             }
 
-            Banda nuevaBanda = new Banda(numeroBanda, cantMiembro);
+            Banda nuevaBanda = new Banda(numeroBanda, cantMiembros);
             bandaDAO.guardar(nuevaBanda);
         } catch (ErrorAlGuardarException e) {
             throw new Exception(e.getMessage());

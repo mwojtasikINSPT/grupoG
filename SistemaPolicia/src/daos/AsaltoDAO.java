@@ -22,14 +22,21 @@ import models.Sucursal;
  */
 public class AsaltoDAO implements IGenericDAO<Asalto> {
 
+    /**
+     * Instancia para acceder a los datos de asaltantes.
+     */
+    private final AsaltanteDAO asaltanteDAO;
+
+    /**
+     * Instancia para acceder a los datos de sucursales.
+     */
+    private final SucursalDAO sucursalDAO;
+
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "asaltos.txt";
 
-    /**
-     * Constructor. Inicializa el DAO y asegura la existencia del archivo.
-     */
     public AsaltoDAO() {
-        crearArchivoSiNoExiste();
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     /**
@@ -44,6 +51,19 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         } catch (IOException e) {
             System.out.println("Error al crear el archivo de asaltos: " + e.getMessage());
         }
+    }
+
+    /**
+     * Construye un nuevo AsaltoDAO inyectando las dependencias necesarias para
+     * la gestión de relaciones.
+     *
+     * @param asaltanteDAO El DAO encargado de los asaltantes.
+     * @param sucursalDAO El DAO encargado de las sucursales.
+     */
+    public AsaltoDAO(AsaltanteDAO asaltanteDAO, SucursalDAO sucursalDAO) {
+        this.asaltanteDAO = asaltanteDAO;
+        this.sucursalDAO = sucursalDAO;
+        crearArchivoSiNoExiste();
     }
 
     /**
@@ -120,8 +140,9 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
                     // Convierto el texto nuevamente a LocalDate
                     LocalDate fecha = LocalDate.parse(partes[3]);
 
-                    Asaltante asaltante = new Asaltante(claveAsaltante, "", null);
-                    Sucursal sucursal = new Sucursal(codigoSucursal, "", 0, null);
+                    // Buscamos en el DAO correspondiente
+                    Asaltante asaltante = asaltanteDAO.buscarPorId(claveAsaltante);
+                    Sucursal sucursal = sucursalDAO.buscarPorId(codigoSucursal);
 
                     Asalto asalto = new Asalto(idAsalto, asaltante, sucursal, fecha);
                     listaAsaltos.add(asalto);
@@ -129,6 +150,9 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
             }
         } catch (IOException e) {
             throw new ErrorAlLeerException("Archivo de Asaltos", e.getMessage());
+        } catch (ObjetoNoEncontradoException ex) {
+            System.getLogger(AsaltoDAO.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            //VER
         }
         return listaAsaltos;
     }

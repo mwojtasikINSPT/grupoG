@@ -22,13 +22,23 @@ public class JudicialController {
     private final CasoJudicialDAO casoJudicialDAO;
     private final AsaltoDAO asaltoDAO;
 
+    public JudicialController(JuezDAO juezDAO, CasoJudicialDAO casoJudicialDAO, AsaltoDAO asaltoDAO) {
+        this.juezDAO = juezDAO;
+        this.casoJudicialDAO = casoJudicialDAO;
+        this.asaltoDAO = asaltoDAO;
+    }
+   
     /**
-     * Inicializa el controlador con las instancias necesarias de los DAOs.
+     * Inicializa el controlador de casos judiciales inyectando la dependencia
+     * necesaria para la validación de asaltos.
+     *
+     * @param asaltoDAO Instancia del DAO de asaltos, necesaria para validar que
+     * el caso judicial se vincule a un asalto existente.
      */
-    public JudicialController() {
+    public JudicialController(AsaltoDAO asaltoDAO) {
         this.juezDAO = new JuezDAO();
         this.casoJudicialDAO = new CasoJudicialDAO();
-        this.asaltoDAO = new AsaltoDAO();
+        this.asaltoDAO = asaltoDAO;
     }
 
     /**
