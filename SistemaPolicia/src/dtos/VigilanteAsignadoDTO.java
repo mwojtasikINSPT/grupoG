@@ -33,6 +33,8 @@ public class VigilanteAsignadoDTO {
     }
 
     /**
+     * Obtiene el código de identificación del vigilante.
+     *
      * @return El código de identificación del vigilante.
      */
     public String getCodigoVigilante() {
@@ -40,6 +42,8 @@ public class VigilanteAsignadoDTO {
     }
 
     /**
+     * Obtiene la edad del vigilante.
+     *
      * @return La edad del vigilante.
      */
     public int getEdad() {
@@ -47,6 +51,8 @@ public class VigilanteAsignadoDTO {
     }
 
     /**
+     * Obtiene el estado de portación de arma.
+     *
      * @return El estado de portación de arma ("SI" o "NO").
      */
     public String getPortacionArma() {

@@ -43,6 +43,8 @@ public class ContratoVigilancia implements Serializable {
     // Getters y Setters
     /**
      * Obtiene sucursal
+     * Obtiene la sucursal asociada al contrato.
+     *
      * @return La sucursal del contrato.
      */
     public Sucursal getSucursal() {
@@ -51,6 +53,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Establece sucursal
+     * Asigna la sucursal del contrato.
+     *
      * @param sucursal La sucursal a asignar.
      */
     public void setSucursal(Sucursal sucursal) {
@@ -59,6 +63,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Obtiene vigilante
+     * Obtiene el vigilante asociado al contrato.
+     *
      * @return El vigilante del contrato.
      */
     public Vigilante getVigilante() {
@@ -67,6 +73,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Establece vigilante
+     * Asigna el vigilante del contrato.
+     *
      * @param vigilante El vigilante a asignar.
      */
     public void setVigilante(Vigilante vigilante) {
@@ -75,6 +83,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Obtiene fecha
+     * Obtiene la fecha del contrato de vigilancia.
+     *
      * @return La fecha del contrato.
      */
     public LocalDate getFecha() {
@@ -83,6 +93,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Establece fecha
+     * Asigna la fecha del contrato de vigilancia.
+     *
      * @param fecha La fecha a asignar.
      */
     public void setFecha(LocalDate fecha) {
@@ -91,6 +103,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Obtiene arma si o no
+     * Indica si el vigilante porta arma durante el contrato.
+     *
      * @return true si el vigilante porta arma, false en caso contrario.
      */
     public boolean isConArma() {
@@ -99,6 +113,8 @@ public class ContratoVigilancia implements Serializable {
 
     /**
      * Establece si tiene o no arma
+     * Establece si el vigilante porta arma durante el contrato.
+     *
      * @param conArma El estado de portación de arma a establecer.
      */
     public void setConArma(boolean conArma) {

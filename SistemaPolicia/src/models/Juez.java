@@ -39,6 +39,8 @@ public class Juez implements Serializable {
     /**
      * Obtiene la clave interna del juzgado.
      *
+     * Obtiene la clave interna del juez.
+     *
      * @return La clave interna.
      */
     public String getClaveInterna() {
@@ -47,6 +49,8 @@ public class Juez implements Serializable {
 
     /**
      * Establece la clave interna del juzgado.
+     *
+     * Asigna una nueva clave interna al juez.
      *
      * @param claveInterna La clave a asignar.
      */
@@ -57,6 +61,8 @@ public class Juez implements Serializable {
     /**
      * Obtiene los años de servicio.
      *
+     * Obtiene los años de servicio del juez.
+     *
      * @return Los años de servicio.
      */
     public int getAniosServicio() {
@@ -65,6 +71,8 @@ public class Juez implements Serializable {
 
     /**
      * Establece los años de servicio.
+     *
+     * Asigna los años de servicio del juez.
      *
      * @param aniosServicio Los años a asignar.
      */
@@ -75,6 +83,8 @@ public class Juez implements Serializable {
     /**
      * Obtiene el nombre del juez.
      *
+     * Obtiene el nombre completo del juez.
+     *
      * @return El nombre del juez.
      */
     public String getNombre() {
@@ -83,6 +93,8 @@ public class Juez implements Serializable {
 
     /**
      * Establece el nombre del juez.
+     *
+     * Asigna el nombre completo del juez.
      *
      * @param nombre El nombre a asignar.
      */

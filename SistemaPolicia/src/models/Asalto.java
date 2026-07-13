@@ -41,6 +41,8 @@ public class Asalto implements Serializable {
     /**
      * Obtiene el identificador del asalto.
      *
+     * Obtiene el identificador único del asalto.
+     *
      * @return El ID del asalto.
      */
     public String getIdAsalto() {
@@ -49,6 +51,8 @@ public class Asalto implements Serializable {
 
     /**
      * Establece el identificador del asalto.
+     *
+     * Asigna un nuevo identificador al asalto.
      *
      * @param idAsalto El ID a asignar.
      */
@@ -59,6 +63,8 @@ public class Asalto implements Serializable {
     /**
      * Obtiene el asaltante involucrado.
      *
+     * Obtiene el asaltante vinculado al hecho.
+     *
      * @return El objeto Asaltante.
      */
     public Asaltante getAsaltante() {
@@ -67,6 +73,8 @@ public class Asalto implements Serializable {
 
     /**
      * Establece el asaltante involucrado.
+     *
+     * Asigna el asaltante responsable del hecho.
      *
      * @param asaltante El asaltante a asignar.
      */
@@ -77,6 +85,8 @@ public class Asalto implements Serializable {
     /**
      * Obtiene la sucursal afectada.
      *
+     * Obtiene la sucursal donde ocurrió el asalto.
+     *
      * @return El objeto Sucursal.
      */
     public Sucursal getSucursal() {
@@ -85,6 +95,8 @@ public class Asalto implements Serializable {
 
     /**
      * Establece la sucursal afectada.
+     *
+     * Asigna la sucursal asociada al asalto.
      *
      * @param sucursal La sucursal a asignar.
      */
@@ -95,6 +107,8 @@ public class Asalto implements Serializable {
     /**
      * Obtiene la fecha del evento.
      *
+     * Obtiene la fecha en la que ocurrió el asalto.
+     *
      * @return La fecha del asalto.
      */
     public LocalDate getFecha() {
@@ -103,6 +117,8 @@ public class Asalto implements Serializable {
 
     /**
      * Establece la fecha del evento.
+     *
+     * Asigna la fecha del asalto.
      *
      * @param fecha La fecha a asignar.
      */

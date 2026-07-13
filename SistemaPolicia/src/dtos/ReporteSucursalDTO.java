@@ -74,6 +74,8 @@ public class ReporteSucursalDTO {
     //getters
     /**
      * Obtiene código de la sucursal.
+     * Obtiene el código de la sucursal.
+     *
      * @return El código de la sucursal.
      */
     public String getCodigoSucursal() {
@@ -82,6 +84,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Obtiene domicilio
+     * Obtiene el domicilio de la sucursal.
+     *
      * @return El domicilio de la sucursal.
      */
     public String getDomicilioSucursal() {
@@ -90,6 +94,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Obtiene cant Empleador
+     * Obtiene la cantidad de empleados de la sucursal.
+     *
      * @return La cantidad de empleados en la sucursal.
      */
     public int getCantEmpleados() {
@@ -98,6 +104,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Obtiene codigo
+     * Obtiene el código del banco asociado.
+     *
      * @return El código del banco asociado.
      */
     public String getCodigoBanco() {
@@ -106,6 +114,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Obtiene domicilio
+     * Obtiene el domicilio central del banco.
+     *
      * @return El domicilio de la central bancaria.
      */
     public String getDomicilioCentralBanco() {
@@ -114,6 +124,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Obtiene cant Asaltos
+     * Obtiene la cantidad total de asaltos sufridos por la sucursal.
+     *
      * @return El número total de asaltos registrados.
      */
     public int getCantAsaltosSufridos() {
@@ -122,6 +134,8 @@ public class ReporteSucursalDTO {
 
     /**
      * Genera listado Vigilantes
+     * Obtiene el listado de vigilantes asignados a la sucursal.
+     *
      * @return La lista de vigilantes asignados.
      */
     public List<VigilanteAsignadoDTO> getListadoVigilantes() {

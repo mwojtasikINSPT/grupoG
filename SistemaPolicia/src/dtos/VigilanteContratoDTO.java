@@ -58,6 +58,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene el código del vigilante.
+     *
      * @return El código del vigilante.
      */
     public String getCodigoVigilante() {
@@ -65,6 +67,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene la edad del vigilante.
+     *
      * @return La edad del vigilante.
      */
     public int getEdadVigilante() {
@@ -72,6 +76,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene el código de la sucursal asignada.
+     *
      * @return El código de la sucursal asignada.
      */
     public String getCodigoSucursal() {
@@ -79,6 +85,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene el domicilio de la sucursal.
+     *
      * @return El domicilio de la sucursal.
      */
     public String getDomicilioSucursal() {
@@ -86,6 +94,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene la fecha de la asignación.
+     *
      * @return La fecha de la asignación.
      */
     public String getFecha() {
@@ -93,6 +103,8 @@ public class VigilanteContratoDTO {
     }
 
     /**
+     * Obtiene el estado de portación de arma.
+     *
      * @return El estado de portación de arma ("SI" o "NO").
      */
     public String getPortacionArma() {
