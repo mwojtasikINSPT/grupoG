@@ -25,14 +25,13 @@ import models.Usuario;
 /**
  * Método principal que inicializa el sistema y mantiene el bucle de inicio de
  * sesión.
- *
- * por el entorno.
  */
 public class Main {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws UnsupportedEncodingException {
 
-       //System.setOut(new PrintStream(System.out, true, "UTF-8")); //Objeto para q muestre caracteres ASCII, necesita exception
+        //Objeto para q muestre caracteres ASCII, necesita exception
+        System.setOut(new PrintStream(System.out, true, "UTF-8"));
 
         LoginController loginController = new LoginController();
 
@@ -71,24 +70,23 @@ public class Main {
 
             // 3. Leo el rol y le doy la vista que corresponde
             switch (usuarioLogueado.obtenerRol()) {
-                case ADMINISTRADOR:
+                case ADMINISTRADOR -> {
                     MenuAdministrador menuAdmin = new MenuAdministrador();
                     menuAdmin.mostrarMenu(usuarioLogueado);
-                    break;
+                }
 
-                case INVESTIGADOR:
+                case INVESTIGADOR -> {
                     MenuInvestigador menuInvestigador = new MenuInvestigador();
                     menuInvestigador.mostrarMenu(usuarioLogueado);
-                    break;
+                }
 
-                case VIGILANTE:
+                case VIGILANTE -> {
                     MenuVigilante menuVigilante = new MenuVigilante();
                     menuVigilante.mostrarMenu(usuarioLogueado);
-                    break;
+                }
 
-                default: //En teoria, jamas llega hasta aca
+                default -> //En teoria, jamas llega hasta aca
                     UIHelper.imprimirError("Rol de usuario no reconocido por el sistema.");
-                    break;
             }
         }
     }

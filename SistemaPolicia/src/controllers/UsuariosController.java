@@ -38,6 +38,10 @@ public class UsuariosController {
      * existe, o si el vigilante no existe en el sistema.
      */
     public void registrarUsuario(String nombreUsuario, String password, Rol rol, String codigoVigilante) throws Exception {
+        if (nombreUsuario == null || password == null) {
+            throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
+        }
+
         // Valido datos no vacíos
         if (nombreUsuario.trim().isEmpty() || password.trim().isEmpty()) {
             throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
@@ -116,6 +120,10 @@ public class UsuariosController {
      * cuenta activa.
      */
     public void eliminarUsuario(String usuarioAEliminar, Usuario usuarioLogueado) throws Exception {
+        if (usuarioAEliminar == null || usuarioLogueado == null) {
+            throw new Exception("Datos de usuario inválidos para realizar la eliminación.");
+        }
+
         // Validación: comparo el nombre del usuario logueado con el usuario a eliminar
         if (usuarioAEliminar.equalsIgnoreCase(usuarioLogueado.getUsername())) {
             throw new Exception("Por motivos de seguridad, no podés eliminar tu propia cuenta.");

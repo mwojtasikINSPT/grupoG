@@ -22,12 +22,20 @@ public class JudicialController {
     private final CasoJudicialDAO casoJudicialDAO;
     private final AsaltoDAO asaltoDAO;
 
+    /**
+     * Constructor de la clase JudicialController. Inicializa los DAOs
+     * necesarios para gestionar jueces, casos judiciales y asaltos.
+     *
+     * @param juezDAO DAO para acceder y gestionar datos de jueces
+     * @param casoJudicialDAO DAO para acceder y gestionar casos judiciales
+     * @param asaltoDAO DAO para acceder y gestionar datos de asaltos
+     */
     public JudicialController(JuezDAO juezDAO, CasoJudicialDAO casoJudicialDAO, AsaltoDAO asaltoDAO) {
         this.juezDAO = juezDAO;
         this.casoJudicialDAO = casoJudicialDAO;
         this.asaltoDAO = asaltoDAO;
     }
-   
+
     /**
      * Inicializa el controlador de casos judiciales inyectando la dependencia
      * necesaria para la validación de asaltos.
@@ -50,6 +58,9 @@ public class JudicialController {
      * @throws Exception Si los datos son inválidos o la clave ya existe.
      */
     public void registrarJuez(String claveInterna, int aniosServicio, String nombre) throws Exception {
+        if (claveInterna == null || nombre == null) {
+            throw new Exception("La clave interna y el nombre del juez no pueden estar vacíos.");
+        }
 
         if (claveInterna.trim().isEmpty() || nombre.trim().isEmpty()) {
             throw new Exception("La clave interna y el nombre del juez no pueden estar vacíos.");
@@ -84,8 +95,16 @@ public class JudicialController {
      * registrado.
      */
     public void registrarCasoJudicial(String idAsalto, String claveJuez, boolean condenado, int mesesCarcel) throws Exception {
+        if (idAsalto == null || claveJuez == null) {
+            throw new Exception("El ID del asalto y la clave del juez son campos obligatorios.");
+        }
+
         if (idAsalto.trim().isEmpty() || claveJuez.trim().isEmpty()) {
             throw new Exception("El ID del asalto y la clave del juez son campos obligatorios.");
+        }
+
+        if (mesesCarcel < 0) {
+            throw new Exception("Los meses de cárcel no pueden ser negativos.");
         }
 
         //Si no esta condenado,  meses en la carcel= 0

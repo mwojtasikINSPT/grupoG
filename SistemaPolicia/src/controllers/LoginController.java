@@ -25,7 +25,7 @@ public class LoginController {
     /**
      * Procesa las credenciales de inicio de sesión de un usuario.
      *
-     * * @param loginDTO Objeto que contiene las credenciales (usuario y
+     * @param loginDTO Objeto que contiene las credenciales (usuario y
      * contraseña).
      * 
      * @return El objeto {@link Usuario} autenticado si las credenciales son

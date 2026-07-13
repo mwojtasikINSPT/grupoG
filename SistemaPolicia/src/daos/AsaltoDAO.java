@@ -35,6 +35,9 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "asaltos.txt";
 
+    /**
+     * Constructor por defecto.
+     */
     public AsaltoDAO() {
         this(new AsaltanteDAO(), new SucursalDAO());
     }

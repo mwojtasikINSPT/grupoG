@@ -25,7 +25,6 @@ import java.util.List;
  *
  */
 public class ConsultaVigilante {
-
     
     //Ver - Inyectar dependencias en lugar de instanciar controladores cada vez
     private final BancarioController bancarioController = new BancarioController();

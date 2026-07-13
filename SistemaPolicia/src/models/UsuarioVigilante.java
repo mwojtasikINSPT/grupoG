@@ -34,6 +34,8 @@ public class UsuarioVigilante extends Usuario {
 
     // Getters y Setters
     /**
+     * Obtiene el vigilante vinculado al usuario.
+     *
      * @return El objeto vigilante asociado.
      */
     public Vigilante getVigilante() {
@@ -41,6 +43,8 @@ public class UsuarioVigilante extends Usuario {
     }
 
     /**
+     * Asigna el vigilante vinculado al usuario.
+     *
      * @param vigilante El objeto vigilante a vincular.
      */
     public void setVigilante(Vigilante vigilante) {

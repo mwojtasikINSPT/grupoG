@@ -16,6 +16,9 @@ public class Juez implements Serializable {
     private int aniosServicio;
     private String nombre;
 
+    /**
+     * Constructor por defecto
+     */
     public Juez() {
     }
 

@@ -33,6 +33,14 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
         this(new AsaltoDAO(), new JuezDAO());
     }
 
+    /**
+     * Constructor de la clase CasoJudicialDAO. Inicializa el acceso a datos de
+     * asaltos y jueces, y asegura la creación del archivo de respaldo si no
+     * existe.
+     *
+     * @param asaltoDAO DAO para gestionar datos de asaltos
+     * @param juezDAO DAO para gestionar datos de jueces
+     */
     public CasoJudicialDAO(AsaltoDAO asaltoDAO, JuezDAO juezDAO) {
         this.asaltoDAO = asaltoDAO;
         this.juezDAO = juezDAO;

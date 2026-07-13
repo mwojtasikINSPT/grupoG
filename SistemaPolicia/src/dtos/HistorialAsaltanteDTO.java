@@ -25,12 +25,12 @@ public class HistorialAsaltanteDTO {
     /**
      * Colección de delitos asociados al historial del asaltante.
      */
-    private List<DetalleDelitoDTO> listaDeCrimenes;
+    private List<DetalleDelitoDTO> listaDeDelitos;
 
     /**
      * Construye un nuevo HistorialAsaltanteDTO.
      *
-     * * @param idAsaltante Identificador único del sujeto.
+     * @param idAsaltante Identificador único del sujeto.
      * @param nombreAsaltante Nombre o alias del asaltante.
      * @param infoBanda Datos de la banda criminal vinculada.
      * @param listaDeCrimenes Lista inicial de delitos cometidos.
@@ -39,20 +39,21 @@ public class HistorialAsaltanteDTO {
         this.idAsaltante = idAsaltante;
         this.nombreAsaltante = nombreAsaltante;
         this.infoBanda = infoBanda;
-        this.listaDeCrimenes = listaDeCrimenes;
+        this.listaDeDelitos = listaDeDelitos;
     }
 
     /**
      * Agrega un nuevo registro de delito al historial del asaltante.
      *
-     * * @param delito El objeto {@link DetalleDelitoDTO} que representa el
+     *  @param delito El objeto {@link DetalleDelitoDTO} que representa el
      * crimen cometido.
      */
     public void agregarDelito(DetalleDelitoDTO delito) {
-        this.listaDeCrimenes.add(delito);
+        this.listaDeDelitos.add(delito);
     }
 
     /**
+     * Obtiene id asaltante
      * @return El identificador del asaltante.
      */
     public String getIdAsaltante() {
@@ -60,6 +61,7 @@ public class HistorialAsaltanteDTO {
     }
 
     /**
+     * Obtiene nombre asaltante
      * @return El nombre o alias del asaltante.
      */
     public String getNombreAsaltante() {
@@ -67,6 +69,7 @@ public class HistorialAsaltanteDTO {
     }
 
     /**
+     * Obtiene informacion banda
      * @return La información sobre la banda criminal.
      */
     public String getInfoBanda() {
@@ -74,9 +77,10 @@ public class HistorialAsaltanteDTO {
     }
 
     /**
+     * Lista de delitos
      * @return La lista de delitos asociados al historial.
      */
-    public List<DetalleDelitoDTO> getListaDeCrimenes() {
-        return listaDeCrimenes;
+    public List<DetalleDelitoDTO> getListaDeDelitos() {
+        return listaDeDelitos;
     }
 }

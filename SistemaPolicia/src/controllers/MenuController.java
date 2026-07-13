@@ -21,21 +21,17 @@ public class MenuController {
         }
 
         switch (usuarioLogueado.obtenerRol()) {
-            case ADMINISTRADOR:
+            case ADMINISTRADOR ->
                 System.out.println("\n [SISTEMA] Abriendo Menú de Administrador...");
-                break;
 
-            case INVESTIGADOR:
+            case INVESTIGADOR ->
                 System.out.println("\n [SISTEMA] Abriendo Menú de Investigador...");
-                break;
 
-            case VIGILANTE:
+            case VIGILANTE ->
                 System.out.println("\n [SISTEMA] Abriendo Menú de Vigilante...");
-                break;
 
-            default:
+            default ->
                 System.out.println("[ERROR] El rol del usuario es desconocido.");
-                break;
         }
     }
 }

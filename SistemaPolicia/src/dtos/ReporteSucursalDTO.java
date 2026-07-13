@@ -43,7 +43,7 @@ public class ReporteSucursalDTO {
     /**
      * Construye un nuevo ReporteSucursalDTO.
      *
-     * * @param codigoSucursal Identificador de la sucursal.
+     * @param codigoSucursal Identificador de la sucursal.
      * @param domicilioSucursal Ubicación de la sucursal.
      * @param cantEmpleados Número de personal empleado.
      * @param codigoBanco Identificador de la entidad bancaria.
@@ -64,7 +64,7 @@ public class ReporteSucursalDTO {
     /**
      * Asocia un nuevo vigilante al reporte de la sucursal.
      *
-     * * @param vigilante Objeto {@link VigilanteAsignadoDTO} con los datos del
+     * @param vigilante Objeto {@link VigilanteAsignadoDTO} con los datos del
      * vigilante.
      */
     public void agregarVigilante(VigilanteAsignadoDTO vigilante) {
@@ -73,6 +73,7 @@ public class ReporteSucursalDTO {
 
     //getters
     /**
+     * Obtiene código de la sucursal.
      * @return El código de la sucursal.
      */
     public String getCodigoSucursal() {
@@ -80,6 +81,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Obtiene domicilio
      * @return El domicilio de la sucursal.
      */
     public String getDomicilioSucursal() {
@@ -87,6 +89,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Obtiene cant Empleador
      * @return La cantidad de empleados en la sucursal.
      */
     public int getCantEmpleados() {
@@ -94,6 +97,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Obtiene codigo
      * @return El código del banco asociado.
      */
     public String getCodigoBanco() {
@@ -101,6 +105,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Obtiene domicilio
      * @return El domicilio de la central bancaria.
      */
     public String getDomicilioCentralBanco() {
@@ -108,6 +113,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Obtiene cant Asaltos
      * @return El número total de asaltos registrados.
      */
     public int getCantAsaltosSufridos() {
@@ -115,6 +121,7 @@ public class ReporteSucursalDTO {
     }
 
     /**
+     * Genera listado Vigilantes
      * @return La lista de vigilantes asignados.
      */
     public List<VigilanteAsignadoDTO> getListadoVigilantes() {

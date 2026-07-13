@@ -47,6 +47,10 @@ public class BancarioController {
      *                   o ya existe.
      */
     public void registrarVigilante(String codigo, int edad) throws Exception {
+        if (codigo == null) {
+            throw new Exception("El código del vigilante no puede estar vacío.");
+        }
+
         if (codigo.trim().isEmpty()) {
             throw new Exception("El código del vigilante no puede estar vacío.");
         }
@@ -85,6 +89,10 @@ public class BancarioController {
      *                   bancaria ya se encuentra registrada.
      */
     public void registrarEntidadBancaria(String codigo, String domicilioCentral) throws Exception {
+        if (codigo == null || domicilioCentral == null) {
+            throw new Exception("El código y el domicilio central son obligatorios.");
+        }
+
         if (codigo.trim().isEmpty() || domicilioCentral.trim().isEmpty()) {
             throw new Exception("El código y el domicilio central son obligatorios.");
         }
@@ -109,9 +117,22 @@ public class BancarioController {
      */
     public void registrarSucursal(String codigoSucursal, String domicilio, int numEmpleado, String codigoBanco)
             throws Exception {
+        if (codigoSucursal == null || domicilio == null || codigoBanco == null) {
+            throw new Exception("El código de sucursal, el domicilio y el código de banco son obligatorios.");
+        }
+
         if (codigoSucursal.trim().isEmpty() || codigoBanco.trim().isEmpty()) {
             throw new Exception("El código de sucursal y el código de banco son obligatorios.");
         }
+
+        if (domicilio.trim().isEmpty()) {
+            throw new Exception("El domicilio de la sucursal es obligatorio.");
+        }
+
+        if (numEmpleado < 0) {
+            throw new Exception("La cantidad de empleados no puede ser negativa.");
+        }
+
         try {
             try {
                 sucursalDAO.buscarPorId(codigoSucursal);
@@ -143,6 +164,15 @@ public class BancarioController {
      */
     public void registrarContratoVigilancia(String codigoSucursal, String codigoVigilancia, String codigoVigilante,
             String fechaStr, boolean conArma) throws Exception {
+        if (codigoSucursal == null || codigoVigilancia == null || codigoVigilante == null || fechaStr == null) {
+            throw new Exception("Sucursal, código de contrato, vigilante y fecha son obligatorios.");
+        }
+
+        if (codigoSucursal.trim().isEmpty() || codigoVigilancia.trim().isEmpty() || codigoVigilante.trim().isEmpty()
+                || fechaStr.trim().isEmpty()) {
+            throw new Exception("Sucursal, código de contrato, vigilante y fecha son obligatorios.");
+        }
+
         try {
             // Verificar que la sucursal existe
             Sucursal sucursal = sucursalDAO.buscarPorId(codigoSucursal);
@@ -259,23 +289,20 @@ public class BancarioController {
     /**
      * Elimina un vigilante del sistema según su código, siempre y cuando no tenga
      * contratos de vigilancia asociados.
-     * <p>
+     * 
      * El proceso realiza las siguientes validaciones antes de la eliminación:
      * <ul>
      * <li>Verifica que el código proporcionado no sea nulo ni esté vacío.</li>
      * <li>Comprueba la existencia del vigilante en la base de datos.</li>
      * <li>Valida que el vigilante no esté vinculado a ningún contrato activo o
      * registrado.</li>
-     * </ul>
-     * </p>
-     *
+     * </ul> 
+     * 
      * @param codigo El código único que identifica al vigilante que se desea
-     *               eliminar.
-     *               No debe ser {@colis null} ni una cadena vacía.
+     *               eliminar. No debe ser {null} ni una cadena vacía.
      * @throws Exception Si el código es inválido, si el vigilante no existe, si el
-     *                   vigilante
-     *                   tiene contratos asociados, o si ocurre un error interno en
-     *                   la base de datos.
+     *         vigilante tiene contratos asociados, o si ocurre un error interno en
+     *         la base de datos.
      */
     public void eliminarVigilante(String codigo) throws Exception {
         if (codigo == null || codigo.trim().isEmpty()) {
