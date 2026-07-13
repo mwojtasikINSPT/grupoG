@@ -51,6 +51,8 @@ public class DetalleDelitoDTO {
 
     /**
      * Obtiene id del Asalto
+     * Obtiene el identificador del asalto.
+     *
      * @return El identificador del asalto.
      */
     public String getIdAsalto() {
@@ -59,6 +61,8 @@ public class DetalleDelitoDTO {
 
     /**
      * Establece id del Asalto
+     * Obtiene la fecha en la que ocurrió el asalto.
+     *
      * @return La fecha en la que ocurrió el asalto.
      */
     public String getFechaAsalto() {
@@ -67,6 +71,8 @@ public class DetalleDelitoDTO {
 
     /**
      * Obtiene detalle sucursal
+     * Obtiene el detalle de la sucursal afectada.
+     *
      * @return El detalle de la sucursal (ID y domicilio).
      */
     public String getDetalleSucursal() {
@@ -75,6 +81,8 @@ public class DetalleDelitoDTO {
 
     /**
      * Obtiene nombre juez
+     * Obtiene el nombre del juez a cargo.
+     *
      * @return El nombre del juez a cargo.
      */
     public String getNombreJuez() {
@@ -83,6 +91,8 @@ public class DetalleDelitoDTO {
 
     /**
      * Obtiene sentencia o veredicto
+     * Obtiene el veredicto del caso.
+     *
      * @return El veredicto del caso.
      */
     public String getVeredicto() {

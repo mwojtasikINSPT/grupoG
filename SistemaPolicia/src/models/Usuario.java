@@ -37,6 +37,8 @@ public abstract class Usuario implements Serializable {
     /**
      * Obtiene el nombre de usuario almacenado en la cuenta.
      *
+     * Obtiene el nombre de usuario almacenado en la cuenta.
+     *
      * @return El nombre de usuario.
      */
     public String getUsername() {
@@ -44,6 +46,8 @@ public abstract class Usuario implements Serializable {
     }
 
     /**
+     * Asigna un nuevo nombre de usuario a la cuenta.
+     *
      * Asigna un nuevo nombre de usuario a la cuenta.
      *
      * @param username El nombre de usuario a asignar.
@@ -55,6 +59,8 @@ public abstract class Usuario implements Serializable {
     /**
      * Obtiene la contraseña registrada para el usuario.
      *
+     * Obtiene la contraseña registrada para el usuario.
+     *
      * @return La contraseña del usuario.
      */
     public String getPassword() {
@@ -62,6 +68,8 @@ public abstract class Usuario implements Serializable {
     }
 
     /**
+     * Asigna una nueva contraseña a la cuenta.
+     *
      * Asigna una nueva contraseña a la cuenta.
      *
      * @param password La contraseña a asignar.

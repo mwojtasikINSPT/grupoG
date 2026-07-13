@@ -36,6 +36,8 @@ public class UsuarioVigilante extends Usuario {
     /**
      * Obtiene el vigilante vinculado al usuario.
      *
+     * Obtiene el vigilante vinculado al usuario.
+     *
      * @return El objeto vigilante asociado.
      */
     public Vigilante getVigilante() {
@@ -43,6 +45,8 @@ public class UsuarioVigilante extends Usuario {
     }
 
     /**
+     * Asigna el vigilante vinculado al usuario.
+     *
      * Asigna el vigilante vinculado al usuario.
      *
      * @param vigilante El objeto vigilante a vincular.

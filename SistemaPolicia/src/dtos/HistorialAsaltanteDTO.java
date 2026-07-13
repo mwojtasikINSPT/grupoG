@@ -54,6 +54,8 @@ public class HistorialAsaltanteDTO {
 
     /**
      * Obtiene id asaltante
+     * Obtiene el identificador del asaltante.
+     *
      * @return El identificador del asaltante.
      */
     public String getIdAsaltante() {
@@ -62,6 +64,8 @@ public class HistorialAsaltanteDTO {
 
     /**
      * Obtiene nombre asaltante
+     * Obtiene el nombre o alias del asaltante.
+     *
      * @return El nombre o alias del asaltante.
      */
     public String getNombreAsaltante() {
@@ -70,6 +74,8 @@ public class HistorialAsaltanteDTO {
 
     /**
      * Obtiene informacion banda
+     * Obtiene la información sobre la banda criminal.
+     *
      * @return La información sobre la banda criminal.
      */
     public String getInfoBanda() {
@@ -78,6 +84,8 @@ public class HistorialAsaltanteDTO {
 
     /**
      * Lista de delitos
+     * Obtiene la lista de delitos asociados al historial.
+     *
      * @return La lista de delitos asociados al historial.
      */
     public List<DetalleDelitoDTO> getListaDeDelitos() {

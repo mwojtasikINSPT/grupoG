@@ -31,6 +31,8 @@ public class UsuarioLoginDTO {
     /**
      * Obtiene el nombre de usuario ingresado.
      *
+     * Obtiene el nombre de usuario ingresado.
+     *
      * @return El nombre de usuario.
      */
     public String getNombreUsuario() {
@@ -38,6 +40,8 @@ public class UsuarioLoginDTO {
     }
 
     /**
+     * Obtiene la contraseña ingresada.
+     *
      * Obtiene la contraseña ingresada.
      *
      * @return La contraseña del usuario.
