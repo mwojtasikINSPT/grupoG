@@ -30,9 +30,9 @@ import models.Usuario;
  */
 public class Main {
 
-    public static void main(String[] args) throws UnsupportedEncodingException {
+    public static void main(String[] args)  {
 
-        System.setOut(new PrintStream(System.out, true, "UTF-8")); //Objeto para q muestre caracteres ASCII, necesita exception
+       //System.setOut(new PrintStream(System.out, true, "UTF-8")); //Objeto para q muestre caracteres ASCII, necesita exception
 
         LoginController loginController = new LoginController();
 

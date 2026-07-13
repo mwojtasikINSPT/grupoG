@@ -22,12 +22,20 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
 
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "casos_judiciales.txt";
+    private final AsaltoDAO asaltoDAO;
+    private final JuezDAO juezDAO;
 
     /**
      * Constructor. Inicializa el DAO y asegura la existencia del archivo de
      * persistencia.
      */
     public CasoJudicialDAO() {
+        this(new AsaltoDAO(), new JuezDAO());
+    }
+
+    public CasoJudicialDAO(AsaltoDAO asaltoDAO, JuezDAO juezDAO) {
+        this.asaltoDAO = asaltoDAO;
+        this.juezDAO = juezDAO;
         crearArchivoSiNoExiste();
     }
 
@@ -119,8 +127,8 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
                     int mesesCarcel = Integer.parseInt(partes[3]);
 
                     // Armo objetos temporales con los datos leídos
-                    Asalto asalto = new Asalto(idAsalto, null, null, null);
-                    Juez juez = new Juez(claveJuez, 0, "");
+                    Asalto asalto = asaltoDAO.buscarPorId(idAsalto);
+                    Juez juez = juezDAO.buscarPorId(claveJuez);
 
                     CasoJudicial caso = new CasoJudicial(asalto, juez, condenado, mesesCarcel);
                     listaCasos.add(caso);
@@ -128,6 +136,10 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
             }
         } catch (IOException e) {
             throw new ErrorAlLeerException("Archivo de Casos Judiciales", e.getMessage());
+        } catch (ObjetoNoEncontradoException e) {
+            throw new ErrorAlLeerException("Archivo de Casos Judiciales", "El caso referencia una entidad inexistente: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            throw new ErrorAlLeerException("Archivo de Casos Judiciales", "Cantidad de meses invalida: " + e.getMessage());
         }
         return listaCasos;
     }

@@ -3,20 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/Main.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/MenuAdministrador.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/MenuInvestigador.java</file>
             <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/submenues/GestionJudicial.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/MenuVigilante.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/submenues/GestionUsuarios.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/controllers/BancarioController.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/daos/UsuarioDAO.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/daos/VigilanteDAO.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/controllers/UsuariosController.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/submenues/GestionOperativa.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/submenues/ConsultaVigilante.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/views/UIHelper.java</file>
-            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/controllers/LoginController.java</file>
+            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/controllers/JudicialController.java</file>
+            <file>file:/C:/Users/santo/Desktop/Programacion%20II/GrupoG/SistemaPolicia/src/daos/CasoJudicialDAO.java</file>
         </group>
     </open-files>
 </project-private>

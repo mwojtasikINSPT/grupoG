@@ -53,7 +53,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      *
      * @param username El nombre de usuario a verificar.
      * @return {@code true} si se encuentra el usuario, {@code false} en caso
-     * contrario.
+     *         contrario.
      */
     private boolean existeUsuario(String username) {
         try {
@@ -70,8 +70,9 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      * adicional.
      *
      * * @param entidad El objeto usuario a convertir.
+     * 
      * @return Una cadena formateada con los atributos del usuario separados por
-     * comas.
+     *         comas.
      */
     private String armarLinea(Usuario entidad) {
         String linea = entidad.getUsername() + ","
@@ -91,11 +92,18 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      * nombre de usuario no esté duplicado.
      *
      * * @param entidad El usuario a persistir.
+     * 
      * @throws ErrorAlGuardarException Si el usuario ya existe o hay problemas
-     * al escribir en el archivo.
+     *                                 al escribir en el archivo.
      */
     @Override
     public void guardar(Usuario entidad) throws ErrorAlGuardarException {
+        if (existeUsuario(entidad.getUsername())) {
+            throw new ErrorAlGuardarException(
+                    "Usuario",
+                    "Ya existe un usuario con el nombre '" + entidad.getUsername() + "'.");
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
             bw.write(armarLinea(entidad));
             bw.newLine();
@@ -109,8 +117,9 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      *
      * * @return Una {@link List} con todos los objetos de tipo {@link Usuario}
      * reconstruidos.
+     * 
      * @throws ErrorAlLeerException Si ocurre un error al acceder o procesar el
-     * archivo.
+     *                              archivo.
      */
     @Override
     public List<Usuario> obtenerTodos() throws ErrorAlLeerException {
@@ -126,7 +135,8 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
                 }
                 String[] partes = linea.split(",");
 
-                // Si no tiene comas, el split devuelve solo 1 parte. Saltamos la línea corrupta.
+                // Si no tiene comas, el split devuelve solo 1 parte. Saltamos la línea
+                // corrupta.
                 if (partes.length < 3) {
                     System.out.println("ADVERTENCIA: Línea corrupta ignorada: " + linea);
                     continue;
@@ -137,7 +147,7 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
                     String password = partes[1];
                     String rolTexto = partes[2];
 
-                    //Inicializo user
+                    // Inicializo user
                     Usuario usuario = null;
 
                     // Convierto el texto del archivo al Enum real
@@ -175,9 +185,10 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      * Busca un usuario específico mediante su nombre de usuario (username).
      *
      * * @param id El username del usuario a buscar.
+     * 
      * @return El objeto {@link Usuario} encontrado.
      * @throws ObjetoNoEncontradoException Si no se encuentra el usuario.
-     * @throws ErrorAlLeerException Si hay problemas de acceso al archivo.
+     * @throws ErrorAlLeerException        Si hay problemas de acceso al archivo.
      */
     @Override
     public Usuario buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
@@ -195,8 +206,9 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      * archivo.
      *
      * * @param entidad El usuario con los nuevos datos.
+     * 
      * @throws ErrorAlActualizarException Si hay un error al leer o sobrescribir
-     * el archivo.
+     *                                    el archivo.
      */
     @Override
     public void actualizar(Usuario entidad) throws ErrorAlActualizarException {
@@ -226,8 +238,9 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
      * Elimina un usuario del archivo mediante su nombre de usuario.
      *
      * * @param id El username del usuario a eliminar.
+     * 
      * @throws ErrorAlEliminarException Si hay errores al realizar la operación
-     * de escritura/lectura.
+     *                                  de escritura/lectura.
      */
     @Override
     public void eliminar(String id) throws ErrorAlEliminarException {

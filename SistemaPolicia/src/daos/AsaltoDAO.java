@@ -36,7 +36,7 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
     private final String RUTA_ARCHIVO = "asaltos.txt";
 
     public AsaltoDAO() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this(new AsaltanteDAO(), new SucursalDAO());
     }
 
     /**
@@ -151,8 +151,7 @@ public class AsaltoDAO implements IGenericDAO<Asalto> {
         } catch (IOException e) {
             throw new ErrorAlLeerException("Archivo de Asaltos", e.getMessage());
         } catch (ObjetoNoEncontradoException ex) {
-            System.getLogger(AsaltoDAO.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            //VER
+            throw new ErrorAlLeerException("Archivo de Asaltos", "El asalto referencia una entidad inexistente: " + ex.getMessage());
         }
         return listaAsaltos;
     }

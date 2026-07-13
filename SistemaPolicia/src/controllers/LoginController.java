@@ -13,7 +13,6 @@ import models.Usuario;
 public class LoginController {
 
     private final UsuarioDAO usuarioDAO;
-    private final MenuController menuController;
 
     /**
      * Inicializa el controlador con los DAOs y componentes necesarios para el
@@ -21,7 +20,6 @@ public class LoginController {
      */
     public LoginController() {
         this.usuarioDAO = new UsuarioDAO();
-        this.menuController = new MenuController();
     }
 
     /**
@@ -29,10 +27,11 @@ public class LoginController {
      *
      * * @param loginDTO Objeto que contiene las credenciales (usuario y
      * contraseña).
+     * 
      * @return El objeto {@link Usuario} autenticado si las credenciales son
-     * correctas.
+     *         correctas.
      * @throws Exception Si el usuario o contraseña son inválidos (mensaje
-     * genérico por seguridad).
+     *                   genérico por seguridad).
      */
     public Usuario procesarLogin(UsuarioLoginDTO loginDTO) throws Exception {
 
@@ -41,7 +40,7 @@ public class LoginController {
             throw new Exception("Credenciales no proporcionadas.");
         }
 
-        // Validar datos 
+        // Validar datos
         if (loginDTO.getNombreUsuario() == null || loginDTO.getNombreUsuario().trim().isEmpty()
                 || loginDTO.getPassword() == null || loginDTO.getPassword().trim().isEmpty()) {
             throw new Exception("Usuario o contraseña incorrectos.");
@@ -54,7 +53,7 @@ public class LoginController {
             // Busco el usuario en el archivo .txt
             Usuario usuario = usuarioDAO.buscarPorId(nombreNormalizado);
 
-            //Valido contrasena
+            // Valido contrasena
             if (loginDTO.getPassword().equals(usuario.getPassword())) {
                 // Si coinciden, devuelvo el usuario
                 return usuario;

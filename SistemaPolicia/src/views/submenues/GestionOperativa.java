@@ -3,6 +3,7 @@ package views.submenues;
 import controllers.BancarioController;
 import java.util.List;
 import models.ContratoVigilancia;
+import models.EntidadBancaria;
 import models.Rol;
 import models.Sucursal;
 import models.Vigilante;
@@ -40,24 +41,27 @@ public class GestionOperativa {
      * registrar entidades según el rol del usuario.
      *
      * @param rolUsuario Rol del usuario que accede al menú. Determina las
-     * opciones disponibles.
+     *                   opciones disponibles.
      */
     public void mostrar(Rol rolUsuario) {
         int opcion;
         do {
             UIHelper.mostrarSubtitulo("GESTIÓN OPERATIVA");
-            UIHelper.imprimirMensaje("1. Listar Vigilantes\n2. Listar Sucursales\n3. Listar Contratos");
+            UIHelper.imprimirMensaje(
+                    "1. Listar Vigilantes\n2. Listar Sucursales\n3. Listar Contratos\n4. Listar Entidades Bancarias");
 
-            // Solo Administrador ve las opciones de escritura
+            // Solo Administrador ve las opciones de escritura y borrado
             if (rolUsuario == Rol.ADMINISTRADOR) {
-                UIHelper.imprimirMensaje("4. Registrar Vigilante\n5. Registrar Sucursal\n6. Registrar Contrato");
+                UIHelper.imprimirMensaje(
+                        "5. Registrar Vigilante\n6. Registrar Sucursal\n7. Registrar Contrato\n8. Registrar Entidad Bancaria\n"
+                                + "9. Eliminar Vigilante\n10. Eliminar Sucursal\n11. Eliminar Contrato\n12. Eliminar Entidad Bancaria");
             }
             UIHelper.imprimirMensaje("0. Volver");
 
             opcion = UIHelper.leerEntero("Seleccione opción");
 
             // Protección: Si no es admin y elige una opción prohibida, bloqueamos
-            if (opcion >= 4 && opcion <= 6 && rolUsuario != Rol.ADMINISTRADOR) {
+            if (opcion >= 5 && opcion <= 12 && rolUsuario != Rol.ADMINISTRADOR) {
                 UIHelper.imprimirError("Acceso denegado: Operación solo para Administradores.");
                 continue;
             }
@@ -70,11 +74,27 @@ public class GestionOperativa {
                 case 3 ->
                     ejecutarListarContratos();
                 case 4 ->
-                    ejecutarRegistrarVigilante();
+                    ejecutarListarEntidadesBancarias();
                 case 5 ->
-                    ejecutarRegistrarSucursal();
+                    ejecutarRegistrarVigilante();
                 case 6 ->
+                    ejecutarRegistrarSucursal();
+                case 7 ->
                     ejecutarRegistrarContrato();
+                case 8 ->
+                    ejecutarRegistrarEntidadBancaria();
+                case 9 ->
+                    ejecutarEliminarVigilante();
+                case 10 ->
+                    ejecutarEliminarSucursal();
+                case 11 ->
+                    ejecutarEliminarContrato();
+                case 12 ->
+                    ejecutarEliminarEntidadBancaria();
+                case 0 ->
+                    UIHelper.imprimirMensaje("Volviendo al menú principal...");
+                default ->
+                    UIHelper.imprimirError("Opción inválida. Intente nuevamente.");
             }
         } while (opcion != 0);
     }
@@ -159,6 +179,34 @@ public class GestionOperativa {
     }
 
     /**
+     * Lista todas las entidades bancarias registradas. Muestra código y domicilio
+     * central. Captura y muestra errores en caso de fallos.
+     */
+    private void ejecutarListarEntidadesBancarias() {
+        UIHelper.mostrarSubtitulo("LISTADO DE ENTIDADES BANCARIAS");
+
+        try {
+            List<EntidadBancaria> lista = bancarioController.listarEntidadesBancarias();
+
+            if (lista.isEmpty()) {
+                UIHelper.imprimirMensaje("No hay entidades bancarias registradas.");
+            } else {
+                UIHelper.imprimirMensaje("CÓDIGO      | DOMICILIO CENTRAL");
+                UIHelper.imprimirMensaje("------------------------------------------");
+
+                for (EntidadBancaria entidad : lista) {
+                    System.out.printf("%-11s | %-25s%n",
+                            entidad.getCodigo(),
+                            entidad.getDomicilioCentral());
+                }
+            }
+        } catch (Exception e) {
+            UIHelper.imprimirError(e.getMessage());
+        }
+        UIHelper.pausar();
+    }
+
+    /**
      * Registra un nuevo vigilante en el sistema. Solicita código y edad,
      * validando que sea mayor de edad. Captura y muestra errores en caso de
      * datos inválidos.
@@ -173,7 +221,8 @@ public class GestionOperativa {
         try {
             // Llamamos al controlador
             bancarioController.registrarVigilante(codigo, edad);
-            UIHelper.imprimirExito("\nEl vigilante con código '" + codigo + "' fue registrado en la base de datos operativa.");
+            UIHelper.imprimirExito(
+                    "\nEl vigilante con código '" + codigo + "' fue registrado en la base de datos operativa.");
 
         } catch (Exception e) {
             // Atajamos edad < 18, código duplicado, etc.
@@ -190,7 +239,7 @@ public class GestionOperativa {
     private void ejecutarRegistrarSucursal() {
         UIHelper.mostrarSubtitulo("REGISTRO DE SUCURSAL BANCARIA");
 
-        // Pedimos los datos 
+        // Pedimos los datos
         String codigoSucursal = UIHelper.leerTexto("Ingrese el código de la nueva sucursal");
         String domicilio = UIHelper.leerTexto("Ingrese el domicilio de la sucursal");
         int numEmpleados = UIHelper.leerEntero("Ingrese la cantidad de empleados de la sucursal");
@@ -199,7 +248,8 @@ public class GestionOperativa {
         try {
             // Mandamos los datos al controlador
             bancarioController.registrarSucursal(codigoSucursal, domicilio, numEmpleados, codigoBanco);
-            UIHelper.imprimirExito("\nLa sucursal '" + codigoSucursal + "' fue registrada y vinculada al banco '" + codigoBanco + "' correctamente.");
+            UIHelper.imprimirExito("\nLa sucursal '" + codigoSucursal + "' fue registrada y vinculada al banco '"
+                    + codigoBanco + "' correctamente.");
 
         } catch (Exception e) {
             // Atajamos sucursal duplicada, banco inexistente, vacíos, etc.
@@ -216,7 +266,7 @@ public class GestionOperativa {
     private void ejecutarRegistrarContrato() {
         UIHelper.mostrarSubtitulo("REGISTRO DE CONTRATO DE VIGILANCIA");
 
-        // Pedimos los datos 
+        // Pedimos los datos
         String codigoSucursal = UIHelper.leerTexto("Ingrese el código de la sucursal bancaria");
         String codigoVigilancia = UIHelper.leerTexto("Ingrese un código identificador para este contrato");
         String codigoVigilante = UIHelper.leerTexto("Ingrese el código del vigilante a contratar");
@@ -225,14 +275,142 @@ public class GestionOperativa {
 
         try {
             // Mandamos los datos al controlador
-            bancarioController.registrarContratoVigilancia(codigoSucursal, codigoVigilancia, codigoVigilante, fechaStr, conArma);
+            bancarioController.registrarContratoVigilancia(codigoSucursal, codigoVigilancia, codigoVigilante, fechaStr,
+                    conArma);
             UIHelper.imprimirExito("\nEl contrato '" + codigoVigilancia + "' fue registrado correctamente.");
 
         } catch (Exception e) {
-            // Atajamos sucursal inexistente, vigilante inexistente, mal formato de fecha, etc.
+            // Atajamos sucursal inexistente, vigilante inexistente, mal formato de fecha,
+            // etc.
             UIHelper.imprimirError(e.getMessage());
         }
         UIHelper.pausar();
     }
 
+    /**
+     * Gestiona el flujo de usuario en la interfaz para el registro de una entidad
+     * bancaria.
+     * <p>
+     * Este método realiza las siguientes acciones:
+     * 1. Muestra los encabezados correspondientes en la interfaz de usuario.
+     * 2. Solicita y captura los datos requeridos (código y domicilio) mediante la
+     * consola/UI.
+     * 3. Delega la creación en el controlador {@code bancarioController}, manejando
+     * cualquier excepción para mostrar un mensaje de error amigable si la
+     * validación falla.
+     * 4. Pausa la ejecución al finalizar para que el usuario pueda leer el
+     * resultado.
+     * </p>
+     * * @see #registrarEntidadBancaria(String, String)
+     */
+    private void ejecutarRegistrarEntidadBancaria() {
+        UIHelper.mostrarSubtitulo("REGISTRO DE ENTIDAD BANCARIA");
+
+        String codigo = UIHelper.leerTexto("Ingrese el código de la entidad bancaria");
+        String domicilioCentral = UIHelper.leerTexto("Ingrese el domicilio de la central");
+
+        try {
+            bancarioController.registrarEntidadBancaria(codigo, domicilioCentral);
+            UIHelper.imprimirExito("La entidad bancaria fue registrada correctamente.");
+        } catch (Exception e) {
+            UIHelper.imprimirError(e.getMessage());
+        }
+
+        UIHelper.pausar();
+    }
+
+    /**
+     * Gestiona el flujo en consola para la eliminación de un vigilante.
+     * <p>
+     * Solicita el código al usuario, pide confirmación y delega la
+     * eliminación al controlador, manejando las posibles excepciones.
+     * </p>
+     */
+    private void ejecutarEliminarVigilante() {
+        UIHelper.mostrarSubtitulo("ELIMINAR VIGILANTE");
+
+        String codigo = UIHelper.leerTexto("Ingrese el código del vigilante a eliminar");
+
+        if (UIHelper.leerBooleano("¿Confirma la eliminación del vigilante?")) {
+            try {
+                bancarioController.eliminarVigilante(codigo);
+                UIHelper.imprimirExito("El vigilante fue eliminado correctamente.");
+            } catch (Exception e) {
+                UIHelper.imprimirError(e.getMessage());
+            }
+        } else {
+            UIHelper.imprimirMensaje("Eliminación cancelada.");
+        }
+
+        UIHelper.pausar();
+    }
+
+    /**
+     * Gestiona el flujo en consola para la eliminación de una sucursal.
+     */
+    private void ejecutarEliminarSucursal() {
+        UIHelper.mostrarSubtitulo("ELIMINAR SUCURSAL");
+
+        String codigo = UIHelper.leerTexto("Ingrese el código de la sucursal a eliminar");
+
+        if (UIHelper.leerBooleano("¿Confirma la eliminación de la sucursal?")) {
+            try {
+                bancarioController.eliminarSucursal(codigo);
+                UIHelper.imprimirExito("La sucursal fue eliminada correctamente.");
+            } catch (Exception e) {
+                UIHelper.imprimirError(e.getMessage());
+            }
+        } else {
+            UIHelper.imprimirMensaje("Eliminación cancelada.");
+        }
+
+        UIHelper.pausar();
+    }
+
+    /**
+     * Gestiona el flujo en consola para la eliminación de un contrato de
+     * vigilancia.
+     */
+    private void ejecutarEliminarContrato() {
+        UIHelper.mostrarSubtitulo("ELIMINAR CONTRATO DE VIGILANCIA");
+
+        String codigoSucursal = UIHelper.leerTexto("Ingrese el código de la sucursal");
+        String codigoVigilante = UIHelper.leerTexto("Ingrese el código del vigilante");
+        String fechaStr = UIHelper.leerTexto("Ingrese la fecha del contrato (Formato obligatorio: AAAA-MM-DD)");
+
+        if (UIHelper.leerBooleano("¿Confirma la eliminación del contrato?")) {
+            try {
+                bancarioController.eliminarContratoVigilancia(codigoSucursal, codigoVigilante, fechaStr);
+                UIHelper.imprimirExito("El contrato fue eliminado correctamente.");
+            } catch (Exception e) {
+                UIHelper.imprimirError(e.getMessage());
+            }
+        } else {
+            UIHelper.imprimirMensaje("Eliminación cancelada.");
+        }
+
+        UIHelper.pausar();
+    }
+
+    /**
+     * Gestiona el flujo en consola para la eliminación de una entidad bancaria.
+     */
+    private void ejecutarEliminarEntidadBancaria() {
+        UIHelper.mostrarSubtitulo("ELIMINAR ENTIDAD BANCARIA");
+
+        String codigo = UIHelper.leerTexto("Ingrese el código de la entidad bancaria a eliminar");
+
+        if (UIHelper.leerBooleano("¿Confirma la eliminación de la entidad bancaria?")) {
+            try {
+                bancarioController.eliminarEntidadBancaria(codigo);
+                UIHelper.imprimirExito("La entidad bancaria fue eliminada correctamente.");
+            } catch (Exception e) {
+                UIHelper.imprimirError(e.getMessage());
+            }
+        } else {
+            UIHelper.imprimirMensaje("Eliminación cancelada.");
+        }
+
+        UIHelper.pausar();
+    }
 }

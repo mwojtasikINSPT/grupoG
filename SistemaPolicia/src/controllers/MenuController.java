@@ -2,6 +2,7 @@ package controllers;
 
 import models.Usuario;
 
+//No lo estamos usando
 /**
  * Controlador encargado de dirigir el flujo de navegación hacia el menú
  * correspondiente según el rol del usuario autenticado.

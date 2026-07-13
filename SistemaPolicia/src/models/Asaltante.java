@@ -6,42 +6,43 @@ import java.util.List;
 
 /**
  * Representa a una persona detenida por cometer un asalto a una sucursal
- * bancaria. Relacion N-M con Sucursales (a través de Asalto). Relación N-1 con
- * Banda.
+ * bancaria.
+ * <p>
+ * El modelo conserva los datos basicos del asaltante, su posible pertenencia a
+ * una banda y el historial de asaltos cometidos.
+ * </p>
  */
 public class Asaltante implements Serializable {
 
     /**
-     * Identificador único de versión para la serialización.
+     * Identificador unico de version para la serializacion.
      */
     private static final long serialVersionUID = 1L;
 
     private String clave;
     private String nombreCompleto;
     private Banda banda;
+    private List<Asalto> listaAsaltos = new ArrayList<>();
 
     /**
-     * Constructor por defecto
+     * Constructor por defecto.
      */
     public Asaltante() {
-        this.listaAsaltos = new ArrayList<>();
     }
 
     /**
-     * Construye un nuevo asaltante con sus datos básicos y pertenencia a banda.
+     * Construye un nuevo asaltante con sus datos basicos y su posible banda.
      *
-     * @param clave Código identificador único del asaltante.
+     * @param clave Codigo identificador unico del asaltante.
      * @param nombreCompleto Nombre completo del asaltante.
-     * @param banda La banda a la que pertenece el asaltante.
+     * @param banda Banda a la que pertenece; puede ser {@code null}.
      */
     public Asaltante(String clave, String nombreCompleto, Banda banda) {
         this.clave = clave;
         this.nombreCompleto = nombreCompleto;
         this.banda = banda;
-        this(); // Llamo al constructor vacío, que ya inicializa la lista;
     }
 
-    // Getters y Setters
     /**
      * Obtiene la clave del asaltante.
      *
@@ -54,7 +55,7 @@ public class Asaltante implements Serializable {
     /**
      * Establece la clave del asaltante.
      *
-     * @param clave la clave identificadora.
+     * @param clave La clave identificadora.
      */
     public void setClave(String clave) {
         this.clave = clave;
@@ -81,7 +82,7 @@ public class Asaltante implements Serializable {
     /**
      * Obtiene la banda a la que pertenece el asaltante.
      *
-     * @return La instancia de Banda asociada.
+     * @return La banda asociada, o {@code null} si no pertenece a ninguna.
      */
     public Banda getBanda() {
         return banda;
@@ -90,34 +91,31 @@ public class Asaltante implements Serializable {
     /**
      * Establece la banda a la que pertenece el asaltante.
      *
-     * @param banda La instancia de Banda a asignar.
+     * @param banda La banda a asignar.
      */
     public void setBanda(Banda banda) {
         this.banda = banda;
     }
 
     /**
-     * Retorna una representación en cadena de texto del asaltante.
+     * Retorna una representacion en cadena de texto del asaltante.
      *
      * @return Una cadena con los datos del asaltante.
      */
     @Override
     public String toString() {
-        // Valido si tiene banda o es null para evitar errores al imprimir
-        String infoBanda = (banda != null) ? String.valueOf(banda.getNumeroBanda()) : "Ninguna (Actúa solo)";
+        String infoBanda = (banda != null) ? String.valueOf(banda.getNumeroBanda()) : "Ninguna (actua solo)";
         return "Asaltante ["
                 + "Clave: " + clave
                 + ", Nombre: " + nombreCompleto
-                + ", Banda N°: " + infoBanda
+                + ", Banda: " + infoBanda
                 + "]";
     }
-
-    private List<Asalto> listaAsaltos;
 
     /**
      * Registra un nuevo asalto en el historial del asaltante.
      *
-     * @param asalto El objeto Asalto a añadir al historial.
+     * @param asalto El objeto Asalto a anadir al historial.
      */
     public void agregarAsalto(Asalto asalto) {
         if (asalto != null) {
