@@ -1,0 +1,4 @@
+SUC01,Avenida Corrientes 1200,40,ENT01
+SUC02,Av. Callao 850,28,ENT01
+SUC03,San Martin 430,35,ENT02
+SUC04,Mitre 970,22,ENT02
