@@ -32,6 +32,8 @@ public class EntidadBancaria implements Serializable {
     }
 
     /**
+     * Obtiene el código de la entidad.
+     *
      * @return El código de la entidad.
      */
     public String getCodigo() {
@@ -39,6 +41,8 @@ public class EntidadBancaria implements Serializable {
     }
 
     /**
+     * Asigna un nuevo código a la entidad.
+     *
      * @param codigo El código a asignar.
      */
     public void setCodigo(String codigo) {
@@ -46,6 +50,8 @@ public class EntidadBancaria implements Serializable {
     }
 
     /**
+     * Obtiene el domicilio central de la entidad.
+     *
      * @return El domicilio central de la entidad.
      */
     public String getDomicilioCentral() {
@@ -53,6 +59,8 @@ public class EntidadBancaria implements Serializable {
     }
 
     /**
+     * Asigna un nuevo domicilio central a la entidad.
+     *
      * @param domicilioCentral La dirección a asignar.
      */
     public void setDomicilioCentral(String domicilioCentral) {

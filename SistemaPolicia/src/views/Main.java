@@ -26,8 +26,6 @@ import models.Usuario;
  * Método principal que inicializa el sistema y mantiene el bucle de inicio de
  * sesión.
  *
- * * @param args Argumentos de línea de comandos (no utilizados).
- * @throws UnsupportedEncodingException Si la codificación UTF-8 no es soportada
  * por el entorno.
  */
 public class Main {

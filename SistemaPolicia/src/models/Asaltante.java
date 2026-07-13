@@ -20,6 +20,9 @@ public class Asaltante implements Serializable {
     private String nombreCompleto;
     private Banda banda;
 
+    /**
+     * Constructor por defecto
+     */
     public Asaltante() {
         this.listaAsaltos = new ArrayList<>();
     }
@@ -114,7 +117,7 @@ public class Asaltante implements Serializable {
     /**
      * Registra un nuevo asalto en el historial del asaltante.
      *
-     * * @param asalto El objeto Asalto a añadir al historial.
+     * @param asalto El objeto Asalto a añadir al historial.
      */
     public void agregarAsalto(Asalto asalto) {
         if (asalto != null) {
@@ -125,7 +128,7 @@ public class Asaltante implements Serializable {
     /**
      * Obtiene la lista completa de asaltos cometidos por el asaltante.
      *
-     * * @return Una lista con los objetos Asalto.
+     * @return Una lista con los objetos Asalto.
      */
     public List<Asalto> getListaAsaltos() {
         return listaAsaltos;

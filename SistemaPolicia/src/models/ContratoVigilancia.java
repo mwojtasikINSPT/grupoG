@@ -42,6 +42,7 @@ public class ContratoVigilancia implements Serializable {
 
     // Getters y Setters
     /**
+     * Obtiene sucursal
      * @return La sucursal del contrato.
      */
     public Sucursal getSucursal() {
@@ -49,6 +50,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Establece sucursal
      * @param sucursal La sucursal a asignar.
      */
     public void setSucursal(Sucursal sucursal) {
@@ -56,6 +58,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Obtiene vigilante
      * @return El vigilante del contrato.
      */
     public Vigilante getVigilante() {
@@ -63,6 +66,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Establece vigilante
      * @param vigilante El vigilante a asignar.
      */
     public void setVigilante(Vigilante vigilante) {
@@ -70,6 +74,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Obtiene fecha
      * @return La fecha del contrato.
      */
     public LocalDate getFecha() {
@@ -77,6 +82,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Establece fecha
      * @param fecha La fecha a asignar.
      */
     public void setFecha(LocalDate fecha) {
@@ -84,6 +90,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Obtiene arma si o no
      * @return true si el vigilante porta arma, false en caso contrario.
      */
     public boolean isConArma() {
@@ -91,6 +98,7 @@ public class ContratoVigilancia implements Serializable {
     }
 
     /**
+     * Establece si tiene o no arma
      * @param conArma El estado de portación de arma a establecer.
      */
     public void setConArma(boolean conArma) {

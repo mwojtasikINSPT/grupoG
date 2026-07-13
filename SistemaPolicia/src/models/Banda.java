@@ -18,6 +18,9 @@ public class Banda implements Serializable {
     private String numeroBanda;
     private int cantMiembros;
 
+    /**
+     * Constructor por defecto
+     */
     public Banda() {
     }
 

@@ -43,6 +43,7 @@ public class CasoJudicial implements Serializable {
 
     // Getters y Setters
     /**
+     * Obtiene el asalto
      * @return El asalto asociado al caso.
      */
     public Asalto getAsalto() {
@@ -50,6 +51,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Establece el asalto
      * @param asalto El asalto a asociar.
      */
     public void setAsalto(Asalto asalto) {
@@ -57,6 +59,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Obtiene el juez
      * @return El juez a cargo del caso.
      */
     public Juez getJuez() {
@@ -64,6 +67,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Establece el juez
      * @param juez El juez a asignar.
      */
     public void setJuez(Juez juez) {
@@ -71,6 +75,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Obtiene T F por condena
      * @return true si el asaltante fue condenado, false en caso contrario.
      */
     public boolean isCondenado() {
@@ -78,6 +83,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Establece condena
      * @param condenado El estado de condena a establecer. Si es false,
      * mesesCarcel se establece a 0.
      */
@@ -89,6 +95,7 @@ public class CasoJudicial implements Serializable {
     }
 
     /**
+     * Obtiene meses de carcel
      * @return Los meses de cárcel dictaminados.
      */
     public int getMesesCarcel() {
