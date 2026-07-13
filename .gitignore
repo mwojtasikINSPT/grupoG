@@ -4,7 +4,6 @@
 # --- Compilados y Build ---
 # Aplica a cualquier nivel de subdirectorio
 **/build/
-**/dist/
 **/target/
 *.class
 
