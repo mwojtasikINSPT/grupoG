@@ -1,5 +1,6 @@
 package controllers;
 
+import daos.IGenericDAO;
 import daos.UsuarioDAO;
 import dtos.UsuarioLoginDTO;
 import exceptions.ErrorAlLeerException;
@@ -7,65 +8,103 @@ import exceptions.ObjetoNoEncontradoException;
 import models.Usuario;
 
 /**
- * Controlador encargado de gestionar el proceso de autenticación de los
- * usuarios en el sistema.
+ * Gestiona la autenticación de los usuarios del sistema.
+ * Utiliza una interfaz genérica para no depender del tipo de almacenamiento.
+ *
+ * @author GrupoG
  */
 public class LoginController {
 
-    private final UsuarioDAO usuarioDAO;
+    private final IGenericDAO<Usuario> usuarioDAO;
 
     /**
-     * Inicializa el controlador con los DAOs y componentes necesarios para el
-     * login.
+     * Crea el controlador con la persistencia utilizada actualmente.
      */
     public LoginController() {
-        this.usuarioDAO = new UsuarioDAO();
+        this(new UsuarioDAO());
     }
 
     /**
-     * Procesa las credenciales de inicio de sesión de un usuario.
+     * Crea el controlador con el DAO recibido.
      *
-     * @param loginDTO Objeto que contiene las credenciales (usuario y
-     * contraseña).
-     * 
-     * @return El objeto {@link Usuario} autenticado si las credenciales son
-     *         correctas.
-     * @throws Exception Si el usuario o contraseña son inválidos (mensaje
-     *                   genérico por seguridad).
+     * @param usuarioDAO acceso a los datos de usuarios
+     * @throws IllegalArgumentException si el DAO es nulo
      */
-    public Usuario procesarLogin(UsuarioLoginDTO loginDTO) throws Exception {
+    public LoginController(
+            IGenericDAO<Usuario> usuarioDAO) {
 
-        // Valido que el DTO no sea nulo
-        if (loginDTO == null) {
-            throw new Exception("Credenciales no proporcionadas.");
+        if (usuarioDAO == null) {
+            throw new IllegalArgumentException(
+                    "El DAO de usuarios es obligatorio."
+            );
         }
 
-        // Validar datos
-        if (loginDTO.getNombreUsuario() == null || loginDTO.getNombreUsuario().trim().isEmpty()
-                || loginDTO.getPassword() == null || loginDTO.getPassword().trim().isEmpty()) {
-            throw new Exception("Usuario o contraseña incorrectos.");
-        }
+        this.usuarioDAO = usuarioDAO;
+    }
+
+    /**
+     * Valida las credenciales y devuelve el usuario autenticado.
+     *
+     * @param loginDTO credenciales ingresadas
+     * @return usuario correspondiente a las credenciales
+     * @throws Exception si las credenciales son incorrectas o no puede
+     *                   accederse a la información
+     */
+    public Usuario procesarLogin(
+            UsuarioLoginDTO loginDTO) throws Exception {
+
+        validarCredenciales(loginDTO);
+
+        String username = loginDTO
+                .getNombreUsuario()
+                .trim()
+                .toLowerCase();
 
         try {
-            // Normalizamos el nombre ingresado
-            String nombreNormalizado = loginDTO.getNombreUsuario().trim().toLowerCase();
+            Usuario usuario =
+                    usuarioDAO.buscarPorId(username);
 
-            // Busco el usuario en el archivo .txt
-            Usuario usuario = usuarioDAO.buscarPorId(nombreNormalizado);
+            if (!loginDTO.getPassword()
+                    .equals(usuario.getPassword())) {
 
-            // Valido contrasena
-            if (loginDTO.getPassword().equals(usuario.getPassword())) {
-                // Si coinciden, devuelvo el usuario
-                return usuario;
-            } else {
-                throw new Exception("Usuario o contraseña incorrectos.");
+                throw new Exception(
+                        "Usuario o contraseña incorrectos."
+                );
             }
 
+            return usuario;
+
         } catch (ObjetoNoEncontradoException e) {
-            // Mensaje genérico para no revelar si el usuario existe o no
-            throw new Exception("Usuario o contraseña incorrectos.");
+            throw new Exception(
+                    "Usuario o contraseña incorrectos."
+            );
+
         } catch (ErrorAlLeerException e) {
-            throw new Exception("Error en el sistema: " + e.getMessage());
+            throw new Exception(
+                    "Error al consultar los usuarios: "
+                    + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Comprueba que las credenciales tengan valores válidos.
+     *
+     * @param loginDTO credenciales que se validarán
+     * @throws Exception si falta el usuario o la contraseña
+     */
+    private void validarCredenciales(
+            UsuarioLoginDTO loginDTO) throws Exception {
+
+        if (loginDTO == null
+                || loginDTO.getNombreUsuario() == null
+                || loginDTO.getNombreUsuario().trim().isEmpty()
+                || loginDTO.getPassword() == null
+                || loginDTO.getPassword().trim().isEmpty()) {
+
+            throw new Exception(
+                    "Usuario o contraseña incorrectos."
+            );
         }
     }
 }

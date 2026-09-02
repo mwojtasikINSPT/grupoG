@@ -3,131 +3,144 @@ package models;
 import java.io.Serializable;
 
 /**
- * Representa el expediente judicial donde un juez juzga a un asaltante por un
- * asalto específico. Gestiona la vinculación entre el delito, el juez a cargo y
- * el resultado del proceso legal (Relación N:M).
+ * Representa el resultado judicial asociado con un asalto.
+ *
+ * El modelo conserva únicamente los identificadores del asalto y del juez.
+ * Los datos completos deben consultarse mediante sus respectivos DAO.
+ *
+ * @author GrupoG
  */
 public class CasoJudicial implements Serializable {
 
-    // Añado el identificador de versión para la persistencia en archivos
     private static final long serialVersionUID = 1L;
 
-    private Asalto asalto;
-    private Juez juez;
+    private String idAsalto;
+    private String idJuez;
     private boolean condenado;
     private int mesesCarcel;
-    //Ver: LocalDate fechaSentencia??
 
     /**
-     * Constructor por defecto.
+     * Crea un caso judicial sin datos iniciales.
      */
     public CasoJudicial() {
     }
 
     /**
-     * Construye un nuevo caso judicial.
+     * Crea un caso judicial utilizando los identificadores relacionados.
      *
-     * @param asalto El asalto que motiva el caso.
-     * @param juez El juez encargado del proceso.
-     * @param condenado Indica si el asaltante fue condenado.
-     * @param mesesCarcel Cantidad de meses de cárcel (se ajustará a 0 si no hay
-     * condena).
+     * @param idAsalto identificador del asalto
+     * @param idJuez identificador del juez responsable
+     * @param condenado indica si existió una condena
+     * @param mesesCarcel duración de la condena en meses
      */
-    public CasoJudicial(Asalto asalto, Juez juez, boolean condenado, int mesesCarcel) {
-        this.asalto = asalto;
-        this.juez = juez;
+    public CasoJudicial(
+            String idAsalto,
+            String idJuez,
+            boolean condenado,
+            int mesesCarcel) {
+
+        this.idAsalto = idAsalto;
+        this.idJuez = idJuez;
         this.condenado = condenado;
-        // Me aseguro de que los meses sean 0 si la persona no fue condenada usando op ternario
-        this.mesesCarcel = condenado ? mesesCarcel : 0;
+        this.mesesCarcel = condenado
+                ? Math.max(0, mesesCarcel)
+                : 0;
     }
 
-    // Getters y Setters
     /**
-     * Obtiene el asalto
-     * @return El asalto asociado al caso.
+     * Obtiene el identificador del asalto relacionado.
+     *
+     * @return identificador del asalto
      */
-    public Asalto getAsalto() {
-        return asalto;
+    public String getIdAsalto() {
+        return idAsalto;
     }
 
     /**
-     * Establece el asalto
-     * @param asalto El asalto a asociar.
+     * Modifica el identificador del asalto relacionado.
+     *
+     * @param idAsalto nuevo identificador del asalto
      */
-    public void setAsalto(Asalto asalto) {
-        this.asalto = asalto;
+    public void setIdAsalto(String idAsalto) {
+        this.idAsalto = idAsalto;
     }
 
     /**
-     * Obtiene el juez
-     * @return El juez a cargo del caso.
+     * Obtiene el identificador del juez responsable.
+     *
+     * @return identificador del juez
      */
-    public Juez getJuez() {
-        return juez;
+    public String getIdJuez() {
+        return idJuez;
     }
 
     /**
-     * Establece el juez
-     * @param juez El juez a asignar.
+     * Modifica el identificador del juez responsable.
+     *
+     * @param idJuez nuevo identificador del juez
      */
-    public void setJuez(Juez juez) {
-        this.juez = juez;
+    public void setIdJuez(String idJuez) {
+        this.idJuez = idJuez;
     }
 
     /**
-     * Obtiene T F por condena
-     * @return true si el asaltante fue condenado, false en caso contrario.
+     * Indica si el caso terminó con una condena.
+     *
+     * @return {@code true} si existió una condena
      */
     public boolean isCondenado() {
         return condenado;
     }
 
     /**
-     * Establece condena
-     * @param condenado El estado de condena a establecer. Si es false,
-     * mesesCarcel se establece a 0.
+     * Modifica el resultado del caso.
+     *
+     * Al retirar la condena, la cantidad de meses se restablece a cero.
+     *
+     * @param condenado nuevo resultado
      */
     public void setCondenado(boolean condenado) {
         this.condenado = condenado;
+
         if (!condenado) {
             this.mesesCarcel = 0;
         }
     }
 
     /**
-     * Obtiene meses de carcel
-     * @return Los meses de cárcel dictaminados.
+     * Obtiene la duración de la condena.
+     *
+     * @return cantidad de meses de cárcel
      */
     public int getMesesCarcel() {
         return mesesCarcel;
     }
 
     /**
-     * Establece la cantidad de meses de cárcel. Si la persona no está marcada
-     * como condenada, el valor es 0.
+     * Modifica la duración de la condena.
      *
-     * @param mesesCarcel Cantidad de meses de sentencia.
+     * Cuando no existe condena, el valor permanece en cero.
+     *
+     * @param mesesCarcel nueva cantidad de meses
      */
     public void setMesesCarcel(int mesesCarcel) {
-        if (this.condenado) {
-            this.mesesCarcel = Math.max(0, mesesCarcel);
-        } else {
-            this.mesesCarcel = 0;
-            System.out.println("Aviso: No se pueden asignar meses de cárcel a un caso sin condena.");
-        }
+        this.mesesCarcel = condenado
+                ? Math.max(0, mesesCarcel)
+                : 0;
     }
 
     /**
-     * Retorna una representación en cadena del expediente judicial.
+     * Devuelve una descripción legible del caso judicial.
      *
-     * @return String con los detalles del caso.
+     * @return datos principales del caso
      */
     @Override
     public String toString() {
         return "Caso Judicial ["
-                + "Asalto ID: " + (asalto != null ? asalto.getIdAsalto() : "Desconocido")
-                + ", Juez: " + (juez != null ? juez.getNombre() : "Desconocido")
-                + ", Condenado: " + (condenado ? "Sí (" + mesesCarcel + " meses)" : "No")
+                + "ID Asalto: " + idAsalto
+                + ", ID Juez: " + idJuez
+                + ", Condenado: " + condenado
+                + ", Meses de cárcel: " + mesesCarcel
                 + "]";
     }
 }

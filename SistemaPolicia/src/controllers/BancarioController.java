@@ -14,28 +14,52 @@ import models.ContratoVigilancia;
 import models.EntidadBancaria;
 import models.Sucursal;
 import models.Vigilante;
+import daos.IContratoVigilanciaDAO;
+import daos.IGenericDAO;
 
 /**
  * Controlador encargado de gestionar las operaciones bancarias, incluyendo el
  * registro y listado de vigilantes, sucursales y contratos de vigilancia.
  */
-public class BancarioController {
+public class BancarioController
+     {
+   private final IGenericDAO<Sucursal> sucursalDAO;
+    private final IGenericDAO<Vigilante> vigilanteDAO;
+    private final IContratoVigilanciaDAO contratoDAO;
+   private final IGenericDAO<EntidadBancaria> entidadBancariaDAO;
 
-    private final SucursalDAO sucursalDAO;
-    private final VigilanteDAO vigilanteDAO;
-    private final ContratoVigilanciaDAO contratoDAO;
-    private final EntidadBancariaDAO entidadBancariaDAO;
+        /**
+ * Crea el controlador con los DAO utilizados por la aplicación.
+ */
+public BancarioController() {
+    this(
+            new SucursalDAO(),
+            new VigilanteDAO(),
+            new ContratoVigilanciaDAO(),
+            new EntidadBancariaDAO()
+    );
+}
 
-    /**
-     * Constructor que inicializa las instancias de los DAOs necesarios para la
-     * gestión bancaria.
-     */
-    public BancarioController() {
-        this.sucursalDAO = new SucursalDAO();
-        this.vigilanteDAO = new VigilanteDAO();
-        this.contratoDAO = new ContratoVigilanciaDAO();
-        this.entidadBancariaDAO = new EntidadBancariaDAO();
-    }
+/**
+ * Crea el controlador con implementaciones de acceso a datos externas.
+ * Esto permite cambiar el almacenamiento sin modificar el controlador.
+ *
+ * @param sucursalDAO acceso a los datos de sucursales
+ * @param vigilanteDAO acceso a los datos de vigilantes
+ * @param contratoDAO acceso a los contratos de vigilancia
+ * @param entidadBancariaDAO acceso a las entidades bancarias
+ */
+public BancarioController(
+       IGenericDAO<Sucursal> sucursalDAO,
+        IGenericDAO<Vigilante> vigilanteDAO,
+        IContratoVigilanciaDAO contratoDAO,
+       IGenericDAO<EntidadBancaria> entidadBancariaDAO) {
+
+    this.sucursalDAO = sucursalDAO;
+    this.vigilanteDAO = vigilanteDAO;
+    this.contratoDAO = contratoDAO;
+    this.entidadBancariaDAO = entidadBancariaDAO;
+}
 
     /**
      * Registra un nuevo vigilante en el sistema realizando validaciones de
@@ -46,6 +70,7 @@ public class BancarioController {
      * @throws Exception Si el código está vacío, el vigilante es menor de edad
      *                   o ya existe.
      */
+
     public void registrarVigilante(String codigo, int edad) throws Exception {
         if (codigo == null) {
             throw new Exception("El código del vigilante no puede estar vacío.");
@@ -88,6 +113,7 @@ public class BancarioController {
      * @throws Exception Si el código o el domicilio están vacíos, o si la entidad
      *                   bancaria ya se encuentra registrada.
      */
+    
     public void registrarEntidadBancaria(String codigo, String domicilioCentral) throws Exception {
         if (codigo == null || domicilioCentral == null) {
             throw new Exception("El código y el domicilio central son obligatorios.");
@@ -115,93 +141,152 @@ public class BancarioController {
      * @param codigoBanco    Código de la entidad bancaria asociada.
      * @throws Exception Si los códigos están vacíos o la sucursal ya existe.
      */
-    public void registrarSucursal(String codigoSucursal, String domicilio, int numEmpleado, String codigoBanco)
-            throws Exception {
-        if (codigoSucursal == null || domicilio == null || codigoBanco == null) {
-            throw new Exception("El código de sucursal, el domicilio y el código de banco son obligatorios.");
-        }
+   /**
+ * Registra una sucursal vinculada a una entidad bancaria existente.
+ *
+ * @param codigoSucursal código identificador de la sucursal
+ * @param domicilio domicilio físico de la sucursal
+ * @param numEmpleado cantidad de empleados
+ * @param codigoBanco código de la entidad bancaria asociada
+ * @throws Exception si los datos son inválidos, la entidad no existe,
+ *                   la sucursal está repetida o no puede guardarse
+ */
 
-        if (codigoSucursal.trim().isEmpty() || codigoBanco.trim().isEmpty()) {
-            throw new Exception("El código de sucursal y el código de banco son obligatorios.");
-        }
+public void registrarSucursal(
+        String codigoSucursal,
+        String domicilio,
+        int numEmpleado,
+        String codigoBanco) throws Exception {
 
-        if (domicilio.trim().isEmpty()) {
-            throw new Exception("El domicilio de la sucursal es obligatorio.");
-        }
+    if (codigoSucursal == null
+            || codigoSucursal.trim().isEmpty()
+            || domicilio == null
+            || domicilio.trim().isEmpty()
+            || codigoBanco == null
+            || codigoBanco.trim().isEmpty()) {
 
-        if (numEmpleado < 0) {
-            throw new Exception("La cantidad de empleados no puede ser negativa.");
-        }
-
-        try {
-            try {
-                sucursalDAO.buscarPorId(codigoSucursal);
-                throw new Exception("La sucursal '" + codigoSucursal + "' ya existe.");
-            } catch (ObjetoNoEncontradoException e) {
-            }
-            // Si el banco no existe, la Suc no se guarda. Si existe, queda asociada al
-            // banco con su dom central
-            EntidadBancaria bancoAsociado = entidadBancariaDAO.buscarPorId(codigoBanco);
-            Sucursal nuevaSucursal = new Sucursal(codigoSucursal, domicilio, numEmpleado, bancoAsociado);
-
-            sucursalDAO.guardar(nuevaSucursal);
-        } catch (ErrorAlGuardarException e) {
-            throw new Exception(e.getMessage());
-        }
+        throw new Exception(
+                "Código, domicilio y entidad bancaria son obligatorios."
+        );
     }
 
-    /**
-     * Registra un contrato de vigilancia vinculando una sucursal, un vigilante
-     * y una fecha.
-     *
-     * @param codigoSucursal   Código de la sucursal.
-     * @param codigoVigilancia Código identificador único del contrato.
-     * @param codigoVigilante  Código del vigilante a contratar.
-     * @param fechaStr         Fecha de inicio en formato YYYY-MM-DD.
-     * @param conArma          Indica si el vigilante porta arma.
-     * @throws Exception Si la sucursal o vigilante no existen, el contrato está
-     *                   duplicado o la fecha es inválida.
-     */
-    public void registrarContratoVigilancia(String codigoSucursal, String codigoVigilancia, String codigoVigilante,
-            String fechaStr, boolean conArma) throws Exception {
-        if (codigoSucursal == null || codigoVigilancia == null || codigoVigilante == null || fechaStr == null) {
-            throw new Exception("Sucursal, código de contrato, vigilante y fecha son obligatorios.");
-        }
+    if (numEmpleado < 0) {
+        throw new Exception(
+                "La cantidad de empleados no puede ser negativa."
+        );
+    }
 
-        if (codigoSucursal.trim().isEmpty() || codigoVigilancia.trim().isEmpty() || codigoVigilante.trim().isEmpty()
-                || fechaStr.trim().isEmpty()) {
-            throw new Exception("Sucursal, código de contrato, vigilante y fecha son obligatorios.");
-        }
+    String idSucursal = codigoSucursal.trim();
+    String idEntidad = codigoBanco.trim();
 
+    try {
         try {
-            // Verificar que la sucursal existe
-            Sucursal sucursal = sucursalDAO.buscarPorId(codigoSucursal);
+            sucursalDAO.buscarPorId(idSucursal);
 
-            // Verificar que el vigilante existe
-            Vigilante vigilante = vigilanteDAO.buscarPorId(codigoVigilante);
-
-            try {
-                contratoDAO.buscarPorId(codigoVigilancia);
-                throw new Exception("El contrato '" + codigoVigilancia + "' ya está registrado.");
-            } catch (ObjetoNoEncontradoException e) {
-                // Si no existe, podemos continuar con la creación
-            }
-
-            // Fecha
-            LocalDate fecha = LocalDate.parse(fechaStr);
-
-            // Armar contrato
-            ContratoVigilancia nuevoContrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
-            contratoDAO.guardar(nuevoContrato);
-
+            throw new Exception(
+                    "La sucursal '" + idSucursal
+                    + "' ya está registrada."
+            );
         } catch (ObjetoNoEncontradoException e) {
-            throw new Exception("Entidad no encontrada: " + e.getMessage());
-        } catch (java.time.format.DateTimeParseException e) {
-            throw new Exception("Formato de fecha inválido. Por favor use el formato YYYY-MM-DD.");
-        } catch (ErrorAlGuardarException e) {
-            throw new Exception(e.getMessage());
+            // No encontrarla indica que el código está disponible.
         }
+
+        // Comprueba que la entidad bancaria relacionada exista.
+        entidadBancariaDAO.buscarPorId(idEntidad);
+
+        Sucursal nuevaSucursal = new Sucursal(
+                idSucursal,
+                domicilio.trim(),
+                numEmpleado,
+                idEntidad
+        );
+
+        sucursalDAO.guardar(nuevaSucursal);
+
+    } catch (ObjetoNoEncontradoException e) {
+        throw new Exception(
+                "La entidad bancaria '" + idEntidad
+                + "' no existe."
+        );
+    } catch (ErrorAlLeerException | ErrorAlGuardarException e) {
+        throw new Exception(e.getMessage());
     }
+} 
+/**
+ * Registra un contrato de vigilancia.
+ *
+ * @param codigoSucursal código de la sucursal
+ * @param codigoVigilante código del vigilante
+ * @param fechaStr fecha del contrato con formato AAAA-MM-DD
+ * @param conArma indica si el vigilante porta un arma
+ * @throws Exception si los datos son inválidos, las entidades no existen
+ *                   o el contrato ya está registrado
+ */
+
+
+public void registrarContratoVigilancia(
+        String codigoSucursal,
+        String codigoVigilante,
+        String fechaStr,
+        boolean conArma) throws Exception {
+
+    if (codigoSucursal == null
+            || codigoVigilante == null
+            || fechaStr == null
+            || codigoSucursal.trim().isEmpty()
+            || codigoVigilante.trim().isEmpty()
+            || fechaStr.trim().isEmpty()) {
+
+        throw new Exception(
+                "Sucursal, vigilante y fecha son obligatorios."
+        );
+    }
+
+    String idSucursal = codigoSucursal.trim();
+    String idVigilante = codigoVigilante.trim();
+
+    try {
+        LocalDate fecha = LocalDate.parse(fechaStr.trim());
+
+        // Comprueba que las entidades relacionadas existan.
+        sucursalDAO.buscarPorId(idSucursal);
+        vigilanteDAO.buscarPorId(idVigilante);
+
+        String idContrato = idSucursal
+                + "-"
+                + idVigilante
+                + "-"
+                + fecha;
+
+        if (contratoDAO.existe(idContrato)) {
+            throw new Exception(
+                    "El contrato '" + idContrato
+                    + "' ya está registrado."
+            );
+        }
+
+        ContratoVigilancia nuevoContrato =
+                new ContratoVigilancia(
+                        idSucursal,
+                        idVigilante,
+                        fecha,
+                        conArma
+                );
+
+        contratoDAO.guardar(nuevoContrato);
+
+    } catch (ObjetoNoEncontradoException e) {
+        throw new Exception(
+                "Entidad no encontrada: " + e.getMessage()
+        );
+    } catch (java.time.format.DateTimeParseException e) {
+        throw new Exception(
+                "Formato de fecha inválido. Use AAAA-MM-DD."
+        );
+    } catch (ErrorAlLeerException | ErrorAlGuardarException e) {
+        throw new Exception(e.getMessage());
+    }
+}
 
     /**
      * Recupera el listado de todos los contratos de vigilancia.
@@ -209,6 +294,7 @@ public class BancarioController {
      * @return Lista de {@link ContratoVigilancia}.
      * @throws Exception Si ocurre un error de lectura.
      */
+
     public List<ContratoVigilancia> listarContratosVigilancia() throws Exception {
         try {
             return contratoDAO.obtenerTodos();
@@ -223,6 +309,7 @@ public class BancarioController {
      * @return Lista de {@link Vigilante}.
      * @throws Exception Si ocurre un error de lectura.
      */
+   
     public List<Vigilante> listarVigilantes() throws Exception {
         try {
             return vigilanteDAO.obtenerTodos();
@@ -237,6 +324,7 @@ public class BancarioController {
      * @return Lista de {@link Sucursal}.
      * @throws Exception Si ocurre un error de lectura.
      */
+   
     public List<Sucursal> listarSucursales() throws Exception {
         try {
             return sucursalDAO.obtenerTodos();
@@ -278,6 +366,7 @@ public class BancarioController {
      * @throws Exception Si ocurre un problema de lectura en la base de datos o en
      *                   el almacenamiento persistente.
      */
+ 
     public List<EntidadBancaria> listarEntidadesBancarias() throws Exception {
         try {
             return entidadBancariaDAO.obtenerTodos();
@@ -304,6 +393,7 @@ public class BancarioController {
      *         vigilante tiene contratos asociados, o si ocurre un error interno en
      *         la base de datos.
      */
+  
     public void eliminarVigilante(String codigo) throws Exception {
         if (codigo == null || codigo.trim().isEmpty()) {
             throw new Exception("El código del vigilante es obligatorio.");
@@ -315,7 +405,8 @@ public class BancarioController {
             List<ContratoVigilancia> contratos = contratoDAO.obtenerTodos();
 
             boolean tieneContratos = contratos.stream()
-                    .anyMatch(contrato -> contrato.getVigilante().getCodigo().equals(codigo));
+        .anyMatch(contrato ->
+                codigo.equals(contrato.getIdVigilante()));
 
             if (tieneContratos) {
                 throw new Exception(
@@ -341,6 +432,7 @@ public class BancarioController {
      * @throws Exception Si el código es inválido, la sucursal no existe, tiene
      *                   contratos asociados o falla la eliminación.
      */
+  
     public void eliminarSucursal(String codigo) throws Exception {
         if (codigo == null || codigo.trim().isEmpty()) {
             throw new Exception("El código de la sucursal es obligatorio.");
@@ -350,8 +442,9 @@ public class BancarioController {
             sucursalDAO.buscarPorId(codigo);
 
             List<ContratoVigilancia> contratos = contratoDAO.obtenerTodos();
-            boolean tieneContratos = contratos.stream()
-                    .anyMatch(contrato -> contrato.getSucursal().getCodigo().equals(codigo));
+          boolean tieneContratos = contratos.stream()
+        .anyMatch(contrato ->
+                codigo.equals(contrato.getIdSucursal()));
 
             if (tieneContratos) {
                 throw new Exception("No se puede eliminar la sucursal porque tiene contratos de vigilancia asociados.");
@@ -377,6 +470,7 @@ public class BancarioController {
      * @throws Exception Si algún dato es inválido, el contrato no existe o
      *                   falla la eliminación.
      */
+    
     public void eliminarContratoVigilancia(String codigoSucursal, String codigoVigilante, String fechaStr)
             throws Exception {
         if (codigoSucursal == null || codigoSucursal.trim().isEmpty()
@@ -409,6 +503,7 @@ public class BancarioController {
      * @throws Exception Si el código es inválido, la entidad no existe, tiene
      *                   sucursales asociadas o falla la eliminación.
      */
+ 
     public void eliminarEntidadBancaria(String codigo) throws Exception {
         if (codigo == null || codigo.trim().isEmpty()) {
             throw new Exception("El código de la entidad bancaria es obligatorio.");
@@ -419,7 +514,8 @@ public class BancarioController {
 
             List<Sucursal> sucursales = sucursalDAO.obtenerTodos();
             boolean tieneSucursales = sucursales.stream()
-                    .anyMatch(sucursal -> sucursal.getEntidad().getCodigo().equals(codigo));
+                  .anyMatch(sucursal ->
+        codigo.equals(sucursal.getIdEntidadBancaria()));
 
             if (tieneSucursales) {
                 throw new Exception("No se puede eliminar la entidad bancaria porque tiene sucursales asociadas.");

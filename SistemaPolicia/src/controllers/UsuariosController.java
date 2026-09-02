@@ -1,8 +1,12 @@
 package controllers;
 
+import daos.IGenericDAO;
 import daos.UsuarioDAO;
 import daos.VigilanteDAO;
-import exceptions.*;
+import exceptions.ErrorAlEliminarException;
+import exceptions.ErrorAlGuardarException;
+import exceptions.ErrorAlLeerException;
+import exceptions.ObjetoNoEncontradoException;
 import java.util.List;
 import models.Rol;
 import models.Usuario;
@@ -11,132 +15,280 @@ import models.UsuarioInvestigador;
 import models.UsuarioVigilante;
 import models.Vigilante;
 
+/**
+ * Gestiona las operaciones relacionadas con las cuentas de usuario.
+ * Utiliza interfaces genéricas para no depender del almacenamiento.
+ *
+ * @author GrupoG
+ */
 public class UsuariosController {
 
-    private final UsuarioDAO usuarioDAO;
-    private final VigilanteDAO vigilanteDAO;
+    private final IGenericDAO<Usuario> usuarioDAO;
+    private final IGenericDAO<Vigilante> vigilanteDAO;
 
     /**
-     * Inicializa el controlador con las instancias necesarias de los DAOs.
+     * Crea el controlador con los DAO utilizados actualmente.
      */
     public UsuariosController() {
-        this.usuarioDAO = new UsuarioDAO();
-        this.vigilanteDAO = new VigilanteDAO();
+        this(
+                new UsuarioDAO(),
+                new VigilanteDAO()
+        );
     }
 
     /**
-     * Registra un nuevo usuario en el sistema. Si el rol es VIGILANTE, requiere
-     * un código de vigilante válido existente en el sistema.
+     * Crea el controlador con los DAO recibidos.
      *
-     * @param nombreUsuario Nombre de identificación del usuario.
-     * @param password Contraseña de acceso.
-     * @param rol Enum que define el tipo de usuario (ADMINISTRADOR,
-     * INVESTIGADOR, VIGILANTE).
-     * @param codigoVigilante Código asociado al vigilante (solo obligatorio
-     * para rol VIGILANTE).
-     * @throws Exception Si los datos son inválidos, el nombre de usuario
-     * existe, o si el vigilante no existe en el sistema.
+     * @param usuarioDAO acceso a los datos de usuarios
+     * @param vigilanteDAO acceso a los datos de vigilantes
+     * @throws IllegalArgumentException si algún DAO es nulo
      */
-    public void registrarUsuario(String nombreUsuario, String password, Rol rol, String codigoVigilante) throws Exception {
-        if (nombreUsuario == null || password == null) {
-            throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
+    public UsuariosController(
+            IGenericDAO<Usuario> usuarioDAO,
+            IGenericDAO<Vigilante> vigilanteDAO) {
+
+        if (usuarioDAO == null || vigilanteDAO == null) {
+            throw new IllegalArgumentException(
+                    "Los DAO de usuarios y vigilantes son obligatorios."
+            );
         }
 
-        // Valido datos no vacíos
-        if (nombreUsuario.trim().isEmpty() || password.trim().isEmpty()) {
-            throw new Exception("El nombre de usuario y la contraseña no pueden estar vacíos.");
-        }
-        
-        // Valido largo pass
-        if (password.length() < 5) {
-            throw new Exception("La contraseña debe tener al menos 5 caracteres.");
-        }
+        this.usuarioDAO = usuarioDAO;
+        this.vigilanteDAO = vigilanteDAO;
+    }
 
-        // Valido que el rol no sea nulo
-        if (rol == null) {
-            throw new Exception("El rol del usuario es obligatorio.");
-        }
+    /**
+     * Registra una cuenta con el rol indicado.
+     *
+     * @param nombreUsuario nombre utilizado para iniciar sesión
+     * @param password contraseña de la cuenta
+     * @param rol rol asignado
+     * @param codigoVigilante código asociado al rol vigilante
+     * @throws Exception si los datos son inválidos o no pueden guardarse
+     */
+    public void registrarUsuario(
+            String nombreUsuario,
+            String password,
+            Rol rol,
+            String codigoVigilante) throws Exception {
 
-        // Valido nombre de usuario único
+        validarDatos(nombreUsuario, password, rol);
+        verificarNombreDisponible(nombreUsuario);
+
+        Usuario nuevoUsuario = crearUsuario(
+                nombreUsuario,
+                password,
+                rol,
+                codigoVigilante
+        );
+
         try {
-            usuarioDAO.buscarPorId(nombreUsuario);
-            throw new Exception("El nombre de usuario '" + nombreUsuario + "' ya está en uso.");
-        } catch (ObjetoNoEncontradoException e) {
-            // Si salta esta excepción significa que no lo encontró, entonces se puede usar
-        }
-
-        try {
-            // Creo el usuario dependiendo del rol recibido
-            Usuario nuevoUsuario = null;
-
-            switch (rol) {
-                case ADMINISTRADOR:
-                    nuevoUsuario = new UsuarioAdministrador(nombreUsuario, password);
-                    break;
-                case INVESTIGADOR:
-                    nuevoUsuario = new UsuarioInvestigador(nombreUsuario, password);
-                    break;
-                case VIGILANTE:
-                    if (codigoVigilante == null || codigoVigilante.trim().isEmpty()) {
-                        throw new Exception("El rol VIGILANTE requiere especificar su código.");
-                    }
-
-                    // Ahora busco al vigilante; si no existe, lanzo error directamente
-                    Vigilante v = vigilanteDAO.buscarPorId(codigoVigilante);
-
-                    nuevoUsuario = new UsuarioVigilante(nombreUsuario, password, v);
-                    break;
-            }
-
-            // Guardo el usuario validado
             usuarioDAO.guardar(nuevoUsuario);
-
         } catch (ErrorAlGuardarException e) {
-            throw new Exception("No se pudo guardar el usuario: " + e.getMessage());
+            throw new Exception(
+                    "No se pudo guardar el usuario: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Obtiene una lista con todos los usuarios registrados en el sistema.
+     * Obtiene todas las cuentas registradas.
      *
-     * * @return Lista de objetos {@link Usuario}.
-     * @throws Exception Si ocurre un error al acceder a la fuente de datos.
+     * @return lista de usuarios
+     * @throws Exception si no puede accederse a la información
      */
     public List<Usuario> listarUsuarios() throws Exception {
         try {
             return usuarioDAO.obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new Exception("Error al recuperar la lista de usuarios: " + e.getMessage());
+            throw new Exception(
+                    "Error al recuperar la lista de usuarios: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Elimina a un usuario del sistema, validando que el usuario logueado no
-     * sea el mismo.
+     * Elimina una cuenta de usuario.
      *
-     * @param usuarioAEliminar Nombre del usuario a borrar.
-     * @param usuarioLogueado Objeto {@link Usuario} que realiza la operación.
-     * @throws Exception Si el usuario a eliminar no existe, o si es la misma
-     * cuenta activa.
+     * @param usuarioAEliminar nombre del usuario que se eliminará
+     * @param usuarioLogueado usuario que realiza la operación
+     * @throws Exception si los datos son inválidos o no puede eliminarse
      */
-    public void eliminarUsuario(String usuarioAEliminar, Usuario usuarioLogueado) throws Exception {
-        if (usuarioAEliminar == null || usuarioLogueado == null) {
-            throw new Exception("Datos de usuario inválidos para realizar la eliminación.");
+    public void eliminarUsuario(
+            String usuarioAEliminar,
+            Usuario usuarioLogueado) throws Exception {
+
+        if (usuarioAEliminar == null
+                || usuarioAEliminar.trim().isEmpty()
+                || usuarioLogueado == null) {
+
+            throw new Exception(
+                    "Datos de usuario inválidos para realizar "
+                    + "la eliminación."
+            );
         }
 
-        // Validación: comparo el nombre del usuario logueado con el usuario a eliminar
-        if (usuarioAEliminar.equalsIgnoreCase(usuarioLogueado.getUsername())) {
-            throw new Exception("Por motivos de seguridad, no podés eliminar tu propia cuenta.");
+        if (usuarioAEliminar.equalsIgnoreCase(
+                usuarioLogueado.getUsername())) {
+
+            throw new Exception(
+                    "Por motivos de seguridad, no podés eliminar "
+                    + "tu propia cuenta."
+            );
         }
+
         try {
-            // Busco para confirmar existencia
             usuarioDAO.buscarPorId(usuarioAEliminar);
-            // Si llega aca, existe
             usuarioDAO.eliminar(usuarioAEliminar);
+
         } catch (ObjetoNoEncontradoException e) {
-            throw new Exception("El usuario '" + usuarioAEliminar + "' no existe en el sistema.");
+            throw new Exception(
+                    "El usuario '" + usuarioAEliminar
+                    + "' no existe en el sistema."
+            );
+
+        } catch (ErrorAlLeerException e) {
+            throw new Exception(
+                    "No se pudo consultar el usuario: "
+                    + e.getMessage()
+            );
+
         } catch (ErrorAlEliminarException e) {
-            throw new Exception("No se pudo eliminar el usuario: " + e.getMessage());
+            throw new Exception(
+                    "No se pudo eliminar el usuario: "
+                    + e.getMessage()
+            );
         }
+    }
+
+    /**
+     * Valida los datos básicos de una cuenta.
+     *
+     * @param nombreUsuario nombre de la cuenta
+     * @param password contraseña de la cuenta
+     * @param rol rol asignado
+     * @throws Exception si algún dato es inválido
+     */
+    private void validarDatos(
+            String nombreUsuario,
+            String password,
+            Rol rol) throws Exception {
+
+        if (nombreUsuario == null
+                || nombreUsuario.trim().isEmpty()
+                || password == null
+                || password.trim().isEmpty()) {
+
+            throw new Exception(
+                    "El nombre de usuario y la contraseña "
+                    + "no pueden estar vacíos."
+            );
+        }
+
+        if (password.length() < 5) {
+            throw new Exception(
+                    "La contraseña debe tener al menos 5 caracteres."
+            );
+        }
+
+        if (rol == null) {
+            throw new Exception(
+                    "El rol del usuario es obligatorio."
+            );
+        }
+    }
+
+    /**
+     * Comprueba que un nombre de usuario esté disponible.
+     *
+     * @param nombreUsuario nombre que se comprobará
+     * @throws Exception si ya existe o no puede consultarse
+     */
+    private void verificarNombreDisponible(
+            String nombreUsuario) throws Exception {
+
+        try {
+            usuarioDAO.buscarPorId(nombreUsuario);
+
+            throw new Exception(
+                    "El nombre de usuario '" + nombreUsuario
+                    + "' ya está en uso."
+            );
+
+        } catch (ObjetoNoEncontradoException e) {
+            // No encontrarlo indica que el nombre está disponible.
+
+        } catch (ErrorAlLeerException e) {
+            throw new Exception(
+                    "No se pudo verificar el nombre de usuario: "
+                    + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Construye el tipo de usuario correspondiente al rol.
+     *
+     * @param nombreUsuario nombre de la cuenta
+     * @param password contraseña de la cuenta
+     * @param rol rol asignado
+     * @param codigoVigilante código del vigilante asociado
+     * @return usuario preparado para guardarse
+     * @throws Exception si falta el código o el vigilante no existe
+     */
+    private Usuario crearUsuario(
+            String nombreUsuario,
+            String password,
+            Rol rol,
+            String codigoVigilante) throws Exception {
+
+        return switch (rol) {
+            case ADMINISTRADOR ->
+                new UsuarioAdministrador(
+                        nombreUsuario,
+                        password
+                );
+
+            case INVESTIGADOR ->
+                new UsuarioInvestigador(
+                        nombreUsuario,
+                        password
+                );
+
+            case VIGILANTE -> {
+                if (codigoVigilante == null
+                        || codigoVigilante.trim().isEmpty()) {
+
+                    throw new Exception(
+                            "El rol VIGILANTE requiere especificar "
+                            + "su código."
+                    );
+                }
+
+                try {
+                    vigilanteDAO.buscarPorId(codigoVigilante);
+
+                    yield new UsuarioVigilante(
+                            nombreUsuario,
+                            password,
+                            codigoVigilante
+                    );
+
+                } catch (ObjetoNoEncontradoException e) {
+                    throw new Exception(
+                            "No existe un vigilante con el código '"
+                            + codigoVigilante + "'."
+                    );
+
+                } catch (ErrorAlLeerException e) {
+                    throw new Exception(
+                            "No se pudo consultar el vigilante: "
+                            + e.getMessage()
+                    );
+                }
+            }
+        };
     }
 }

@@ -5,15 +5,15 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import models.Asaltante;
-import models.Banda;
+
 
 /**
  * Data Access Object para la gestión de entidades {@link Asaltante} en
  * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
  * archivo asaltantes.txt.
  */
-public class AsaltanteDAO implements IGenericDAO<Asaltante> {
-
+public class AsaltanteDAO
+        implements IGenericDAO<Asaltante> {
     private final String RUTA_ARCHIVO = "asaltantes.txt";
 
     /**
@@ -39,17 +39,18 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
     }
 
     /**
-     * Método auxiliar que centraliza el formato de texto para guardar en el
-     * archivo CSV.
-     *
-     * @param a El asaltante a formatear.
-     * @return String con los datos separados por comas.
-     */
-    private String formatearParaArchivo(Asaltante a) {
-        return a.getClave() + ","
-                + a.getNombreCompleto() + ","
-                + (a.getBanda() != null ? a.getBanda().getNumeroBanda() : "null");
-    }
+ * Convierte un asaltante al formato utilizado en el archivo.
+ *
+ * @param asaltante asaltante que se desea guardar
+ * @return datos del asaltante separados por comas
+ */
+private String formatearParaArchivo(Asaltante asaltante) {
+    String idBanda = asaltante.getIdBanda();
+
+    return asaltante.getClave() + ","
+            + asaltante.getNombreCompleto() + ","
+            + (idBanda != null ? idBanda : "null");
+}
 
     /**
      * Guarda un nuevo asaltante al final del archivo.
@@ -95,9 +96,13 @@ public class AsaltanteDAO implements IGenericDAO<Asaltante> {
                 // Valida que la línea tenga exactamente los 3 campos esperados para evitar errores
                 if (partes.length == 3) {
                     // Reconstruye el objeto Banda (si el valor no es "null") para asociarlo al asaltante
-                    Banda banda = partes[2].equals("null") ? null : new Banda(partes[2], 0);
-                    // Crea el objeto Asaltante con los datos procesados y lo agrega a la lista
-                    listaAsaltantes.add(new Asaltante(partes[0], partes[1], banda));
+                  String idBanda = partes[2].equals("null")
+                                    ? null
+                                    : partes[2];
+
+            listaAsaltantes.add(
+        new Asaltante(partes[0], partes[1], idBanda)
+);
                 }
             }
         } catch (IOException e) {

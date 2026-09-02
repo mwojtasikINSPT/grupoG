@@ -11,15 +11,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import models.ContratoVigilancia;
-import models.Sucursal;
-import models.Vigilante;
+
 
 /**
  * Data Access Object para la gestión de entidades {@link ContratoVigilancia} en
  * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
  * archivo contratos_vigilancia.txt.
  */
-public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
+public class ContratoVigilanciaDAO implements IContratoVigilanciaDAO {
 
     private final String RUTA_ARCHIVO = "contratos_vigilancia.txt";
 
@@ -45,37 +44,39 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
         }
     }
 
-    /**
-     * Genera un ID único compuesto por sucursal, vigilante y fecha para
-     * facilitar búsquedas.
-     *
-     * @param c El contrato a procesar.
-     * @return String con el formato ID compuesto.
-     */
-    private String generarIdCompuesto(ContratoVigilancia c) { //ver si sirve p busquedas
-        return c.getSucursal().getCodigo() + "-" + c.getVigilante().getCodigo() + "-" + c.getFecha().toString();
-    }
+  /**
+ * Genera el identificador compuesto del contrato.
+ *
+ * @param contrato contrato que se desea identificar
+ * @return identificador formado por sucursal, vigilante y fecha
+ */
+private String generarIdCompuesto(ContratoVigilancia contrato) {
+    return contrato.getIdSucursal()
+            + "-"
+            + contrato.getIdVigilante()
+            + "-"
+            + contrato.getFecha();
+}
 
-    /**
-     * Método auxiliar que centraliza el formato de texto para guardar en el
-     * archivo.
-     *
-     * @param c El contrato a formatear.
-     * @return String con los datos separados por comas.
-     */
-    private String formatearParaArchivo(ContratoVigilancia c) {
-        return c.getSucursal().getCodigo() + ","
-                + c.getVigilante().getCodigo() + ","
-                + c.getFecha().toString() + ","
-                + c.isConArma();
-    }
-
+/**
+ * Convierte un contrato al formato utilizado en el archivo.
+ *
+ * @param contrato contrato que se desea guardar
+ * @return datos del contrato separados por comas
+ */
+private String formatearParaArchivo(ContratoVigilancia contrato) {
+    return contrato.getIdSucursal() + ","
+            + contrato.getIdVigilante() + ","
+            + contrato.getFecha() + ","
+            + contrato.isConArma();
+}
     /**
      * Verifica si un contrato existe en el sistema.
      *
      * @param id El ID compuesto del contrato.
      * @return true si el contrato existe, false en caso contrario.
      */
+    @Override
     public boolean existe(String id) {
         try {
             buscarPorId(id);
@@ -124,12 +125,13 @@ public class ContratoVigilanciaDAO implements IGenericDAO<ContratoVigilancia> {
                     LocalDate fecha = LocalDate.parse(partes[2]);
                     boolean conArma = Boolean.parseBoolean(partes[3]);
 
-                    //obj temporal con dato obtenido
-                    Sucursal sucursal = new Sucursal(codigoSucursal, "", 0, null);
-                    Vigilante vigilante = new Vigilante(codigoVigilante, 0);
-
-                    ContratoVigilancia contrato = new ContratoVigilancia(sucursal, vigilante, fecha, conArma);
-                    listaContratos.add(contrato);
+                    ContratoVigilancia contrato = new ContratoVigilancia(
+                codigoSucursal,
+                codigoVigilante,
+                fecha,
+                conArma
+        );
+                            listaContratos.add(contrato);
                 }
             }
         } catch (IOException e) {

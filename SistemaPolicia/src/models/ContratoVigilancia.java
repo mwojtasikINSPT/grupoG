@@ -4,135 +4,133 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
- * Representa el contrato o turno laboral de un vigilante en una sucursal
- * específica. Resuelve la relación N:M entre Sucursal y Vigilante, indicando la
- * fecha y si el vigilante portaba arma durante dicho turno.
+ * Representa un servicio de vigilancia realizado en una sucursal.
+ * Guarda únicamente los identificadores de las personas y lugares
+ * relacionados con el hecho.
+ *
+ * @author Grupo G
  */
 public class ContratoVigilancia implements Serializable {
 
-    // Añado el identificador de versión para la persistencia en archivos
     private static final long serialVersionUID = 1L;
 
-    // Defino los atributos utilizando las referencias a los objetos 
-    private Sucursal sucursal;
-    private Vigilante vigilante;
+    private String idSucursal;
+    private String idVigilante;
     private LocalDate fecha;
     private boolean conArma;
 
     /**
-     * Constructor por defecto.
+     * Crea un contrato vacío.
      */
     public ContratoVigilancia() {
     }
 
     /**
-     * Construye una nueva instancia de ContratoVigilancia.
+     * Crea un contrato utilizando los identificadores relacionados.
      *
-     * @param sucursal La sucursal donde se presta el servicio.
-     * @param vigilante El vigilante contratado para el turno.
-     * @param fecha La fecha del turno laboral.
-     * @param conArma Indica si el vigilante porta arma durante el turno.
+     * @param idSucursal código de la sucursal
+     * @param idVigilante código del vigilante
+     * @param fecha fecha del servicio
+     * @param conArma indica si el vigilante porta un arma
      */
-    public ContratoVigilancia(Sucursal sucursal, Vigilante vigilante, LocalDate fecha, boolean conArma) {
-        this.sucursal = sucursal;
-        this.vigilante = vigilante;
+    public ContratoVigilancia(
+            String idSucursal,
+            String idVigilante,
+            LocalDate fecha,
+            boolean conArma) {
+
+        this.idSucursal = idSucursal;
+        this.idVigilante = idVigilante;
         this.fecha = fecha;
         this.conArma = conArma;
     }
 
-    // Getters y Setters
+
+
     /**
-     * Obtiene sucursal
-     * Obtiene la sucursal asociada al contrato.
+     * Obtiene el código de la sucursal.
      *
-     * @return La sucursal del contrato.
+     * @return código de la sucursal
      */
-    public Sucursal getSucursal() {
-        return sucursal;
+    public String getIdSucursal() {
+        return idSucursal;
     }
 
     /**
-     * Establece sucursal
-     * Asigna la sucursal del contrato.
+     * Asigna el código de la sucursal.
      *
-     * @param sucursal La sucursal a asignar.
+     * @param idSucursal código de la sucursal
      */
-    public void setSucursal(Sucursal sucursal) {
-        this.sucursal = sucursal;
+    public void setIdSucursal(String idSucursal) {
+        this.idSucursal = idSucursal;
     }
 
     /**
-     * Obtiene vigilante
-     * Obtiene el vigilante asociado al contrato.
+     * Obtiene el código del vigilante.
      *
-     * @return El vigilante del contrato.
+     * @return código del vigilante
      */
-    public Vigilante getVigilante() {
-        return vigilante;
+    public String getIdVigilante() {
+        return idVigilante;
     }
 
     /**
-     * Establece vigilante
-     * Asigna el vigilante del contrato.
+     * Asigna el código del vigilante.
      *
-     * @param vigilante El vigilante a asignar.
+     * @param idVigilante código del vigilante
      */
-    public void setVigilante(Vigilante vigilante) {
-        this.vigilante = vigilante;
+    public void setIdVigilante(String idVigilante) {
+        this.idVigilante = idVigilante;
     }
 
     /**
-     * Obtiene fecha
-     * Obtiene la fecha del contrato de vigilancia.
+     * Obtiene la fecha del servicio.
      *
-     * @return La fecha del contrato.
+     * @return fecha del contrato
      */
     public LocalDate getFecha() {
         return fecha;
     }
 
     /**
-     * Establece fecha
-     * Asigna la fecha del contrato de vigilancia.
+     * Asigna la fecha del servicio.
      *
-     * @param fecha La fecha a asignar.
+     * @param fecha fecha del contrato
      */
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
 
     /**
-     * Obtiene arma si o no
-     * Indica si el vigilante porta arma durante el contrato.
+     * Indica si el vigilante porta un arma.
      *
-     * @return true si el vigilante porta arma, false en caso contrario.
+     * @return {@code true} si porta un arma
      */
     public boolean isConArma() {
         return conArma;
     }
 
     /**
-     * Establece si tiene o no arma
-     * Establece si el vigilante porta arma durante el contrato.
+     * Establece si el vigilante porta un arma.
      *
-     * @param conArma El estado de portación de arma a establecer.
+     * @param conArma estado de portación de arma
      */
     public void setConArma(boolean conArma) {
         this.conArma = conArma;
     }
 
     /**
-     * Retorna una representación en cadena del contrato.
+     * Devuelve los datos principales del contrato.
      *
-     * @return String con los detalles del contrato.
+     * @return representación textual del contrato
      */
     @Override
     public String toString() {
         return "Contrato de Vigilancia ["
-                + "Sucursal: " + (sucursal != null ? sucursal.getCodigo() : "Desconocida")
-                + ", Vigilante: " + (vigilante != null ? vigilante.getCodigo() : "Desconocido")
+                + "Sucursal: " + idSucursal
+                + ", Vigilante: " + idVigilante
                 + ", Fecha: " + fecha
-                + ", Con Arma: " + (conArma ? "Sí" : "No")
+                + ", Con arma: " + (conArma ? "Sí" : "No")
                 + "]";
     }
 }

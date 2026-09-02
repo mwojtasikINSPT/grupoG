@@ -1,6 +1,10 @@
 package daos;
 
-import exceptions.*;
+import exceptions.ErrorAlActualizarException;
+import exceptions.ErrorAlEliminarException;
+import exceptions.ErrorAlGuardarException;
+import exceptions.ErrorAlLeerException;
+import exceptions.ObjetoNoEncontradoException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,46 +18,50 @@ import models.Usuario;
 import models.UsuarioAdministrador;
 import models.UsuarioInvestigador;
 import models.UsuarioVigilante;
-import models.Vigilante;
 
 /**
- * Clase que implementa la persistencia de datos para la entidad {@link Usuario}
- * utilizando un archivo de texto plano.
+ * Gestiona la persistencia de usuarios mediante un archivo de texto.
+ *
+ * Implementa {@link IGenericDAO} para permitir que esta forma de
+ * almacenamiento pueda reemplazarse posteriormente por MySQL.
+ *
+ * @author GrupoG
  */
-public class UsuarioDAO implements IGenericDAO<Usuario> {
+public class UsuarioDAO
+        implements IGenericDAO<Usuario> {
 
-    private final String RUTA_ARCHIVO = "usuarios.txt";
+    private static final String RUTA_ARCHIVO = "usuarios.txt";
 
     /**
-     * Constructor que inicializa el DAO y asegura la existencia del archivo de
-     * datos.
+     * Crea el DAO y comprueba que exista el archivo de usuarios.
      */
     public UsuarioDAO() {
         crearArchivoSiNoExiste();
     }
 
     /**
-     * Verifica la existencia del archivo de texto. Si no existe, intenta
-     * crearlo. En caso de error de E/S, imprime el mensaje de error por
-     * consola.
+     * Crea el archivo de usuarios cuando todavía no existe.
      */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
+
             if (!archivo.exists()) {
                 archivo.createNewFile();
             }
         } catch (IOException e) {
-            System.out.println("Error al crear el archivo de usuarios: " + e.getMessage());
+            System.out.println(
+                    "Error al crear el archivo de usuarios: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Verifica si existe un usuario con el nombre de usuario especificado.
+     * Comprueba si existe un usuario con el nombre indicado.
      *
-     * @param username El nombre de usuario a verificar.
-     * @return {@code true} si se encuentra el usuario, {@code false} en caso
-     *         contrario.
+     * @param username nombre del usuario buscado
+     * @return {@code true} si el usuario existe
      */
     private boolean existeUsuario(String username) {
         try {
@@ -65,202 +73,265 @@ public class UsuarioDAO implements IGenericDAO<Usuario> {
     }
 
     /**
-     * Genera una cadena de texto (formato CSV) representando al usuario. Si el
-     * usuario es de tipo {@link UsuarioVigilante}, incluye información
-     * adicional.
+     * Convierte un usuario en una línea de texto separada por comas.
      *
-     * * @param entidad El objeto usuario a convertir.
-     * 
-     * @return Una cadena formateada con los atributos del usuario separados por
-     *         comas.
+     * Para una cuenta de vigilante incorpora únicamente el código del
+     * vigilante asociado.
+     *
+     * @param usuario usuario que se convertirá
+     * @return línea preparada para almacenarse
      */
-    private String armarLinea(Usuario entidad) {
-        String linea = entidad.getUsername() + ","
-                + entidad.getPassword() + ","
-                + entidad.obtenerRol().name();
-        // Si el usuario es un Vigilante, agrego la 4ta columna con su código
-        if (entidad instanceof UsuarioVigilante) {
-            // Transformo (casteo) la variable a UsuarioVigilante para poder usar su getter
-            UsuarioVigilante vigilante = (UsuarioVigilante) entidad;
-            linea += "," + vigilante.getVigilante().getCodigo();
+    private String armarLinea(Usuario usuario) {
+        String linea = usuario.getUsername() + ","
+                + usuario.getPassword() + ","
+                + usuario.obtenerRol().name();
+
+        if (usuario instanceof UsuarioVigilante usuarioVigilante) {
+            linea += ","
+                    + usuarioVigilante.getCodigoVigilante();
         }
+
         return linea;
     }
 
     /**
-     * Guarda un usuario en el archivo de texto. Valida previamente que el
-     * nombre de usuario no esté duplicado.
+     * Guarda un usuario si su nombre todavía no está registrado.
      *
-     * * @param entidad El usuario a persistir.
-     * 
-     * @throws ErrorAlGuardarException Si el usuario ya existe o hay problemas
-     *                                 al escribir en el archivo.
+     * @param usuario usuario que se guardará
+     * @throws ErrorAlGuardarException si el usuario ya existe o no puede
+     * escribirse el archivo
      */
     @Override
-    public void guardar(Usuario entidad) throws ErrorAlGuardarException {
-        if (existeUsuario(entidad.getUsername())) {
+    public void guardar(Usuario usuario)
+            throws ErrorAlGuardarException {
+
+        if (existeUsuario(usuario.getUsername())) {
             throw new ErrorAlGuardarException(
                     "Usuario",
-                    "Ya existe un usuario con el nombre '" + entidad.getUsername() + "'.");
+                    "Ya existe un usuario con el nombre '"
+                    + usuario.getUsername() + "'."
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            bw.write(armarLinea(entidad));
-            bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO, true))) {
+
+            escritor.write(armarLinea(usuario));
+            escritor.newLine();
+
         } catch (IOException e) {
-            throw new ErrorAlGuardarException("Usuario", e.getMessage());
+            throw new ErrorAlGuardarException(
+                    "Usuario",
+                    e.getMessage()
+            );
         }
     }
 
     /**
      * Recupera todos los usuarios almacenados en el archivo.
      *
-     * * @return Una {@link List} con todos los objetos de tipo {@link Usuario}
-     * reconstruidos.
-     * 
-     * @throws ErrorAlLeerException Si ocurre un error al acceder o procesar el
-     *                              archivo.
+     * Las líneas vacías o incompletas se ignoran para evitar que un registro
+     * defectuoso interrumpa toda la lectura.
+     *
+     * @return lista de usuarios almacenados
+     * @throws ErrorAlLeerException si no puede leerse el archivo
      */
     @Override
-    public List<Usuario> obtenerTodos() throws ErrorAlLeerException {
-        List<Usuario> listaUsuarios = new ArrayList<>();
+    public List<Usuario> obtenerTodos()
+            throws ErrorAlLeerException {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
+        List<Usuario> usuarios = new ArrayList<>();
+
+        try (BufferedReader lector = new BufferedReader(
+                new FileReader(RUTA_ARCHIVO))) {
+
             String linea;
 
-            while ((linea = br.readLine()) != null) {
-
+            while ((linea = lector.readLine()) != null) {
                 if (linea.trim().isEmpty()) {
-                    continue; // Ignora líneas vacías
-                }
-                String[] partes = linea.split(",");
-
-                // Si no tiene comas, el split devuelve solo 1 parte. Saltamos la línea
-                // corrupta.
-                if (partes.length < 3) {
-                    System.out.println("ADVERTENCIA: Línea corrupta ignorada: " + linea);
                     continue;
                 }
-                // Verifico que haya AL MENOS 3 datos
-                if (partes.length >= 3) {
-                    String username = partes[0];
-                    String password = partes[1];
-                    String rolTexto = partes[2];
 
-                    // Inicializo user
-                    Usuario usuario = null;
+                String[] partes = linea.split(",");
 
-                    // Convierto el texto del archivo al Enum real
-                    Rol rol = Rol.valueOf(rolTexto.toUpperCase());
+                if (partes.length < 3) {
+                    System.out.println(
+                            "ADVERTENCIA: Línea corrupta ignorada: "
+                            + linea
+                    );
+                    continue;
+                }
 
-                    switch (rol) {
-                        case ADMINISTRADOR:
-                            usuario = new UsuarioAdministrador(username, password);
-                            break;
-                        case INVESTIGADOR:
-                            usuario = new UsuarioInvestigador(username, password);
-                            break;
-                        case VIGILANTE:
-                            // Si es vigilante, busco la 4ta columna (índice 3)
-                            String codigoVigilante = "";
-                            if (partes.length == 4) {
-                                codigoVigilante = partes[3];
-                            }
-                            usuario = new UsuarioVigilante(username, password, new Vigilante(codigoVigilante, 0));
-                            break;
-                    }
+                String username = partes[0];
+                String password = partes[1];
+                Rol rol = Rol.valueOf(partes[2].toUpperCase());
 
-                    if (usuario != null) {
-                        listaUsuarios.add(usuario);
-                    }
+                Usuario usuario = crearUsuario(
+                        username,
+                        password,
+                        rol,
+                        partes
+                );
+
+                if (usuario != null) {
+                    usuarios.add(usuario);
                 }
             }
+
         } catch (IOException e) {
-            throw new ErrorAlLeerException("Archivo de Usuarios", e.getMessage());
+            throw new ErrorAlLeerException(
+                    "Archivo de Usuarios",
+                    e.getMessage()
+            );
         }
-        return listaUsuarios;
+
+        return usuarios;
     }
 
     /**
-     * Busca un usuario específico mediante su nombre de usuario (username).
+     * Crea el tipo concreto de usuario correspondiente al rol leído.
      *
-     * * @param id El username del usuario a buscar.
-     * 
-     * @return El objeto {@link Usuario} encontrado.
-     * @throws ObjetoNoEncontradoException Si no se encuentra el usuario.
-     * @throws ErrorAlLeerException        Si hay problemas de acceso al archivo.
+     * @param username nombre utilizado para iniciar sesión
+     * @param password contraseña almacenada
+     * @param rol rol asignado
+     * @param partes columnas obtenidas del archivo
+     * @return usuario construido a partir de los datos
+     */
+    private Usuario crearUsuario(
+            String username,
+            String password,
+            Rol rol,
+            String[] partes) {
+
+        return switch (rol) {
+            case ADMINISTRADOR ->
+                new UsuarioAdministrador(username, password);
+
+            case INVESTIGADOR ->
+                new UsuarioInvestigador(username, password);
+
+            case VIGILANTE -> {
+                String codigoVigilante =
+                        partes.length >= 4 ? partes[3] : "";
+
+                yield new UsuarioVigilante(
+                        username,
+                        password,
+                        codigoVigilante
+                );
+            }
+        };
+    }
+
+    /**
+     * Busca un usuario por su nombre de acceso.
+     *
+     * @param id nombre del usuario buscado
+     * @return usuario encontrado
+     * @throws ObjetoNoEncontradoException si el usuario no existe
+     * @throws ErrorAlLeerException si no puede leerse el archivo
      */
     @Override
-    public Usuario buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
+    public Usuario buscarPorId(String id)
+            throws ObjetoNoEncontradoException, ErrorAlLeerException {
+
         List<Usuario> usuarios = obtenerTodos();
+
         for (Usuario usuario : usuarios) {
             if (usuario.getUsername().equalsIgnoreCase(id)) {
                 return usuario;
             }
         }
+
         throw new ObjetoNoEncontradoException("Usuario", id);
     }
 
     /**
-     * Actualiza la información de un usuario existente, sobrescribiendo el
-     * archivo.
+     * Actualiza los datos de un usuario existente.
      *
-     * * @param entidad El usuario con los nuevos datos.
-     * 
-     * @throws ErrorAlActualizarException Si hay un error al leer o sobrescribir
-     *                                    el archivo.
+     * @param usuario usuario que contiene los nuevos datos
+     * @throws ErrorAlActualizarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void actualizar(Usuario entidad) throws ErrorAlActualizarException {
+    public void actualizar(Usuario usuario)
+            throws ErrorAlActualizarException {
+
         List<Usuario> usuarios;
 
         try {
             usuarios = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlActualizarException("Usuario", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Usuario",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (Usuario u : usuarios) {
-                if (u.getUsername().equals(entidad.getUsername())) {
-                    bw.write(armarLinea(entidad));
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (Usuario usuarioGuardado : usuarios) {
+                if (usuarioGuardado.getUsername()
+                        .equals(usuario.getUsername())) {
+
+                    escritor.write(armarLinea(usuario));
                 } else {
-                    bw.write(armarLinea(u));
+                    escritor.write(armarLinea(usuarioGuardado));
                 }
-                bw.newLine();
+
+                escritor.newLine();
             }
+
         } catch (IOException e) {
-            throw new ErrorAlActualizarException("Usuario", "No se pudo escribir en el archivo: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Usuario",
+                    "No se pudo escribir en el archivo: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Elimina un usuario del archivo mediante su nombre de usuario.
+     * Elimina el usuario que tenga el nombre indicado.
      *
-     * * @param id El username del usuario a eliminar.
-     * 
-     * @throws ErrorAlEliminarException Si hay errores al realizar la operación
-     *                                  de escritura/lectura.
+     * @param id nombre del usuario que se eliminará
+     * @throws ErrorAlEliminarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void eliminar(String id) throws ErrorAlEliminarException {
+    public void eliminar(String id)
+            throws ErrorAlEliminarException {
+
         List<Usuario> usuarios;
 
         try {
             usuarios = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlEliminarException("Usuario", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Usuario",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (Usuario u : usuarios) {
-                if (!u.getUsername().equals(id)) {
-                    bw.write(armarLinea(u));
-                    bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (Usuario usuario : usuarios) {
+                if (!usuario.getUsername().equalsIgnoreCase(id)) {
+                    escritor.write(armarLinea(usuario));
+                    escritor.newLine();
                 }
             }
+
         } catch (IOException e) {
-            throw new ErrorAlEliminarException("Usuario", "No se pudo eliminar el registro: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Usuario",
+                    "No se pudo eliminar el registro: "
+                    + e.getMessage()
+            );
         }
     }
 }

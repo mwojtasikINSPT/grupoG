@@ -4,140 +4,134 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
- * Representa el evento de un asalto a una sucursal bancaria por parte de un
- * asaltante en una fecha determinada. Resuelve la relación N:M entre Asaltante
- * y Sucursal.
+ * Representa el hecho de un asalto ocurrido en una sucursal.
+ *
+ * El modelo conserva únicamente los identificadores de las entidades
+ * involucradas. Los datos completos deben obtenerse mediante sus respectivos
+ * DAO.
+ *
+ * @author GrupoG
  */
 public class Asalto implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private String idAsalto;
-    private Asaltante asaltante;
-    private Sucursal sucursal;
+    private String idAsaltante;
+    private String idSucursal;
     private LocalDate fecha;
 
     /**
-     * Constructor por defecto.
+     * Crea un asalto sin datos iniciales.
      */
     public Asalto() {
     }
 
     /**
-     * Construye una instancia de Asalto con todos sus atributos.
+     * Crea un asalto utilizando los identificadores de las entidades
+     * involucradas.
      *
-     * @param idAsalto Identificador único del asalto.
-     * @param asaltante El asaltante responsable del hecho.
-     * @param sucursal La sucursal donde ocurrió el evento.
-     * @param fecha La fecha en la que ocurrió el asalto.
+     * @param idAsalto identificador único del hecho
+     * @param idAsaltante identificador del asaltante involucrado
+     * @param idSucursal identificador de la sucursal afectada
+     * @param fecha fecha en que ocurrió el hecho
      */
-    public Asalto(String idAsalto, Asaltante asaltante, Sucursal sucursal, LocalDate fecha) {
+    public Asalto(
+            String idAsalto,
+            String idAsaltante,
+            String idSucursal,
+            LocalDate fecha) {
+
         this.idAsalto = idAsalto;
-        this.asaltante = asaltante;
-        this.sucursal = sucursal;
+        this.idAsaltante = idAsaltante;
+        this.idSucursal = idSucursal;
         this.fecha = fecha;
     }
 
     /**
      * Obtiene el identificador del asalto.
      *
-     * Obtiene el identificador único del asalto.
-     *
-     * @return El ID del asalto.
+     * @return identificador del hecho
      */
     public String getIdAsalto() {
         return idAsalto;
     }
 
     /**
-     * Establece el identificador del asalto.
+     * Modifica el identificador del asalto.
      *
-     * Asigna un nuevo identificador al asalto.
-     *
-     * @param idAsalto El ID a asignar.
+     * @param idAsalto nuevo identificador
      */
     public void setIdAsalto(String idAsalto) {
         this.idAsalto = idAsalto;
     }
 
     /**
-     * Obtiene el asaltante involucrado.
+     * Obtiene el identificador del asaltante involucrado.
      *
-     * Obtiene el asaltante vinculado al hecho.
-     *
-     * @return El objeto Asaltante.
+     * @return identificador del asaltante
      */
-    public Asaltante getAsaltante() {
-        return asaltante;
+    public String getIdAsaltante() {
+        return idAsaltante;
     }
 
     /**
-     * Establece el asaltante involucrado.
+     * Modifica el identificador del asaltante involucrado.
      *
-     * Asigna el asaltante responsable del hecho.
-     *
-     * @param asaltante El asaltante a asignar.
+     * @param idAsaltante nuevo identificador del asaltante
      */
-    public void setAsaltante(Asaltante asaltante) {
-        this.asaltante = asaltante;
+    public void setIdAsaltante(String idAsaltante) {
+        this.idAsaltante = idAsaltante;
     }
 
     /**
-     * Obtiene la sucursal afectada.
+     * Obtiene el identificador de la sucursal afectada.
      *
-     * Obtiene la sucursal donde ocurrió el asalto.
-     *
-     * @return El objeto Sucursal.
+     * @return identificador de la sucursal
      */
-    public Sucursal getSucursal() {
-        return sucursal;
+    public String getIdSucursal() {
+        return idSucursal;
     }
 
     /**
-     * Establece la sucursal afectada.
+     * Modifica el identificador de la sucursal afectada.
      *
-     * Asigna la sucursal asociada al asalto.
-     *
-     * @param sucursal La sucursal a asignar.
+     * @param idSucursal nuevo identificador de la sucursal
      */
-    public void setSucursal(Sucursal sucursal) {
-        this.sucursal = sucursal;
+    public void setIdSucursal(String idSucursal) {
+        this.idSucursal = idSucursal;
     }
 
     /**
-     * Obtiene la fecha del evento.
+     * Obtiene la fecha del asalto.
      *
-     * Obtiene la fecha en la que ocurrió el asalto.
-     *
-     * @return La fecha del asalto.
+     * @return fecha del hecho
      */
     public LocalDate getFecha() {
         return fecha;
     }
 
     /**
-     * Establece la fecha del evento.
+     * Modifica la fecha del asalto.
      *
-     * Asigna la fecha del asalto.
-     *
-     * @param fecha La fecha a asignar.
+     * @param fecha nueva fecha del hecho
      */
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
 
     /**
-     * Retorna una representación en cadena del objeto Asalto.
+     * Devuelve una descripción legible del asalto.
      *
-     * @return String con detalles del asalto.
+     * @return datos principales del hecho
      */
     @Override
     public String toString() {
         return "Asalto ["
                 + "ID: " + idAsalto
                 + ", Fecha: " + fecha
-                + ", Asaltante: " + (asaltante != null ? asaltante.getNombreCompleto() + " (Clave: " + asaltante.getClave() + ")" : "Desconocido")
-                + ", Sucursal: " + (sucursal != null ? sucursal.getCodigo() : "Desconocida")
+                + ", ID Asaltante: " + idAsaltante
+                + ", ID Sucursal: " + idSucursal
                 + "]";
     }
 }

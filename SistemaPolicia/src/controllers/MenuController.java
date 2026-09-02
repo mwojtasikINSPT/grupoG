@@ -1,37 +1,80 @@
 package controllers;
 
+import java.util.EnumMap;
+import java.util.Map;
+import models.Rol;
 import models.Usuario;
+import views.MenuAdministrador;
+import views.MenuInvestigador;
+import views.MenuVigilante;
+import views.VistaMenu;
 
-//No lo estamos usando
 /**
- * Controlador encargado de dirigir el flujo de navegación hacia el menú
- * correspondiente según el rol del usuario autenticado.
+ * Selecciona y ejecuta la vista correspondiente al rol del usuario.
+ *
+ * Las vistas se almacenan mediante la interfaz {@link VistaMenu}, evitando
+ * que la navegación dependa de una implementación concreta.
+ *
+ * @author GrupoG
  */
 public class MenuController {
 
+    private final Map<Rol, VistaMenu> vistas;
+
     /**
-     * Identifica el rol del usuario y ejecuta el menú asociado.
+     * Crea el controlador y registra las vistas disponibles inicialmente.
+     */
+    public MenuController() {
+        vistas = new EnumMap<>(Rol.class);
+
+        registrarVista(Rol.ADMINISTRADOR, new MenuAdministrador());
+        registrarVista(Rol.INVESTIGADOR, new MenuInvestigador());
+        registrarVista(Rol.VIGILANTE, new MenuVigilante());
+    }
+
+    /**
+     * Registra o reemplaza la vista asociada con un rol.
      *
-     * @param usuarioLogueado El objeto {@link Usuario} que ha iniciado sesión.
+     * Este método permite incorporar otra implementación de {@link VistaMenu}
+     * sin modificar la lógica que selecciona y ejecuta las vistas.
+     *
+     * @param rol rol asociado con la vista
+     * @param vista implementación que mostrará el menú
+     * @throws IllegalArgumentException si el rol o la vista son nulos
+     */
+    public final void registrarVista(Rol rol, VistaMenu vista) {
+        if (rol == null || vista == null) {
+            throw new IllegalArgumentException(
+                    "El rol y la vista son obligatorios."
+            );
+        }
+
+        vistas.put(rol, vista);
+    }
+
+    /**
+     * Ejecuta la vista correspondiente al rol del usuario autenticado.
+     *
+     * @param usuarioLogueado usuario que inició sesión
+     * @throws IllegalArgumentException si el usuario es nulo
+     * @throws IllegalStateException si no existe una vista para su rol
      */
     public void arrancarMenuPorRol(Usuario usuarioLogueado) {
         if (usuarioLogueado == null) {
-            System.out.println("[ERROR] Sesión inválida.");
-            return;
+            throw new IllegalArgumentException(
+                    "El usuario autenticado es obligatorio."
+            );
         }
 
-        switch (usuarioLogueado.obtenerRol()) {
-            case ADMINISTRADOR ->
-                System.out.println("\n [SISTEMA] Abriendo Menú de Administrador...");
+        VistaMenu vista = vistas.get(usuarioLogueado.obtenerRol());
 
-            case INVESTIGADOR ->
-                System.out.println("\n [SISTEMA] Abriendo Menú de Investigador...");
-
-            case VIGILANTE ->
-                System.out.println("\n [SISTEMA] Abriendo Menú de Vigilante...");
-
-            default ->
-                System.out.println("[ERROR] El rol del usuario es desconocido.");
+        if (vista == null) {
+            throw new IllegalStateException(
+                    "No existe una vista para el rol "
+                    + usuarioLogueado.obtenerRol()
+            );
         }
+
+        vista.mostrarMenu(usuarioLogueado);
     }
 }

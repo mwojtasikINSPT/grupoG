@@ -1,158 +1,239 @@
 package views.submenues;
 
-import controllers.JudicialController;
 import controllers.AsaltosController;
-import daos.AsaltanteDAO;
-import daos.AsaltoDAO;
-import daos.BandaDAO;
-import daos.SucursalDAO;
-import models.CasoJudicial;
-import models.Banda;
-import models.Asalto;
-import views.UIHelper;
+import controllers.JudicialController;
 import java.util.List;
+import models.Asalto;
+import models.Banda;
+import models.CasoJudicial;
 import models.Rol;
+import views.UIHelper;
 
 /**
- * Clase encargada de la gestión judicial dentro del sistema. Proporciona un
- * menú interactivo en consola que permite consultar información relacionada con
- * detenidos, bandas delictivas, asaltos registrados y jueces con sus
- * respectivas condenas.
- *
- * Funcionalidades principales: - Consultar detenidos: muestra datos de
- * asaltantes, asaltos y condenas. - Consultar bandas: lista las bandas
- * registradas con su número y cantidad de miembros. - Consultar asaltos:
- * muestra registros de asaltos con identificador, asaltante, sucursal y fecha.
- * - Consultar jueces y condenas: lista expedientes judiciales con juez,
- * asaltante y sentencia.
- *
- * Esta clase actúa como interfaz entre la capa de presentación (UIHelper) y los
- * controladores de negocio (JudicialController y AsaltosController),
- * garantizando que las consultas se realicen de manera ordenada y accesible.
+ * Presenta las consultas relacionadas con bandas, asaltos
+ * y casos judiciales.
  *
  * @author GrupoG
  */
 public class GestionJudicial {
 
-    /**
-     * Controlador encargado de gestionar las operaciones relacionadas con los
-     * asaltos. Se inicializa con los objetos de acceso a datos (DAO) necesarios
-     * para interactuar con la banda, los asaltantes y las sucursales.
-     */
-    //NO va aca, pero es la unica forma de que no se rompa todo por errores en creacion de entidades sin datos completos
-    private final AsaltosController asaltosController = new AsaltosController(new BandaDAO(), new AsaltanteDAO(), new SucursalDAO());
-    private final JudicialController judicialController = new JudicialController(new AsaltoDAO());
+    private final AsaltosController asaltosController;
+    private final JudicialController judicialController;
 
     /**
-     * Muestra el menú principal de gestión judicial y procesa las opciones
-     * seleccionadas.
+     * Crea la vista con los controladores utilizados por la aplicación.
+     */
+    public GestionJudicial() {
+        this(
+                new AsaltosController(),
+                new JudicialController()
+        );
+    }
+
+    /**
+     * Crea la vista con los controladores recibidos.
      *
-     * @param rolUsuario El rol del usuario actual, útil para restringir accesos
-     * si fuera necesario.
+     * @param asaltosController controlador de bandas y asaltos
+     * @param judicialController controlador de casos judiciales
+     * @throws IllegalArgumentException si algún controlador es nulo
+     */
+    public GestionJudicial(
+            AsaltosController asaltosController,
+            JudicialController judicialController) {
+
+        if (asaltosController == null
+                || judicialController == null) {
+
+            throw new IllegalArgumentException(
+                    "Los controladores judiciales son obligatorios."
+            );
+        }
+
+        this.asaltosController = asaltosController;
+        this.judicialController = judicialController;
+    }
+
+    /**
+     * Muestra las consultas judiciales disponibles.
+     *
+     * @param rolUsuario rol del usuario que accede al menú
      */
     public void mostrar(Rol rolUsuario) {
         int opcion;
+
         do {
-            UIHelper.mostrarSubtitulo("GESTIÓN JUDICIAL - CONSULTAS");
-            UIHelper.imprimirMensaje("1. Consultar Detenidos\n2. Consultar Bandas\n3. Consultar Asaltos\n4. Consultar Jueces y Condenas\n0. Volver");
+            UIHelper.mostrarSubtitulo(
+                    "GESTIÓN JUDICIAL - CONSULTAS"
+            );
+
+            UIHelper.imprimirMensaje(
+                    "1. Consultar Detenidos\n"
+                    + "2. Consultar Bandas\n"
+                    + "3. Consultar Asaltos\n"
+                    + "4. Consultar Jueces y Condenas\n"
+                    + "0. Volver"
+            );
+
             opcion = UIHelper.leerEntero("Seleccione opción");
 
             switch (opcion) {
                 case 1 ->
                     ejecutarListarDetenidos();
+
                 case 2 ->
                     ejecutarListarBandas();
+
                 case 3 ->
                     ejecutarListarAsaltos();
+
                 case 4 ->
                     ejecutarListarJuecesYCondenas();
+
+                case 0 -> {
+                    // Regresa al menú anterior.
+                }
+
+                default ->
+                    UIHelper.imprimirError("Opción no válida.");
             }
+
         } while (opcion != 0);
     }
 
     /**
-     * Recupera y muestra un listado detallado de todos los asaltantes
-     * condenados a prisión.
+     * Muestra los casos que terminaron con una condena.
      */
     private void ejecutarListarDetenidos() {
         UIHelper.mostrarSubtitulo("REGISTRO DE DETENIDOS");
-        try {
-            List<CasoJudicial> lista = judicialController.listarDetenidos();
 
-            if (lista.isEmpty()) {
-                UIHelper.imprimirMensaje("No hay detenidos registrados.");
+        try {
+            List<CasoJudicial> casos =
+                    judicialController.listarDetenidos();
+
+            if (casos.isEmpty()) {
+                UIHelper.imprimirMensaje(
+                        "No hay detenidos registrados."
+                );
             } else {
-                UIHelper.imprimirMensaje("ASALTANTE          | ID ASALTO | FECHA      | MESES\n--------------------------------------------------------------------------");
-                for (CasoJudicial c : lista) {
-                    System.out.printf("%-18s | %-9s | %-10s | %-5d%n", c.getAsalto().getAsaltante().getNombreCompleto(), c.getAsalto().getIdAsalto(), c.getAsalto().getFecha(), c.getMesesCarcel());
+                UIHelper.imprimirMensaje(
+                        "ID ASALTO | ID JUEZ | MESES\n"
+                        + "--------------------------------"
+                );
+
+                for (CasoJudicial caso : casos) {
+                    System.out.printf(
+                            "%-9s | %-7s | %-5d%n",
+                            caso.getIdAsalto(),
+                            caso.getIdJuez(),
+                            caso.getMesesCarcel()
+                    );
                 }
             }
         } catch (Exception e) {
             UIHelper.imprimirError(e.getMessage());
         }
+
         UIHelper.pausar();
     }
 
     /**
-     * Muestra el registro de todas las bandas criminales y su cantidad de
-     * integrantes.
+     * Muestra las bandas registradas.
      */
     private void ejecutarListarBandas() {
         UIHelper.mostrarSubtitulo("LISTADO DE BANDAS");
+
         try {
-            List<Banda> lista = asaltosController.listarBandas();
-            if (lista.isEmpty()) {
-                UIHelper.imprimirMensaje("No hay bandas registradas.");
+            List<Banda> bandas =
+                    asaltosController.listarBandas();
+
+            if (bandas.isEmpty()) {
+                UIHelper.imprimirMensaje(
+                        "No hay bandas registradas."
+                );
             } else {
-                for (Banda b : lista) {
-                    System.out.printf("%-12s | %-8d%n", b.getNumeroBanda(), b.getCantMiembros());
+                for (Banda banda : bandas) {
+                    System.out.printf(
+                            "%-12s | %-8d%n",
+                            banda.getNumeroBanda(),
+                            banda.getCantMiembros()
+                    );
                 }
             }
         } catch (Exception e) {
             UIHelper.imprimirError(e.getMessage());
         }
+
         UIHelper.pausar();
     }
 
     /**
-     * Muestra el histórico completo de los asaltos ocurridos y sus datos
-     * básicos.
+     * Muestra los asaltos registrados.
      */
     private void ejecutarListarAsaltos() {
         UIHelper.mostrarSubtitulo("REGISTRO DE ASALTOS");
+
         try {
-            List<Asalto> lista = asaltosController.listarAsaltos();
-            if (lista.isEmpty()) {
-                UIHelper.imprimirMensaje("No hay asaltos registrados.");
+            List<Asalto> asaltos =
+                    asaltosController.listarAsaltos();
+
+            if (asaltos.isEmpty()) {
+                UIHelper.imprimirMensaje(
+                        "No hay asaltos registrados."
+                );
             } else {
-                for (Asalto a : lista) {
-                    System.out.printf("%-9s | %-16s | %-10s | %-10s%n", a.getIdAsalto(), a.getAsaltante().getNombreCompleto(), a.getSucursal().getCodigo(), a.getFecha());
+                UIHelper.imprimirMensaje(
+                        "ID ASALTO | ID ASALTANTE | "
+                        + "ID SUCURSAL | FECHA"
+                );
+
+                for (Asalto asalto : asaltos) {
+                    System.out.printf(
+                            "%-9s | %-12s | %-11s | %-10s%n",
+                            asalto.getIdAsalto(),
+                            asalto.getIdAsaltante(),
+                            asalto.getIdSucursal(),
+                            asalto.getFecha()
+                    );
                 }
             }
         } catch (Exception e) {
             UIHelper.imprimirError(e.getMessage());
         }
+
         UIHelper.pausar();
     }
 
     /**
-     * Muestra un resumen de los expedientes judiciales vinculando al juez
-     * interviniente con el veredicto final.
+     * Muestra los casos judiciales y sus condenas.
      */
     private void ejecutarListarJuecesYCondenas() {
         UIHelper.mostrarSubtitulo("JUECES Y CONDENAS");
+
         try {
-            List<CasoJudicial> lista = judicialController.listarCasosJudiciales();
-            if (lista.isEmpty()) {
+            List<CasoJudicial> casos =
+                    judicialController.listarCasosJudiciales();
+
+            if (casos.isEmpty()) {
                 UIHelper.imprimirMensaje("No hay expedientes.");
             } else {
-                for (CasoJudicial c : lista) {
-                    System.out.printf("%-17s | %-18s | %-7s | %-5d%n", c.getJuez().getNombre(), c.getAsalto().getAsaltante().getNombreCompleto(), c.isCondenado() ? "SÍ" : "NO", c.getMesesCarcel());
+                UIHelper.imprimirMensaje(
+                        "ID JUEZ | ID ASALTO | CONDENA | MESES"
+                );
+
+                for (CasoJudicial caso : casos) {
+                    System.out.printf(
+                            "%-7s | %-9s | %-7s | %-5d%n",
+                            caso.getIdJuez(),
+                            caso.getIdAsalto(),
+                            caso.isCondenado() ? "SÍ" : "NO",
+                            caso.getMesesCarcel()
+                    );
                 }
             }
         } catch (Exception e) {
             UIHelper.imprimirError(e.getMessage());
         }
+
         UIHelper.pausar();
     }
 }

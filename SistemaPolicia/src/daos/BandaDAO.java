@@ -17,7 +17,6 @@ import models.Banda;
  * bandas.txt.
  */
 public class BandaDAO implements IGenericDAO<Banda> {
-
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "bandas.txt";
 

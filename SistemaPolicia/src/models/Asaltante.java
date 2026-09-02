@@ -1,134 +1,114 @@
 package models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Representa a una persona detenida por cometer un asalto a una sucursal
- * bancaria.
- * <p>
- * El modelo conserva los datos basicos del asaltante, su posible pertenencia a
- * una banda y el historial de asaltos cometidos.
- * </p>
+ * Representa a una persona identificada como asaltante.
+ * Los asaltos realizados se registran por separado en el modelo {@link Asalto}.
+ *
+ * @author Grupo G
  */
 public class Asaltante implements Serializable {
 
-    /**
-     * Identificador unico de version para la serializacion.
-     */
     private static final long serialVersionUID = 1L;
 
     private String clave;
     private String nombreCompleto;
-    private Banda banda;
-    private List<Asalto> listaAsaltos = new ArrayList<>();
+    private String idBanda;
 
     /**
-     * Constructor por defecto.
+     * Crea un asaltante vacío.
      */
     public Asaltante() {
     }
 
     /**
-     * Construye un nuevo asaltante con sus datos basicos y su posible banda.
+     * Crea un asaltante utilizando el identificador de su banda.
      *
-     * @param clave Codigo identificador unico del asaltante.
-     * @param nombreCompleto Nombre completo del asaltante.
-     * @param banda Banda a la que pertenece; puede ser {@code null}.
+     * @param clave identificador del asaltante
+     * @param nombreCompleto nombre completo del asaltante
+     * @param idBanda identificador de la banda; puede ser {@code null}
      */
-    public Asaltante(String clave, String nombreCompleto, Banda banda) {
+    public Asaltante(
+            String clave,
+            String nombreCompleto,
+            String idBanda) {
+
         this.clave = clave;
         this.nombreCompleto = nombreCompleto;
-        this.banda = banda;
+        this.idBanda = idBanda;
     }
+
+   
 
     /**
      * Obtiene la clave del asaltante.
      *
-     * @return La clave identificadora.
+     * @return clave del asaltante
      */
     public String getClave() {
         return clave;
     }
 
     /**
-     * Establece la clave del asaltante.
+     * Asigna la clave del asaltante.
      *
-     * @param clave La clave identificadora.
+     * @param clave nueva clave
      */
     public void setClave(String clave) {
         this.clave = clave;
     }
 
     /**
-     * Obtiene el nombre del asaltante.
+     * Obtiene el nombre completo.
      *
-     * @return El nombre completo.
+     * @return nombre completo del asaltante
      */
     public String getNombreCompleto() {
         return nombreCompleto;
     }
 
     /**
-     * Establece el nombre del asaltante.
+     * Asigna el nombre completo.
      *
-     * @param nombreCompleto El nombre completo a asignar.
+     * @param nombreCompleto nuevo nombre completo
      */
     public void setNombreCompleto(String nombreCompleto) {
         this.nombreCompleto = nombreCompleto;
     }
 
     /**
-     * Obtiene la banda a la que pertenece el asaltante.
+     * Obtiene el identificador de la banda.
      *
-     * @return La banda asociada, o {@code null} si no pertenece a ninguna.
+     * @return identificador de la banda, o {@code null} si actúa solo
      */
-    public Banda getBanda() {
-        return banda;
+    public String getIdBanda() {
+        return idBanda;
     }
 
     /**
-     * Establece la banda a la que pertenece el asaltante.
+     * Asigna el identificador de la banda.
      *
-     * @param banda La banda a asignar.
+     * @param idBanda identificador de la banda; puede ser {@code null}
      */
-    public void setBanda(Banda banda) {
-        this.banda = banda;
+    public void setIdBanda(String idBanda) {
+        this.idBanda = idBanda;
     }
 
     /**
-     * Retorna una representacion en cadena de texto del asaltante.
+     * Devuelve los datos principales del asaltante.
      *
-     * @return Una cadena con los datos del asaltante.
+     * @return representación textual del asaltante
      */
     @Override
     public String toString() {
-        String infoBanda = (banda != null) ? String.valueOf(banda.getNumeroBanda()) : "Ninguna (actua solo)";
+        String bandaMostrada =
+                idBanda != null ? idBanda : "Ninguna (actúa solo)";
+
         return "Asaltante ["
                 + "Clave: " + clave
                 + ", Nombre: " + nombreCompleto
-                + ", Banda: " + infoBanda
+                + ", Banda N°: " + bandaMostrada
                 + "]";
-    }
-
-    /**
-     * Registra un nuevo asalto en el historial del asaltante.
-     *
-     * @param asalto El objeto Asalto a anadir al historial.
-     */
-    public void agregarAsalto(Asalto asalto) {
-        if (asalto != null) {
-            this.listaAsaltos.add(asalto);
-        }
-    }
-
-    /**
-     * Obtiene la lista completa de asaltos cometidos por el asaltante.
-     *
-     * @return Una lista con los objetos Asalto.
-     */
-    public List<Asalto> getListaAsaltos() {
-        return listaAsaltos;
     }
 }
