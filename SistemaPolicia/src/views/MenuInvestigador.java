@@ -1,57 +1,61 @@
 package views;
 
-import views.submenues.GestionUsuarios;
-import views.submenues.GestionOperativa;
-import views.submenues.GestionJudicial;
 import models.Rol;
 import models.Usuario;
+import views.submenues.GestionJudicial;
+import views.submenues.GestionOperativa;
+import views.submenues.GestionUsuarios;
 
 /**
- * Clase encargada de la gestión del menú principal para usuarios con rol
- * INVESTIGADOR. Proporciona un menú interactivo en consola que permite acceder
- * a las distintas áreas de gestión del sistema: usuarios, operaciones y
- * judicial.
+ * Presenta las opciones disponibles para un usuario investigador.
  *
- * Funcionalidades principales: - Gestión de usuarios: acceso al submenú para
- * listar usuarios (sin privilegios de escritura). - Gestión operativa: acceso
- * al submenú para consultar vigilantes, sucursales y contratos. - Gestión
- * judicial: acceso al submenú para consultar detenidos, bandas, asaltos y
- * jueces. - Cierre de sesión: finaliza la interacción del investigador con el
- * sistema.
- *
- * Esta clase actúa como punto de entrada para las funciones de investigación,
- * delegando la lógica específica a las clases de submenús correspondientes
- * (GestionUsuarios, GestionOperativa y GestionJudicial), con restricciones
- * propias del rol INVESTIGADOR.
+ * Permite consultar usuarios, información operativa y asuntos judiciales,
+ * respetando los permisos asignados al rol investigador.
  *
  * @author GrupoG
  */
-public class MenuInvestigador {
+public class MenuInvestigador implements VistaMenu {
 
     /**
-     * Muestra el menú principal de investigación y gestiona la navegación hacia
-     * los distintos módulos, delegando el control de permisos a cada submódulo.
+     * Muestra el menú de investigación hasta que el usuario cierra la sesión.
      *
-     * @param usuarioLogueado El objeto {@link Usuario} que ha iniciado sesión.
+     * @param usuarioLogueado investigador que inició sesión
      */
+    @Override
     public void mostrarMenu(Usuario usuarioLogueado) {
         int opcion;
+
         do {
-            UIHelper.mostrarTitulo("Menú de Investigador - Hola, " + usuarioLogueado.getUsername());
-            UIHelper.imprimirMensaje("1. Gestión de Usuarios\n2. Gestión Operativa\n3. Gestión Judicial\n0. Salir");
+            UIHelper.mostrarTitulo(
+                    "Menú de Investigador - Hola, "
+                    + usuarioLogueado.getUsername()
+            );
+
+            UIHelper.imprimirMensaje(
+                    "1. Gestión de Usuarios\n"
+                    + "2. Gestión Operativa\n"
+                    + "3. Gestión Judicial\n"
+                    + "0. Salir"
+            );
 
             opcion = UIHelper.leerEntero("Seleccione una opción");
 
             switch (opcion) {
-                // Al pasar ROL.INVESTIGADOR, las clases ya bloquean las opciones de escritura
                 case 1 ->
-                    new GestionUsuarios().mostrar(Rol.INVESTIGADOR, usuarioLogueado);
+                    new GestionUsuarios()
+                            .mostrar(Rol.INVESTIGADOR, usuarioLogueado);
+
                 case 2 ->
-                    new GestionOperativa().mostrar(Rol.INVESTIGADOR);
+                    new GestionOperativa()
+                            .mostrar(Rol.INVESTIGADOR);
+
                 case 3 ->
-                    new GestionJudicial().mostrar(Rol.INVESTIGADOR);
+                    new GestionJudicial()
+                            .mostrar(Rol.INVESTIGADOR);
+
                 case 0 ->
                     UIHelper.imprimirMensaje("Cerrando sesión...");
+
                 default ->
                     UIHelper.imprimirError("Opción no válida.");
             }

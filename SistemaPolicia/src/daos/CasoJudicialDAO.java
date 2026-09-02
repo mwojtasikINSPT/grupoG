@@ -1,6 +1,10 @@
 package daos;
 
-import exceptions.*;
+import exceptions.ErrorAlActualizarException;
+import exceptions.ErrorAlEliminarException;
+import exceptions.ErrorAlGuardarException;
+import exceptions.ErrorAlLeerException;
+import exceptions.ObjetoNoEncontradoException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,79 +13,69 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import models.Asalto;
 import models.CasoJudicial;
-import models.Juez;
 
 /**
- * Data Access Object para la gestión de entidades {@link CasoJudicial} en
- * persistencia de archivos. Implementa las operaciones CRUD básicas sobre el
- * archivo casos_judiciales.txt.
+ * Gestiona la persistencia de casos judiciales mediante un archivo de texto.
+ *
+ * Cada registro almacena los identificadores del asalto y del juez, junto con
+ * el resultado del proceso judicial.
+ *
+ * @author GrupoG
  */
-public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
+public class CasoJudicialDAO implements ICasoJudicialDAO {
 
-    // Ruta del archivo 
-    private final String RUTA_ARCHIVO = "casos_judiciales.txt";
-    private final AsaltoDAO asaltoDAO;
-    private final JuezDAO juezDAO;
+    private static final String RUTA_ARCHIVO =
+            "casos_judiciales.txt";
 
     /**
-     * Constructor. Inicializa el DAO y asegura la existencia del archivo de
-     * persistencia.
+     * Crea el DAO y comprueba que exista el archivo de casos judiciales.
      */
     public CasoJudicialDAO() {
-        this(new AsaltoDAO(), new JuezDAO());
-    }
-
-    /**
-     * Constructor de la clase CasoJudicialDAO. Inicializa el acceso a datos de
-     * asaltos y jueces, y asegura la creación del archivo de respaldo si no
-     * existe.
-     *
-     * @param asaltoDAO DAO para gestionar datos de asaltos
-     * @param juezDAO DAO para gestionar datos de jueces
-     */
-    public CasoJudicialDAO(AsaltoDAO asaltoDAO, JuezDAO juezDAO) {
-        this.asaltoDAO = asaltoDAO;
-        this.juezDAO = juezDAO;
         crearArchivoSiNoExiste();
     }
 
+    /**
+     * Crea el archivo de casos judiciales cuando todavía no existe.
+     */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
+
             if (!archivo.exists()) {
                 archivo.createNewFile();
             }
         } catch (IOException e) {
-            System.out.println("Error al crear el archivo de casos judiciales: " + e.getMessage());
+            System.out.println(
+                    "Error al crear el archivo de casos judiciales: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Método auxiliar que centraliza el formato de texto para guardar en el
-     * archivo CSV.
+     * Convierte un caso judicial en una línea de texto separada por comas.
      *
-     * @param c El caso judicial a formatear.
-     * @return String con los datos separados por comas.
+     * @param caso caso que se convertirá
+     * @return línea preparada para almacenarse
      */
-    private String formatearParaArchivo(CasoJudicial c) {
-        return c.getAsalto().getIdAsalto() + ","
-                + c.getJuez().getClaveInterna() + ","
-                + c.isCondenado() + ","
-                + c.getMesesCarcel();
+    private String formatearParaArchivo(CasoJudicial caso) {
+        return caso.getIdAsalto() + ","
+                + caso.getIdJuez() + ","
+                + caso.isCondenado() + ","
+                + caso.getMesesCarcel();
     }
 
     /**
-     * Verifica si un caso judicial existe en el sistema basándose en el ID del
-     * asalto.
+     * Comprueba si existe un caso asociado con el asalto indicado.
      *
-     * @param id El ID del asalto asociado al caso.
-     * @return true si existe, false en caso contrario.
+     * @param idAsalto identificador del asalto
+     * @return {@code true} si el caso existe
      */
-    public boolean existe(String id) {
+    @Override
+    public boolean existe(String idAsalto) {
         try {
-            buscarPorId(id);
+            buscarPorId(idAsalto);
             return true;
         } catch (ObjetoNoEncontradoException | ErrorAlLeerException e) {
             return false;
@@ -89,147 +83,243 @@ public class CasoJudicialDAO implements IGenericDAO<CasoJudicial> {
     }
 
     /**
-     * Guarda un nuevo caso judicial en el archivo, validando que no exista
-     * previamente.
+     * Guarda un caso judicial si el asalto todavía no tiene uno registrado.
      *
-     * @param entidad El objeto {@link CasoJudicial} a persistir.
-     * @throws ErrorAlGuardarException si ocurre un error de escritura o
-     * duplicidad.
+     * @param caso caso judicial que se guardará
+     * @throws ErrorAlGuardarException si faltan datos, el caso ya existe o no
+     * puede escribirse el archivo
      */
     @Override
-    public void guardar(CasoJudicial entidad) throws ErrorAlGuardarException {
-        if (existe(entidad.getAsalto().getIdAsalto())) {
-            throw new ErrorAlGuardarException("Caso Judicial", "Ya existe un caso para el asalto ID " + entidad.getAsalto().getIdAsalto());
+    public void guardar(CasoJudicial caso)
+            throws ErrorAlGuardarException {
+
+        validarDatos(caso);
+
+        if (existe(caso.getIdAsalto())) {
+            throw new ErrorAlGuardarException(
+                    "Caso Judicial",
+                    "Ya existe un caso para el asalto ID "
+                    + caso.getIdAsalto()
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            bw.write(formatearParaArchivo(entidad));
-            bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO, true))) {
+
+            escritor.write(formatearParaArchivo(caso));
+            escritor.newLine();
+
         } catch (IOException e) {
-            throw new ErrorAlGuardarException("Caso Judicial", e.getMessage());
+            throw new ErrorAlGuardarException(
+                    "Caso Judicial",
+                    e.getMessage()
+            );
         }
     }
 
     /**
-     * Recupera todos los casos judiciales almacenados en el archivo.
+     * Recupera todos los casos judiciales almacenados.
      *
-     * @return Lista de objetos {@link CasoJudicial}.
-     * @throws ErrorAlLeerException si ocurre un error durante la lectura del
-     * archivo.
+     * Los modelos se reconstruyen directamente con los identificadores
+     * guardados, sin consultar ni crear objetos completos relacionados.
+     *
+     * @return lista de casos judiciales
+     * @throws ErrorAlLeerException si el archivo no puede leerse o contiene
+     * una cantidad de meses inválida
      */
     @Override
-    public List<CasoJudicial> obtenerTodos() throws ErrorAlLeerException {
-        List<CasoJudicial> listaCasos = new ArrayList<>();
+    public List<CasoJudicial> obtenerTodos()
+            throws ErrorAlLeerException {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
+        List<CasoJudicial> casos = new ArrayList<>();
+
+        try (BufferedReader lector = new BufferedReader(
+                new FileReader(RUTA_ARCHIVO))) {
+
             String linea;
 
-            while ((linea = br.readLine()) != null) {
+            while ((linea = lector.readLine()) != null) {
+                if (linea.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] partes = linea.split(",");
 
-                if (partes.length == 4) {
-                    String idAsalto = partes[0];
-                    String claveJuez = partes[1];
-                    // Convierto los textos a boolean e int respectivamente, "parseo"
-                    boolean condenado = Boolean.parseBoolean(partes[2]);
-                    int mesesCarcel = Integer.parseInt(partes[3]);
-
-                    // Armo objetos temporales con los datos leídos
-                    Asalto asalto = asaltoDAO.buscarPorId(idAsalto);
-                    Juez juez = juezDAO.buscarPorId(claveJuez);
-
-                    CasoJudicial caso = new CasoJudicial(asalto, juez, condenado, mesesCarcel);
-                    listaCasos.add(caso);
+                if (partes.length != 4) {
+                    continue;
                 }
+
+                String idAsalto = partes[0];
+                String idJuez = partes[1];
+                boolean condenado =
+                        Boolean.parseBoolean(partes[2]);
+
+                int mesesCarcel =
+                        Integer.parseInt(partes[3]);
+
+                casos.add(
+                        new CasoJudicial(
+                                idAsalto,
+                                idJuez,
+                                condenado,
+                                mesesCarcel
+                        )
+                );
             }
+
         } catch (IOException e) {
-            throw new ErrorAlLeerException("Archivo de Casos Judiciales", e.getMessage());
-        } catch (ObjetoNoEncontradoException e) {
-            throw new ErrorAlLeerException("Archivo de Casos Judiciales", "El caso referencia una entidad inexistente: " + e.getMessage());
+            throw new ErrorAlLeerException(
+                    "Archivo de Casos Judiciales",
+                    e.getMessage()
+            );
+
         } catch (NumberFormatException e) {
-            throw new ErrorAlLeerException("Archivo de Casos Judiciales", "Cantidad de meses invalida: " + e.getMessage());
+            throw new ErrorAlLeerException(
+                    "Archivo de Casos Judiciales",
+                    "Cantidad de meses inválida: "
+                    + e.getMessage()
+            );
         }
-        return listaCasos;
+
+        return casos;
     }
 
     /**
-     * Busca un caso judicial por el ID de su asalto asociado.
+     * Busca un caso por el identificador de su asalto.
      *
-     * @param id El ID del asalto.
-     * @return El objeto {@link CasoJudicial} encontrado.
-     * @throws ObjetoNoEncontradoException si no se encuentra el caso.
-     * @throws ErrorAlLeerException si ocurre un error de lectura.
+     * @param id identificador del asalto
+     * @return caso judicial encontrado
+     * @throws ObjetoNoEncontradoException si el caso no existe
+     * @throws ErrorAlLeerException si no puede leerse el archivo
      */
     @Override
-    public CasoJudicial buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
+    public CasoJudicial buscarPorId(String id)
+            throws ObjetoNoEncontradoException, ErrorAlLeerException {
+
         List<CasoJudicial> casos = obtenerTodos();
-        // Le pregunto el ID al objeto Asalto que está adentro del caso
+
         for (CasoJudicial caso : casos) {
-            // Le pregunto el ID al objeto Asalto que está adentro del caso
-            if (caso.getAsalto().getIdAsalto().equals(id)) {
+            if (caso.getIdAsalto().equals(id)) {
                 return caso;
             }
         }
-        throw new ObjetoNoEncontradoException("Caso Judicial", id);
+
+        throw new ObjetoNoEncontradoException(
+                "Caso Judicial",
+                id
+        );
     }
 
     /**
      * Actualiza los datos de un caso judicial existente.
      *
-     * @param entidad El objeto {@link CasoJudicial} con los nuevos datos.
-     * @throws ErrorAlActualizarException si ocurre un error durante la
-     * actualización.
+     * @param caso caso que contiene los nuevos datos
+     * @throws ErrorAlActualizarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void actualizar(CasoJudicial entidad) throws ErrorAlActualizarException {
+    public void actualizar(CasoJudicial caso)
+            throws ErrorAlActualizarException {
+
         List<CasoJudicial> casos;
 
         try {
             casos = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlActualizarException("Caso Judicial", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Caso Judicial",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (CasoJudicial c : casos) {
-                if (c.getAsalto().getIdAsalto().equals(entidad.getAsalto().getIdAsalto())) {
-                    bw.write(formatearParaArchivo(entidad));
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (CasoJudicial casoGuardado : casos) {
+                if (casoGuardado.getIdAsalto()
+                        .equals(caso.getIdAsalto())) {
+
+                    escritor.write(formatearParaArchivo(caso));
                 } else {
-                    bw.write(formatearParaArchivo(c));
+                    escritor.write(
+                            formatearParaArchivo(casoGuardado)
+                    );
                 }
-                bw.newLine();
+
+                escritor.newLine();
             }
+
         } catch (IOException e) {
-            throw new ErrorAlActualizarException("Caso Judicial", "No se pudo escribir en el archivo: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Caso Judicial",
+                    "No se pudo escribir en el archivo: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Elimina un caso judicial basándose en el ID del asalto.
+     * Elimina el caso asociado con el asalto indicado.
      *
-     * @param id El ID del asalto asociado al caso a eliminar.
-     * @throws ErrorAlEliminarException si ocurre un error durante la
-     * eliminación.
+     * @param id identificador del asalto
+     * @throws ErrorAlEliminarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void eliminar(String id) throws ErrorAlEliminarException {
+    public void eliminar(String id)
+            throws ErrorAlEliminarException {
+
         List<CasoJudicial> casos;
 
         try {
             casos = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlEliminarException("Caso Judicial", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Caso Judicial",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (CasoJudicial c : casos) {
-                if (!c.getAsalto().getIdAsalto().equals(id)) {
-                    bw.write(formatearParaArchivo(c));
-                    bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (CasoJudicial caso : casos) {
+                if (!caso.getIdAsalto().equals(id)) {
+                    escritor.write(formatearParaArchivo(caso));
+                    escritor.newLine();
                 }
             }
+
         } catch (IOException e) {
-            throw new ErrorAlEliminarException("Caso Judicial", "No se pudo eliminar el registro: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Caso Judicial",
+                    "No se pudo eliminar el registro: "
+                    + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Comprueba que el caso contenga los datos obligatorios.
+     *
+     * @param caso caso que se validará
+     * @throws ErrorAlGuardarException si falta algún dato
+     */
+    private void validarDatos(CasoJudicial caso)
+            throws ErrorAlGuardarException {
+
+        if (caso == null
+                || caso.getIdAsalto() == null
+                || caso.getIdAsalto().trim().isEmpty()
+                || caso.getIdJuez() == null
+                || caso.getIdJuez().trim().isEmpty()) {
+
+            throw new ErrorAlGuardarException(
+                    "Caso Judicial",
+                    "Faltan datos obligatorios."
+            );
         }
     }
 }

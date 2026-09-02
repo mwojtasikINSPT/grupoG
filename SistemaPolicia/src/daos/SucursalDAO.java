@@ -9,14 +9,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import models.EntidadBancaria;
 import models.Sucursal;
 
 /**
  * Clase que implementa la persistencia de datos para la entidad
  * {@link Sucursal} utilizando un archivo de texto plano.
  */
-public class SucursalDAO implements IGenericDAO<Sucursal> {
+public class SucursalDAO
+        implements IGenericDAO<Sucursal> {
 
     // Ruta del archivo 
     private final String RUTA_ARCHIVO = "sucursales.txt";
@@ -54,7 +54,7 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
         return sucursal.getCodigo() + ","
                 + sucursal.getDomicilio() + ","
                 + sucursal.getNumeroEmpleados() + ","
-                + sucursal.getEntidad().getCodigo();
+                + sucursal.getIdEntidadBancaria();
     }
 
     /**
@@ -125,10 +125,10 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
                     String codigoEntidad = partes[3];
 
                     //Instancio un banco temporal con el código leído
-                    EntidadBancaria entidad = new EntidadBancaria(codigoEntidad, "");
+                  
 
                     // Reconstruyo el objeto y agrego a la lista pasando la entidad
-                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, entidad);
+                    Sucursal sucursal = new Sucursal(codigo, domicilio, numeroEmpleados, codigoEntidad);
                     listaSucursales.add(sucursal);
                 }
             }
@@ -184,12 +184,12 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
                     bw.write(entidad.getCodigo() + ","
                             + entidad.getDomicilio() + ","
                             + entidad.getNumeroEmpleados() + ","
-                            + entidad.getEntidad().getCodigo());
+                            + entidad.getIdEntidadBancaria());
                 } else {
                     bw.write(s.getCodigo() + ","
                             + s.getDomicilio() + ","
                             + s.getNumeroEmpleados() + ","
-                            + s.getEntidad().getCodigo());
+                            + s.getIdEntidadBancaria());
                 }
                 bw.newLine();
             }
@@ -223,7 +223,7 @@ public class SucursalDAO implements IGenericDAO<Sucursal> {
                     bw.write(s.getCodigo() + ","
                             + s.getDomicilio() + ","
                             + s.getNumeroEmpleados() + ","
-                            + s.getEntidad().getCodigo());
+                            + s.getIdEntidadBancaria());
                     bw.newLine();
                 }
             }

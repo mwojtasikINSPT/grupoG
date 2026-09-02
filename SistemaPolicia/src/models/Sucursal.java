@@ -3,82 +3,124 @@ package models;
 import java.io.Serializable;
 
 /**
- * Representa una sucursal física de una entidad bancaria. Mantiene una relación
- * 1:N con la entidad bancaria a la que pertenece.
+ * Representa una sucursal física perteneciente a una entidad bancaria.
+ * Guarda solamente el identificador de la entidad relacionada.
+ *
+ * @author Grupo G
  */
 public class Sucursal implements Serializable {
 
-    //Nro version de la estructura, Necesario si mas adelante agrego atributos a la clase
     private static final long serialVersionUID = 1L;
 
-    //Atributos  
     private String codigo;
     private String domicilio;
     private int numeroEmpleados;
-    private EntidadBancaria entidad;
+    private String idEntidadBancaria;
 
     /**
-     * Construye una nueva sucursal.
+     * Crea una sucursal utilizando el identificador de su entidad bancaria.
      *
-     * @param codigo Código único de la sucursal.
-     * @param domicilio Dirección física de la sucursal.
-     * @param numeroEmpleados Cantidad de empleados en la sucursal.
-     * @param entidad La entidad bancaria a la que pertenece.
+     * @param codigo código único de la sucursal
+     * @param domicilio dirección física de la sucursal
+     * @param numeroEmpleados cantidad de empleados
+     * @param idEntidadBancaria código de la entidad bancaria
      */
-    public Sucursal(String codigo, String domicilio, int numeroEmpleados, EntidadBancaria entidad) {
+    public Sucursal(
+            String codigo,
+            String domicilio,
+            int numeroEmpleados,
+            String idEntidadBancaria) {
+
         this.codigo = codigo;
         this.domicilio = domicilio;
-        setNumeroEmpleados(numeroEmpleados); // Llamo al setter para que valide al crear
-        this.entidad = entidad;
+        setNumeroEmpleados(numeroEmpleados);
+        this.idEntidadBancaria = idEntidadBancaria;
     }
 
+    
+
     /**
-     * Establece el número de empleados, validando que no sea negativo.
+     * Obtiene el código de la sucursal.
      *
-     * @param numeroEmpleados Cantidad de empleados a asignar.
-     * @throws IllegalArgumentException si el valor es menor a cero.
-     */
-    public void setNumeroEmpleados(int numeroEmpleados) {
-        if (numeroEmpleados >= 0) {
-            this.numeroEmpleados = numeroEmpleados;
-        } else {
-            // MVC: Lanzo excepción
-            throw new IllegalArgumentException("Error: El número de empleados no puede ser negativo.");
-        }
-    }
-
-    /**
-     * @return El código único de la sucursal.
+     * @return código de la sucursal
      */
     public String getCodigo() {
         return codigo;
     }
 
     /**
-     * @return El domicilio de la sucursal.
+     * Obtiene el domicilio de la sucursal.
+     *
+     * @return domicilio de la sucursal
      */
     public String getDomicilio() {
         return domicilio;
     }
 
     /**
-     * @return El número de empleados.
+     * Asigna el domicilio de la sucursal.
+     *
+     * @param domicilio nuevo domicilio
+     */
+    public void setDomicilio(String domicilio) {
+        this.domicilio = domicilio;
+    }
+
+    /**
+     * Obtiene la cantidad de empleados.
+     *
+     * @return número de empleados
      */
     public int getNumeroEmpleados() {
         return numeroEmpleados;
     }
 
     /**
-     * @return La entidad bancaria asociada.
+     * Asigna la cantidad de empleados.
+     *
+     * @param numeroEmpleados cantidad de empleados
+     * @throws IllegalArgumentException si la cantidad es negativa
      */
-    public EntidadBancaria getEntidad() {
-        return entidad;
+    public void setNumeroEmpleados(int numeroEmpleados) {
+        if (numeroEmpleados < 0) {
+            throw new IllegalArgumentException(
+                    "El número de empleados no puede ser negativo."
+            );
+        }
+
+        this.numeroEmpleados = numeroEmpleados;
     }
 
     /**
-     * @param domicilio El domicilio a asignar.
+     * Obtiene el código de la entidad bancaria asociada.
+     *
+     * @return código de la entidad bancaria
      */
-    public void setDomicilio(String domicilio) {
-        this.domicilio = domicilio;
+    public String getIdEntidadBancaria() {
+        return idEntidadBancaria;
+    }
+
+    /**
+     * Asigna el código de la entidad bancaria.
+     *
+     * @param idEntidadBancaria código de la entidad bancaria
+     */
+    public void setIdEntidadBancaria(String idEntidadBancaria) {
+        this.idEntidadBancaria = idEntidadBancaria;
+    }
+
+    /**
+     * Devuelve los datos principales de la sucursal.
+     *
+     * @return representación textual de la sucursal
+     */
+    @Override
+    public String toString() {
+        return "Sucursal ["
+                + "Código: " + codigo
+                + ", Domicilio: " + domicilio
+                + ", Empleados: " + numeroEmpleados
+                + ", Entidad bancaria: " + idEntidadBancaria
+                + "]";
     }
 }

@@ -13,7 +13,8 @@ import models.EntidadBancaria;
  * persistencia de archivos. Implementa las operaciones CRUD básicas mediante la
  * carga en memoria y reescritura del archivo.
  */
-public class EntidadBancariaDAO implements IGenericDAO<EntidadBancaria> {
+public class EntidadBancariaDAO
+        implements IGenericDAO<EntidadBancaria> {
 
     // Defino la ruta del archivo de texto
     private static final String RUTA_ARCHIVO = "entidades_bancarias.txt";

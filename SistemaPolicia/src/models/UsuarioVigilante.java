@@ -1,68 +1,67 @@
 package models;
 
 /**
- * Representa a un usuario con perfil de Vigilante. Contiene una referencia
- * directa al objeto {@link Vigilante} asociado para gestionar sus datos
- * específicos de seguridad.
+ * Representa una cuenta de acceso con rol de vigilante.
+ *
+ * La cuenta conserva únicamente el código del vigilante asociado. Los datos
+ * personales y laborales permanecen en el modelo {@link Vigilante}.
+ *
+ * @author GrupoG
  */
 public class UsuarioVigilante extends Usuario {
 
-    // Añado el identificador de versión para la persistencia
     private static final long serialVersionUID = 1L;
 
-    // Vinculo directamente el objeto en lugar del String (ID)
-    private Vigilante vigilante;
+    private String codigoVigilante;
 
     /**
-     * Constructor por defecto.
+     * Crea una cuenta de vigilante sin datos iniciales.
      */
     public UsuarioVigilante() {
         super();
     }
 
     /**
-     * Construye un nuevo usuario vigilante asociado a una entidad de vigilante.
+     * Crea una cuenta vinculada con el código de un vigilante.
      *
-     * @param username Nombre de usuario.
-     * @param password Contraseña.
-     * @param vigilante El objeto {@link Vigilante} vinculado a este usuario.
+     * @param username nombre utilizado para iniciar sesión
+     * @param password contraseña de la cuenta
+     * @param codigoVigilante código del vigilante asociado
      */
-    public UsuarioVigilante(String username, String password, Vigilante vigilante) {
+    public UsuarioVigilante(
+            String username,
+            String password,
+            String codigoVigilante) {
+
         super(username, password);
-        this.vigilante = vigilante;
+        this.codigoVigilante = codigoVigilante;
     }
 
-    // Getters y Setters
     /**
-     * Obtiene el vigilante vinculado al usuario.
+     * Obtiene el código del vigilante vinculado con la cuenta.
      *
-     * Obtiene el vigilante vinculado al usuario.
-     *
-     * @return El objeto vigilante asociado.
+     * @return código del vigilante asociado
      */
-    public Vigilante getVigilante() {
-        return vigilante;
+    public String getCodigoVigilante() {
+        return codigoVigilante;
     }
 
     /**
-     * Asigna el vigilante vinculado al usuario.
+     * Modifica el código del vigilante vinculado con la cuenta.
      *
-     * Asigna el vigilante vinculado al usuario.
-     *
-     * @param vigilante El objeto vigilante a vincular.
+     * @param codigoVigilante nuevo código asociado
      */
-    public void setVigilante(Vigilante vigilante) {
-        this.vigilante = vigilante;
+    public void setCodigoVigilante(String codigoVigilante) {
+        this.codigoVigilante = codigoVigilante;
     }
 
     /**
-     * Obtiene el rol correspondiente a este tipo de usuario.
+     * Devuelve el rol correspondiente a la cuenta.
      *
-     * @return {@link Rol#VIGILANTE}
+     * @return rol de vigilante
      */
     @Override
     public Rol obtenerRol() {
-        // Retorno el valor del Enum correspondiente a este perfil. 
         return Rol.VIGILANTE;
     }
 }

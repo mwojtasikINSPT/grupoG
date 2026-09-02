@@ -100,10 +100,13 @@ public class ConsultaVigilante {
             UIHelper.imprimirMensaje("FECHA CONTRATO | SUCURSAL  | PORTA ARMA\n--------------------------------------------");
             boolean tiene = false;
             for (ContratoVigilancia c : lista) {
-                if (c.getVigilante().getCodigo().equals(miCodigo)) {
-                    System.out.printf("%-14s | %-9s | %-10s%n", c.getFecha(), c.getSucursal().getCodigo(), c.isConArma() ? "SÍ" : "NO");
-                    tiene = true;
-                }
+                    if (c.getIdVigilante().equals(miCodigo)) {
+                        System.out.printf("%-14s | %-9s | %-10s%n",
+                                c.getFecha(),
+                                c.getIdSucursal(),
+                                c.isConArma() ? "SÍ" : "NO");
+                        tiene = true;
+}
             }
             if (!tiene) {
                 UIHelper.imprimirMensaje("No tenés contratos asignados.");

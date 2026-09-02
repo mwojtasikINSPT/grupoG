@@ -1,41 +1,47 @@
 package views;
 
-import views.submenues.ConsultaVigilante;
 import models.Usuario;
 import models.UsuarioVigilante;
+import views.submenues.ConsultaVigilante;
 
 /**
- * Clase encargada de la gestión del menú principal para usuarios con rol
- * VIGILANTE. Proporciona un acceso directo al submenú de consultas específicas
- * para vigilantes, permitiendo visualizar datos personales y contratos
- * asociados.
+ * Presenta las opciones disponibles para una cuenta con rol de vigilante.
  *
- * Funcionalidades principales: - Validar que el usuario logueado sea de tipo
- * {@link UsuarioVigilante}. - Delegar la consulta de datos y contratos a la
- * clase {@link ConsultaVigilante}. - Informar errores en caso de que el perfil
- * de usuario no corresponda.
- *
- * Esta clase actúa como punto de entrada para los vigilantes dentro del
- * sistema, garantizando que solo accedan a la información relevante para su
- * rol.
+ * La vista utiliza el código del vigilante asociado y delega sus consultas a
+ * {@link ConsultaVigilante}.
  *
  * @author GrupoG
  */
-public class MenuVigilante {
+public class MenuVigilante implements VistaMenu {
 
     /**
-     * Valida el perfil del usuario logueado y delega la navegación al submenú
-     * de consultas específicas para el vigilante.
+     * Muestra las consultas correspondientes al vigilante autenticado.
      *
-     * @param usuarioLogueado El objeto {@link Usuario} que ha iniciado sesión.
+     * @param usuarioLogueado usuario que inició sesión
      */
+    @Override
     public void mostrarMenu(Usuario usuarioLogueado) {
-        if (!(usuarioLogueado instanceof UsuarioVigilante vigilanteLogueado)) {
-            UIHelper.imprimirError("Perfil de usuario incorrecto.");
+        if (!(usuarioLogueado
+                instanceof UsuarioVigilante vigilanteLogueado)) {
+
+            UIHelper.imprimirError(
+                    "Perfil de usuario incorrecto."
+            );
             return;
         }
 
-        // Delego la consulta a la nueva clase del paquete submenues
-        new ConsultaVigilante().mostrar(vigilanteLogueado.getVigilante().getCodigo());
+        String codigoVigilante =
+                vigilanteLogueado.getCodigoVigilante();
+
+        if (codigoVigilante == null
+                || codigoVigilante.trim().isEmpty()) {
+
+            UIHelper.imprimirError(
+                    "La cuenta no tiene un vigilante asociado."
+            );
+            return;
+        }
+
+        new ConsultaVigilante().mostrar(codigoVigilante);
     }
 }

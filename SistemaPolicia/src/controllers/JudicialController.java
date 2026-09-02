@@ -2,192 +2,359 @@ package controllers;
 
 import daos.AsaltoDAO;
 import daos.CasoJudicialDAO;
+import daos.IAsaltoDAO;
+import daos.ICasoJudicialDAO;
+import daos.IGenericDAO;
 import daos.JuezDAO;
 import exceptions.ErrorAlGuardarException;
 import exceptions.ErrorAlLeerException;
 import exceptions.ObjetoNoEncontradoException;
 import java.util.List;
-import models.Asalto;
 import models.CasoJudicial;
 import models.Juez;
 
 /**
- * Controlador encargado de gestionar la información judicial, incluyendo el
- * registro de jueces, la creación de casos judiciales vinculados a asaltos, y
- * la consulta de sentencias.
+ * Gestiona jueces, casos judiciales y consultas de condenas.
+ *
+ * El controlador depende de interfaces de persistencia y utiliza
+ * identificadores para representar las relaciones entre los modelos.
+ *
+ * @author GrupoG
  */
-public class JudicialController {
+public class JudicialController  {
 
-    private final JuezDAO juezDAO;
-    private final CasoJudicialDAO casoJudicialDAO;
-    private final AsaltoDAO asaltoDAO;
+    private final IGenericDAO<Juez> juezDAO;
+    private final ICasoJudicialDAO casoJudicialDAO;
+    private final IAsaltoDAO asaltoDAO;
 
     /**
-     * Constructor de la clase JudicialController. Inicializa los DAOs
-     * necesarios para gestionar jueces, casos judiciales y asaltos.
-     *
-     * @param juezDAO DAO para acceder y gestionar datos de jueces
-     * @param casoJudicialDAO DAO para acceder y gestionar casos judiciales
-     * @param asaltoDAO DAO para acceder y gestionar datos de asaltos
+     * Crea el controlador utilizando la persistencia actual en archivos.
      */
-    public JudicialController(JuezDAO juezDAO, CasoJudicialDAO casoJudicialDAO, AsaltoDAO asaltoDAO) {
+    public JudicialController() {
+        this(
+                new JuezDAO(),
+                new CasoJudicialDAO(),
+                new AsaltoDAO()
+        );
+    }
+
+    /**
+     * Crea el controlador manteniendo compatibilidad con la construcción
+     * utilizada actualmente por la vista.
+     *
+     * @param asaltoDAO persistencia utilizada para validar asaltos
+     */
+    public JudicialController(AsaltoDAO asaltoDAO) {
+        this(
+                new JuezDAO(),
+                new CasoJudicialDAO(),
+                asaltoDAO
+        );
+    }
+
+    /**
+     * Crea el controlador manteniendo compatibilidad con el código existente.
+     *
+     * @param juezDAO persistencia de jueces
+     * @param casoJudicialDAO persistencia de casos judiciales
+     * @param asaltoDAO persistencia de asaltos
+     */
+    public JudicialController(
+            JuezDAO juezDAO,
+            CasoJudicialDAO casoJudicialDAO,
+            AsaltoDAO asaltoDAO) {
+
+        this(
+                (IGenericDAO<Juez>) juezDAO,
+                (ICasoJudicialDAO) casoJudicialDAO,
+                (IAsaltoDAO) asaltoDAO
+        );
+    }
+
+    /**
+     * Crea el controlador con las implementaciones de persistencia indicadas.
+     *
+     * @param juezDAO persistencia utilizada para los jueces
+     * @param casoJudicialDAO persistencia utilizada para los casos
+     * @param asaltoDAO persistencia utilizada para los asaltos
+     * @throws IllegalArgumentException si alguno de los DAO es nulo
+     */
+    public JudicialController(
+           IGenericDAO<Juez> juezDAO,
+            ICasoJudicialDAO casoJudicialDAO,
+            IAsaltoDAO asaltoDAO) {
+
+        if (juezDAO == null
+                || casoJudicialDAO == null
+                || asaltoDAO == null) {
+
+            throw new IllegalArgumentException(
+                    "Los DAO del módulo judicial son obligatorios."
+            );
+        }
+
         this.juezDAO = juezDAO;
         this.casoJudicialDAO = casoJudicialDAO;
         this.asaltoDAO = asaltoDAO;
     }
 
     /**
-     * Inicializa el controlador de casos judiciales inyectando la dependencia
-     * necesaria para la validación de asaltos.
+     * Registra un juez si su clave todavía no existe.
      *
-     * @param asaltoDAO Instancia del DAO de asaltos, necesaria para validar que
-     * el caso judicial se vincule a un asalto existente.
+     * @param claveInterna identificador del juez
+     * @param aniosServicio años de servicio
+     * @param nombre nombre completo
+     * @throws Exception si los datos son inválidos, la clave ya existe o no
+     *                   puede guardarse el juez
      */
-    public JudicialController(AsaltoDAO asaltoDAO) {
-        this.juezDAO = new JuezDAO();
-        this.casoJudicialDAO = new CasoJudicialDAO();
-        this.asaltoDAO = asaltoDAO;
-    }
+    public void registrarJuez(
+            String claveInterna,
+            int aniosServicio,
+            String nombre) throws Exception {
 
-    /**
-     * Registra un nuevo juez en el sistema tras validar que la clave sea única.
-     *
-     * @param claveInterna ID único del juez.
-     * @param aniosServicio Años de trayectoria del magistrado.
-     * @param nombre Nombre completo del juez.
-     * @throws Exception Si los datos son inválidos o la clave ya existe.
-     */
-    public void registrarJuez(String claveInterna, int aniosServicio, String nombre) throws Exception {
-        if (claveInterna == null || nombre == null) {
-            throw new Exception("La clave interna y el nombre del juez no pueden estar vacíos.");
-        }
-
-        if (claveInterna.trim().isEmpty() || nombre.trim().isEmpty()) {
-            throw new Exception("La clave interna y el nombre del juez no pueden estar vacíos.");
-        }
-        if (aniosServicio < 0) {
-            throw new Exception("Los años de servicio no pueden ser negativos.");
-        }
-        try {
-            //Validar que no haya clave interna duplicada
-            try {
-                juezDAO.buscarPorId(claveInterna);
-                throw new Exception("La clave de juez '" + claveInterna + "' ya está en uso.");
-            } catch (ObjetoNoEncontradoException e) {
-                //Si no lo encuentra, se puede usar.
-            }
-            //Crear juez
-            Juez nuevoJuez = new Juez(claveInterna, aniosServicio, nombre);
-            juezDAO.guardar(nuevoJuez);
-        } catch (ErrorAlGuardarException e) {
-            throw new Exception("Error al guardar el registro del juez: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Registra un caso judicial vinculado a un asalto existente.
-     *
-     * @param idAsalto ID del asalto que motiva el caso.
-     * @param claveJuez Clave del juez asignado.
-     * @param condenado Indica si hubo sentencia condenatoria.
-     * @param mesesCarcel Meses de prisión impuestos.
-     * @throws Exception Si el asalto o juez no existen, o si el caso ya está
-     * registrado.
-     */
-    public void registrarCasoJudicial(String idAsalto, String claveJuez, boolean condenado, int mesesCarcel) throws Exception {
-        if (idAsalto == null || claveJuez == null) {
-            throw new Exception("El ID del asalto y la clave del juez son campos obligatorios.");
-        }
-
-        if (idAsalto.trim().isEmpty() || claveJuez.trim().isEmpty()) {
-            throw new Exception("El ID del asalto y la clave del juez son campos obligatorios.");
-        }
-
-        if (mesesCarcel < 0) {
-            throw new Exception("Los meses de cárcel no pueden ser negativos.");
-        }
-
-        //Si no esta condenado,  meses en la carcel= 0
-        int mesesEfectivos = condenado ? mesesCarcel : 0;
-
-        if (condenado && mesesEfectivos <= 0) {
-            throw new Exception("Si el veredicto es CONDENADO, los meses en la cárcel deben ser mayores a 0.");
-        }
+        validarDatosJuez(
+                claveInterna,
+                aniosServicio,
+                nombre
+        );
 
         try {
-            // Valido existencia de entidades
-            Asalto asaltoReal = asaltoDAO.buscarPorId(idAsalto);
-            Juez juezReal = juezDAO.buscarPorId(claveJuez);
+            juezDAO.buscarPorId(claveInterna);
 
-            //Verifico que no exista un caso ya registrado para este asalto
-            try {
-                casoJudicialDAO.buscarPorId(idAsalto);
-                throw new Exception("Ya existe un caso judicial registrado para el asalto: " + idAsalto);
-            } catch (ObjetoNoEncontradoException e) {
-                // El asalto no tiene caso, procedemos
-            }
-
-            CasoJudicial casoJucidial = new CasoJudicial(asaltoReal, juezReal, condenado, mesesEfectivos);
-            // Guardo el caso en el archivo usando su DAO
-            casoJudicialDAO.guardar(casoJucidial);
+            throw new Exception(
+                    "La clave de juez '" + claveInterna
+                    + "' ya está en uso."
+            );
 
         } catch (ObjetoNoEncontradoException e) {
-            throw new Exception("Entidad no encontrada: " + e.getMessage());
+            // No encontrarlo indica que la clave está disponible.
+
+        } catch (ErrorAlLeerException e) {
+            throw new Exception(
+                    "No se pudo verificar el juez: "
+                    + e.getMessage()
+            );
+        }
+
+        try {
+            Juez nuevoJuez =
+                    new Juez(claveInterna, aniosServicio, nombre);
+
+            juezDAO.guardar(nuevoJuez);
+
         } catch (ErrorAlGuardarException e) {
-            throw new Exception("Error al guardar el caso judicial: " + e.getMessage());
+            throw new Exception(
+                    "Error al guardar el registro del juez: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Obtiene el listado de todos los jueces registrados.
+     * Registra un caso judicial utilizando los identificadores del asalto y
+     * del juez.
      *
-     * @return Lista de objetos {@link Juez}.
-     * @throws Exception Si hay error en la lectura.
+     * Antes de guardar comprueba que ambas entidades existan.
+     *
+     * @param idAsalto identificador del asalto
+     * @param claveJuez identificador del juez
+     * @param condenado indica si existió una condena
+     * @param mesesCarcel duración de la condena
+     * @throws Exception si los datos son inválidos, alguna entidad no existe o
+     *                   el caso ya está registrado
+     */
+    public void registrarCasoJudicial(
+            String idAsalto,
+            String claveJuez,
+            boolean condenado,
+            int mesesCarcel) throws Exception {
+
+        validarDatosCaso(
+                idAsalto,
+                claveJuez,
+                condenado,
+                mesesCarcel
+        );
+
+        try {
+            // Comprueba que las entidades relacionadas existan.
+            asaltoDAO.buscarPorId(idAsalto);
+            juezDAO.buscarPorId(claveJuez);
+
+            if (casoJudicialDAO.existe(idAsalto)) {
+                throw new Exception(
+                        "Ya existe un caso judicial para el asalto: "
+                        + idAsalto
+                );
+            }
+
+            int mesesEfectivos =
+                    condenado ? mesesCarcel : 0;
+
+            CasoJudicial nuevoCaso = new CasoJudicial(
+                    idAsalto,
+                    claveJuez,
+                    condenado,
+                    mesesEfectivos
+            );
+
+            casoJudicialDAO.guardar(nuevoCaso);
+
+        } catch (ObjetoNoEncontradoException e) {
+            throw new Exception(
+                    "Entidad relacionada no encontrada: "
+                    + e.getMessage()
+            );
+
+        } catch (ErrorAlLeerException e) {
+            throw new Exception(
+                    "No se pudo validar la información relacionada: "
+                    + e.getMessage()
+            );
+
+        } catch (ErrorAlGuardarException e) {
+            throw new Exception(
+                    "Error al guardar el caso judicial: "
+                    + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Obtiene todos los jueces registrados.
+     *
+     * @return lista de jueces
+     * @throws Exception si no puede accederse a la información
      */
     public List<Juez> listarJueces() throws Exception {
         try {
             return juezDAO.obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new Exception("Error al recuperar la lista de jueces: " + e.getMessage());
+            throw new Exception(
+                    "Error al recuperar la lista de jueces: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Obtiene el listado de todos los casos judiciales.
+     * Obtiene todos los casos judiciales registrados.
      *
-     * @return Lista de objetos {@link CasoJudicial}.
-     * @throws Exception Si hay error en la lectura.
+     * @return lista de casos judiciales
+     * @throws Exception si no puede accederse a la información
      */
-    public List<CasoJudicial> listarCasosJudiciales() throws Exception {
+   
+    public List<CasoJudicial> listarCasosJudiciales()
+            throws Exception {
+
         try {
             return casoJudicialDAO.obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new Exception("Error al recuperar la lista de casos judiciales: " + e.getMessage());
+            throw new Exception(
+                    "Error al recuperar los casos judiciales: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Filtra y obtiene solo los casos que poseen una condena (detenidos).
+     * Obtiene únicamente los casos que terminaron con una condena.
      *
-     * @return Lista de {@link CasoJudicial} con condena.
-     * @throws Exception Si hay error en la lectura.
+     * @return lista de casos con condena
+     * @throws Exception si no puede accederse a la información
      */
-    public List<CasoJudicial> listarDetenidos() throws Exception {
-        try {
-            List<CasoJudicial> todosLosCasos = casoJudicialDAO.obtenerTodos();
+    
+    public List<CasoJudicial> listarDetenidos()
+            throws Exception {
 
-            // Validación de seguridad para evitar errores si la lista es nula
-            if (todosLosCasos == null) {
-                return List.of(); // Retorna una lista vacía en lugar de romper el programa
+        try {
+            List<CasoJudicial> casos =
+                    casoJudicialDAO.obtenerTodos();
+
+            if (casos == null) {
+                return List.of();
             }
 
-            // Me quedo solo con los condenados
-            return todosLosCasos.stream()
+            return casos.stream()
                     .filter(CasoJudicial::isCondenado)
                     .toList();
 
         } catch (ErrorAlLeerException e) {
-            throw new Exception("Error al recuperar el registro de detenidos: " + e.getMessage());
+            throw new Exception(
+                    "Error al recuperar el registro de detenidos: "
+                    + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Valida los datos necesarios para registrar un juez.
+     *
+     * @param claveInterna identificador del juez
+     * @param aniosServicio años de servicio
+     * @param nombre nombre completo
+     * @throws Exception si algún dato no cumple las reglas
+     */
+    private void validarDatosJuez(
+            String claveInterna,
+            int aniosServicio,
+            String nombre) throws Exception {
+
+        if (claveInterna == null
+                || claveInterna.trim().isEmpty()
+                || nombre == null
+                || nombre.trim().isEmpty()) {
+
+            throw new Exception(
+                    "La clave interna y el nombre del juez "
+                    + "son obligatorios."
+            );
+        }
+
+        if (aniosServicio < 0) {
+            throw new Exception(
+                    "Los años de servicio no pueden ser negativos."
+            );
+        }
+    }
+
+    /**
+     * Valida los datos necesarios para registrar un caso.
+     *
+     * @param idAsalto identificador del asalto
+     * @param claveJuez identificador del juez
+     * @param condenado indica si existió una condena
+     * @param mesesCarcel duración indicada
+     * @throws Exception si algún dato no cumple las reglas
+     */
+    private void validarDatosCaso(
+            String idAsalto,
+            String claveJuez,
+            boolean condenado,
+            int mesesCarcel) throws Exception {
+
+        if (idAsalto == null
+                || idAsalto.trim().isEmpty()
+                || claveJuez == null
+                || claveJuez.trim().isEmpty()) {
+
+            throw new Exception(
+                    "El ID del asalto y la clave del juez "
+                    + "son obligatorios."
+            );
+        }
+
+        if (mesesCarcel < 0) {
+            throw new Exception(
+                    "Los meses de cárcel no pueden ser negativos."
+            );
+        }
+
+        if (condenado && mesesCarcel <= 0) {
+            throw new Exception(
+                    "Cuando existe una condena, los meses de cárcel "
+                    + "deben ser mayores que cero."
+            );
         }
     }
 }

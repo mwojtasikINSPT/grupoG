@@ -1,6 +1,10 @@
 package daos;
 
-import exceptions.*;
+import exceptions.ErrorAlActualizarException;
+import exceptions.ErrorAlEliminarException;
+import exceptions.ErrorAlGuardarException;
+import exceptions.ErrorAlLeerException;
+import exceptions.ObjetoNoEncontradoException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,53 +16,60 @@ import java.util.List;
 import models.Vigilante;
 
 /**
- * Clase que gestiona la persistencia de objetos {@link Vigilante} utilizando un
- * archivo de texto como almacenamiento.
+ * Gestiona la persistencia de vigilantes mediante un archivo de texto.
+ *
+ * Implementa {@link IGenericDAO} para que posteriormente pueda reemplazarse
+ * por una implementación que utilice MySQL.
+ *
+ * @author GrupoG
  */
-public class VigilanteDAO implements IGenericDAO<Vigilante> {
+public class VigilanteDAO
+        implements IGenericDAO<Vigilante> {
 
-    // Ruta del archivo 
-    private final String RUTA_ARCHIVO = "vigilantes.txt";
+    private static final String RUTA_ARCHIVO = "vigilantes.txt";
 
     /**
-     * Constructor que inicializa el DAO y asegura la existencia del archivo de
-     * datos.
+     * Crea el DAO y comprueba que exista el archivo de vigilantes.
      */
     public VigilanteDAO() {
         crearArchivoSiNoExiste();
     }
 
     /**
-     * Verifica si el archivo de almacenamiento existe; en caso contrario, lo
-     * crea.
+     * Crea el archivo de vigilantes cuando todavía no existe.
      */
     private void crearArchivoSiNoExiste() {
         try {
             File archivo = new File(RUTA_ARCHIVO);
+
             if (!archivo.exists()) {
                 archivo.createNewFile();
             }
         } catch (IOException e) {
-            System.out.println("Error al crear el archivo de vigilantes: " + e.getMessage());
+            System.out.println(
+                    "Error al crear el archivo de vigilantes: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Formatea los datos de un vigilante para su almacenamiento en el archivo.
+     * Convierte un vigilante en una línea de texto separada por comas.
      *
-     * * @param entidad El objeto {@link Vigilante} a formatear.
-     * @return Una cadena de texto con el formato "código,edad".
+     * @param vigilante vigilante que se convertirá
+     * @return línea con el código y la edad
      */
-    private String armarLinea(Vigilante entidad) {
-        return entidad.getCodigo() + "," + entidad.getEdad();
+    private String armarLinea(Vigilante vigilante) {
+        return vigilante.getCodigo()
+                + ","
+                + vigilante.getEdad();
     }
 
     /**
-     * Verifica si un vigilante existe en el archivo de almacenamiento.
+     * Comprueba si existe un vigilante con el código indicado.
      *
-     * * @param codigo El código identificador del vigilante a buscar.
-     * @return {@code true} si el vigilante existe, {@code false} en caso
-     * contrario o si ocurrió un error al intentar realizar la lectura.
+     * @param codigo código del vigilante buscado
+     * @return {@code true} si el vigilante existe
      */
     private boolean existeVigilante(String codigo) {
         try {
@@ -70,155 +81,192 @@ public class VigilanteDAO implements IGenericDAO<Vigilante> {
     }
 
     /**
-     * Almacena un objeto {@link Vigilante} en el archivo.
+     * Guarda un vigilante si su código todavía no está registrado.
      *
-     * * @param entidad El objeto {@link Vigilante} a persistir.
-     * @throws ErrorAlGuardarException Si ocurre un error de E/S al escribir en
-     * el archivo.
+     * @param vigilante vigilante que se guardará
+     * @throws ErrorAlGuardarException si el vigilante ya existe o no puede
+     * escribirse el archivo
      */
     @Override
-    public void guardar(Vigilante entidad) throws ErrorAlGuardarException {
-        // Validamos duplicidad usando el método auxiliar
-        if (existeVigilante(entidad.getCodigo())) {
-            throw new ErrorAlGuardarException("Vigilante", "El vigilante con código " + entidad.getCodigo() + " ya existe.");
+    public void guardar(Vigilante vigilante)
+            throws ErrorAlGuardarException {
+
+        if (existeVigilante(vigilante.getCodigo())) {
+            throw new ErrorAlGuardarException(
+                    "Vigilante",
+                    "El vigilante con código "
+                    + vigilante.getCodigo()
+                    + " ya existe."
+            );
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO, true))) {
-            // Usamos el auxiliar para el formato de la línea
-            bw.write(armarLinea(entidad));
-            bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO, true))) {
+
+            escritor.write(armarLinea(vigilante));
+            escritor.newLine();
+
         } catch (IOException e) {
-            throw new ErrorAlGuardarException("Vigilante", e.getMessage());
+            throw new ErrorAlGuardarException(
+                    "Vigilante",
+                    e.getMessage()
+            );
         }
     }
 
     /**
-     * Recupera todos los vigilantes persistidos en el archivo.
+     * Recupera todos los vigilantes almacenados.
      *
-     * * @return Una {@link List} que contiene todos los objetos
-     * {@link Vigilante} encontrados.
-     * @throws ErrorAlLeerException Si ocurre un error durante la lectura o
-     * parseo del archivo.
+     * Las líneas incompletas se ignoran para evitar que interrumpan la lectura
+     * del resto del archivo.
+     *
+     * @return lista de vigilantes almacenados
+     * @throws ErrorAlLeerException si no puede leerse o interpretarse el
+     * archivo
      */
     @Override
-    public List<Vigilante> obtenerTodos() throws ErrorAlLeerException {
-        List<Vigilante> listaVigilantes = new ArrayList<>();
+    public List<Vigilante> obtenerTodos()
+            throws ErrorAlLeerException {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_ARCHIVO))) {
+        List<Vigilante> vigilantes = new ArrayList<>();
+
+        try (BufferedReader lector = new BufferedReader(
+                new FileReader(RUTA_ARCHIVO))) {
+
             String linea;
 
-            // Leo línea por línea hasta que el archivo termine
-            while ((linea = br.readLine()) != null) {
-
-                // Separo los datos usando la coma
+            while ((linea = lector.readLine()) != null) {
                 String[] partes = linea.split(",");
 
-                // Verifico que la línea tenga exactamente los 2 datos
-                if (partes.length == 2) {
-                    String codigo = partes[0];
-
-                    // Parseo el texto a int para la edad
-                    int edad = Integer.parseInt(partes[1]);
-
-                    // Reconstruyo el objeto y lo agrego a la lista
-                    Vigilante vigilante = new Vigilante(codigo, edad);
-                    listaVigilantes.add(vigilante);
+                if (partes.length != 2) {
+                    continue;
                 }
+
+                String codigo = partes[0];
+                int edad = Integer.parseInt(partes[1]);
+
+                vigilantes.add(new Vigilante(codigo, edad));
             }
-        } catch (IOException e) {
-            throw new ErrorAlLeerException("Archivo de Vigilantes", e.getMessage());
+
+        } catch (IOException | NumberFormatException e) {
+            throw new ErrorAlLeerException(
+                    "Archivo de Vigilantes",
+                    e.getMessage()
+            );
         }
-        return listaVigilantes;
+
+        return vigilantes;
     }
 
     /**
-     * Busca un vigilante por su código identificador único.
+     * Busca un vigilante por su código.
      *
-     * * @param id El código identificador del vigilante.
-     * @return El objeto {@link Vigilante} encontrado.
-     * @throws ObjetoNoEncontradoException Si no existe un vigilante con dicho
-     * ID.
-     * @throws ErrorAlLeerException Si hay un error de acceso al archivo.
+     * @param id código del vigilante buscado
+     * @return vigilante encontrado
+     * @throws ObjetoNoEncontradoException si el vigilante no existe
+     * @throws ErrorAlLeerException si no puede leerse el archivo
      */
     @Override
-    public Vigilante buscarPorId(String id) throws ObjetoNoEncontradoException, ErrorAlLeerException {
+    public Vigilante buscarPorId(String id)
+            throws ObjetoNoEncontradoException, ErrorAlLeerException {
+
         List<Vigilante> vigilantes = obtenerTodos();
+
         for (Vigilante vigilante : vigilantes) {
-            // Busco usando el código como ID único
             if (vigilante.getCodigo().equals(id)) {
                 return vigilante;
             }
         }
+
         throw new ObjetoNoEncontradoException("Vigilante", id);
     }
 
     /**
-     * Actualiza los datos de un vigilante existente sobrescribiendo el registro
-     * correspondiente.
+     * Actualiza los datos del vigilante que tenga el mismo código.
      *
-     * * @param entidad El objeto {@link Vigilante} con los datos actualizados.
-     * @throws ErrorAlActualizarException Si el proceso de lectura o escritura
-     * falla.
+     * @param vigilante vigilante que contiene los nuevos datos
+     * @throws ErrorAlActualizarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void actualizar(Vigilante entidad) throws ErrorAlActualizarException {
+    public void actualizar(Vigilante vigilante)
+            throws ErrorAlActualizarException {
+
         List<Vigilante> vigilantes;
 
-        // 1. Intento leer
         try {
             vigilantes = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlActualizarException("Vigilante", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Vigilante",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        // 2. Intento escribir (sobrescribir)
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (Vigilante v : vigilantes) {
-                if (v.getCodigo().equals(entidad.getCodigo())) {
-                    //Vigilante actualizado
-                    bw.write(armarLinea(entidad));
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (Vigilante vigilanteGuardado : vigilantes) {
+                if (vigilanteGuardado.getCodigo()
+                        .equals(vigilante.getCodigo())) {
+
+                    escritor.write(armarLinea(vigilante));
                 } else {
-                    //Queda como fue encontrado
-                    bw.write(armarLinea(v));
+                    escritor.write(armarLinea(vigilanteGuardado));
                 }
-                bw.newLine();
+
+                escritor.newLine();
             }
+
         } catch (IOException e) {
-            throw new ErrorAlActualizarException("Vigilante", "No se pudo escribir en el archivo: " + e.getMessage());
+            throw new ErrorAlActualizarException(
+                    "Vigilante",
+                    "No se pudo escribir en el archivo: "
+                    + e.getMessage()
+            );
         }
     }
 
     /**
-     * Elimina un vigilante del archivo basándose en su código identificador.
-     * Lee la lista completa, filtra el vigilante cuyo código coincide con el id
-     * proporcionado, y sobrescribe el archivo con los registros restantes.
+     * Elimina el vigilante que tenga el código indicado.
      *
-     * * @param id El código identificador del vigilante a eliminar.
-     * @throws ErrorAlEliminarException Si ocurre un error al leer el archivo
-     * original o durante el proceso de escritura.
+     * @param id código del vigilante que se eliminará
+     * @throws ErrorAlEliminarException si el archivo no puede leerse o
+     * reescribirse
      */
     @Override
-    public void eliminar(String id) throws ErrorAlEliminarException {
+    public void eliminar(String id)
+            throws ErrorAlEliminarException {
+
         List<Vigilante> vigilantes;
 
-        // 1. Intento leer
         try {
             vigilantes = obtenerTodos();
         } catch (ErrorAlLeerException e) {
-            throw new ErrorAlEliminarException("Vigilante", "No se pudo leer el archivo original: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Vigilante",
+                    "No se pudo leer el archivo original: "
+                    + e.getMessage()
+            );
         }
 
-        // 2. Intento escribir (sobrescribir omitiendo el id)
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_ARCHIVO))) {
-            for (Vigilante v : vigilantes) {
-                if (!v.getCodigo().equals(id)) {
-                    // Solo escribo los registros que NO coinciden con el ID
-                    bw.write(armarLinea(v));
-                    bw.newLine();
+        try (BufferedWriter escritor = new BufferedWriter(
+                new FileWriter(RUTA_ARCHIVO))) {
+
+            for (Vigilante vigilante : vigilantes) {
+                if (!vigilante.getCodigo().equals(id)) {
+                    escritor.write(armarLinea(vigilante));
+                    escritor.newLine();
                 }
             }
+
         } catch (IOException e) {
-            throw new ErrorAlEliminarException("Vigilante", "No se pudo eliminar el registro: " + e.getMessage());
+            throw new ErrorAlEliminarException(
+                    "Vigilante",
+                    "No se pudo eliminar el registro: "
+                    + e.getMessage()
+            );
         }
     }
 }

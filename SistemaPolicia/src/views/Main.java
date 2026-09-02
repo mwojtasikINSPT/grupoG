@@ -1,94 +1,86 @@
 package views;
 
 import controllers.LoginController;
+import controllers.MenuController;
 import dtos.UsuarioLoginDTO;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import models.Usuario;
 
 /**
- * Clase principal y punto de entrada del sistema de seguridad bancaria.
- * Inicializa los servicios necesarios y gestiona el flujo de inicio de sesión
- * de los usuarios, mostrando la interfaz correspondiente según su rol.
+ * Punto de entrada del sistema de seguridad bancaria.
  *
- * Funcionalidades principales: - Configurar la salida estándar para soportar
- * caracteres UTF-8. - Mostrar la pantalla de login y validar credenciales de
- * usuario. - Permitir cierre de sesión o salida del sistema. - Redirigir al
- * menú correspondiente según el rol del usuario: ADMINISTRADOR, INVESTIGADOR o
- * VIGILANTE.
- *
- * Esta clase coordina la interacción inicial del usuario con el sistema,
- * delegando la lógica específica a los controladores y menús especializados.
+ * Coordina el inicio de sesión y delega la selección del menú al
+ * {@link MenuController}.
  *
  * @author GrupoG
  */
-/**
- * Método principal que inicializa el sistema y mantiene el bucle de inicio de
- * sesión.
- */
 public class Main {
 
-    public static void main(String[] args) throws UnsupportedEncodingException {
-
-        //Objeto para q muestre caracteres ASCII, necesita exception
-        System.setOut(new PrintStream(System.out, true, "UTF-8"));
+    /**
+     * Inicia la aplicación y mantiene disponible el acceso al sistema hasta
+     * que el usuario decide salir.
+     *
+     * @param args argumentos recibidos al ejecutar la aplicación
+     */
+    public static void main(String[] args) {
+        System.setOut(
+                new PrintStream(System.out, true, StandardCharsets.UTF_8)
+        );
 
         LoginController loginController = new LoginController();
+        MenuController menuController = new MenuController();
 
-        // 1. General - Si un usuario cierra sesión, el sistema vuelve a esta pantalla.
         while (true) {
             UIHelper.mostrarTitulo("SISTEMA DE SEGURIDAD BANCARIA");
-            UIHelper.imprimirMensaje("Por favor, inicie sesión para continuar.\n");
+            UIHelper.imprimirMensaje(
+                    "Por favor, inicie sesión para continuar.\n"
+            );
 
-            Usuario usuarioLogueado = null;
-            boolean loginExitoso = false;
+            Usuario usuarioLogueado = solicitarLogin(loginController);
 
-            // 2. Verifico credenciales válidas
-            while (!loginExitoso) {
-                UIHelper.mostrarSubtitulo(" INICIO DE SESIÓN (0: Salir del Sistema)");
-                String username = UIHelper.leerTexto("Usuario");
-
-                // Verifico si quiere salir
-                if (username.equals("0")) {
-                    UIHelper.imprimirMensaje("\nCerrando aplicación. ¡Hasta luego!");
-                    return;
-                }
-
-                String password = UIHelper.leerTexto("Contraseña");
-
-                UsuarioLoginDTO loginDTO = new UsuarioLoginDTO(username, password);
-
-                try {
-                    // El controlador verifica y nos devuelve quién es
-                    usuarioLogueado = loginController.procesarLogin(loginDTO);
-                    loginExitoso = true;
-                } catch (Exception e) {
-                    UIHelper.imprimirError("\n[LOGIN FALLIDO] " + e.getMessage());
-                    UIHelper.imprimirMensaje("Intente nuevamente.");
-                }
+            if (usuarioLogueado == null) {
+                UIHelper.imprimirMensaje(
+                        "\nCerrando aplicación. ¡Hasta luego!"
+                );
+                return;
             }
 
-            // 3. Leo el rol y le doy la vista que corresponde
-            switch (usuarioLogueado.obtenerRol()) {
-                case ADMINISTRADOR -> {
-                    MenuAdministrador menuAdmin = new MenuAdministrador();
-                    menuAdmin.mostrarMenu(usuarioLogueado);
-                }
-
-                case INVESTIGADOR -> {
-                    MenuInvestigador menuInvestigador = new MenuInvestigador();
-                    menuInvestigador.mostrarMenu(usuarioLogueado);
-                }
-
-                case VIGILANTE -> {
-                    MenuVigilante menuVigilante = new MenuVigilante();
-                    menuVigilante.mostrarMenu(usuarioLogueado);
-                }
-
-                default -> //En teoria, jamas llega hasta aca
-                    UIHelper.imprimirError("Rol de usuario no reconocido por el sistema.");
-            }
+            menuController.arrancarMenuPorRol(usuarioLogueado);
         }
     }
 
+    /**
+     * Solicita las credenciales hasta autenticar un usuario o recibir la
+     * opción de salida.
+     *
+     * @param loginController controlador encargado de validar las credenciales
+     * @return usuario autenticado o {@code null} si se solicitó salir
+     */
+    private static Usuario solicitarLogin(LoginController loginController) {
+        while (true) {
+            UIHelper.mostrarSubtitulo(
+                    "INICIO DE SESIÓN (0: Salir del Sistema)"
+            );
+
+            String username = UIHelper.leerTexto("Usuario");
+
+            if ("0".equals(username)) {
+                return null;
+            }
+
+            String password = UIHelper.leerTexto("Contraseña");
+            UsuarioLoginDTO loginDTO =
+                    new UsuarioLoginDTO(username, password);
+
+            try {
+                return loginController.procesarLogin(loginDTO);
+            } catch (Exception e) {
+                UIHelper.imprimirError(
+                        "\n[LOGIN FALLIDO] " + e.getMessage()
+                );
+                UIHelper.imprimirMensaje("Intente nuevamente.");
+            }
+        }
+    }
 }
