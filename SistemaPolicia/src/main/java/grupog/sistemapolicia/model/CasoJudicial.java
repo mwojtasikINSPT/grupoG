@@ -1,5 +1,6 @@
 package grupog.sistemapolicia.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,11 +9,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "casos_judiciales")
-public class CasoJudicial {
+public class CasoJudicial implements Persistable<String> {
+
+    // La clave viene del asalto: tener una clave no significa estar guardado.
+    @Transient
+    private boolean nuevo = true;
 
     @Id
     @Column(name = "asalto_id", length = 20)
@@ -47,6 +56,24 @@ public class CasoJudicial {
 
     public String getIdAsalto() {
         return idAsalto;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getId() {
+        return idAsalto;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isNew() {
+        return nuevo;
+    }
+
+    @PostPersist
+    @PostLoad
+    private void marcarGuardado() {
+        nuevo = false;
     }
 
     public Asalto getAsalto() {
