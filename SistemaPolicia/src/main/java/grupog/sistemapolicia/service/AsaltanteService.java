@@ -6,6 +6,7 @@ import grupog.sistemapolicia.repository.AsaltanteRepository;
 import grupog.sistemapolicia.repository.BandaRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AsaltanteService {
@@ -25,9 +26,19 @@ public class AsaltanteService {
         return asaltanteRepository.findAll();
     }
 
+    @Transactional
     public Asaltante guardar(Asaltante asaltante) {
 
         validarAsaltante(asaltante);
+
+        String numeroBanda = asaltante.getBanda().getNumeroBanda();
+
+        Banda banda = bandaRepository
+                .buscarParaRegistrarIntegrante(numeroBanda)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "No existe la banda número '"
+                    + numeroBanda + "'"
+                ));
 
         if (asaltanteRepository.existsById(asaltante.getClave())) {
             throw new IllegalArgumentException(
@@ -37,14 +48,14 @@ public class AsaltanteService {
             );
         }
 
-        String numeroBanda = asaltante.getBanda().getNumeroBanda();
-
-        Banda banda = bandaRepository
-                .findById(numeroBanda)
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "No existe la banda número '"
-                    + numeroBanda + "'"
-                ));
+        // El bloqueo de la banda evita superar el límite con registros simultáneos.
+        long integrantes = asaltanteRepository.countByBanda_NumeroBanda(numeroBanda);
+        if (integrantes >= banda.getCantMiembros()) {
+            throw new IllegalArgumentException(
+                    "La banda '" + numeroBanda + "' ya está completa: tiene "
+                    + integrantes + " integrantes registrados y admite "
+                    + banda.getCantMiembros() + ".");
+        }
 
         asaltante.setBanda(banda);
 

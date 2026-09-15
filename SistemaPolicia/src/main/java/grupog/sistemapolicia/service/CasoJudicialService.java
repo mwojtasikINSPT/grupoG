@@ -8,6 +8,7 @@ import grupog.sistemapolicia.repository.CasoJudicialRepository;
 import grupog.sistemapolicia.repository.JuezRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CasoJudicialService {
@@ -32,6 +33,7 @@ public class CasoJudicialService {
         return casoRepository.findByCondenadoTrue();
     }
 
+    @Transactional
     public CasoJudicial guardar(CasoJudicial caso) {
         validar(caso);
 
