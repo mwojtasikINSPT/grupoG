@@ -1,2 +1,0 @@
-ENT01,Banco Central
-ENT02,Banco Norte
