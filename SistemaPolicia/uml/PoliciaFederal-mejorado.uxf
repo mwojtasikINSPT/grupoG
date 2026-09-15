@@ -1,0 +1,1306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram program="umletino" version="15.1">
+  <zoom_level>6</zoom_level>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>40</x><y>60</y><w>1260</w><h>1600</h></coordinates>
+    <panel_attributes>VIEWS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>1450</x><y>60</y><w>1320</w><h>1500</h></coordinates>
+    <panel_attributes>CONTROLLERS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>2850</x><y>60</y><w>1700</w><h>2150</h></coordinates>
+    <panel_attributes>DAOS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>4850</x><y>60</y><w>2600</w><h>2550</h></coordinates>
+    <panel_attributes>MODELS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>40</x><y>1950</y><w>1280</w><h>1650</h></coordinates>
+    <panel_attributes>DTOS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates><x>2850</x><y>2350</y><w>1700</w><h>1000</h></coordinates>
+    <panel_attributes>EXCEPTIONS</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates><x>4900</x><y>2800</y><w>1050</w><h>300</h></coordinates>
+    <panel_attributes>LEYENDA
+LÃ­nea + triÃ¡ngulo: herencia
+Discontinua + triÃ¡ngulo: implementaciÃ³n
+LÃ­nea continua: asociaciÃ³n
+Discontinua + flecha: dependencia
+Rombo vacÃ­o: agregaciÃ³n</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates><x>6100</x><y>2800</y><w>1200</w><h>220</h></coordinates>
+    <panel_attributes>UIHelper es una utilidad estÃ¡tica compartida por las vistas.
+Se muestra una sola dependencia desde Main para evitar ocho flechas repetidas.</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>5460</x><y>230</y><w>260</w><h>380</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>240;20;20;360</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>5820</x><y>340</y><w>180</w><h>180</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>160;20;20;160</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6180</x><y>230</y><w>100</w><h>400</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>80;20;20;380</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>5460</x><y>590</y><w>760</w><h>465</h></coordinates>
+    <panel_attributes>lt=-
+identidad operativa
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>740;20;20;445</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6760</x><y>1110</y><w>110</w><h>210</h></coordinates>
+    <panel_attributes>lt=-
+pertenece a
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>20;190;90;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>5460</x><y>1855</y><w>110</w><h>75</h></coordinates>
+    <panel_attributes>lt=-
+integra
+m2=0..*
+m1=0..1</panel_attributes>
+    <additional_attributes>90;55;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6090</x><y>1880</y><w>130</w><h>50</h></coordinates>
+    <panel_attributes>lt=-
+autor
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>110;20;20;30</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6460</x><y>1520</y><w>340</w><h>280</h></coordinates>
+    <panel_attributes>lt=-
+ocurre en
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>20;260;320;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6090</x><y>1400</y><w>430</w><h>40</h></coordinates>
+    <panel_attributes>lt=-
+destino
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>20;20;410;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>5460</x><y>1015</y><w>110</w><h>425</h></coordinates>
+    <panel_attributes>lt=-
+asignado
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>90;405;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6460</x><y>2000</y><w>260</w><h>240</h></coordinates>
+    <panel_attributes>lt=-
+juzga hecho
+m2=0..1
+m1=1</panel_attributes>
+    <additional_attributes>240;220;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>6680</x><y>1970</y><w>430</w><h>270</h></coordinates>
+    <panel_attributes>lt=-
+a cargo de
+m2=0..*
+m1=1</panel_attributes>
+    <additional_attributes>20;250;410;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>620</x><y>2920</y><w>100</w><h>45</h></coordinates>
+    <panel_attributes>lt=&lt;&gt;-
+delitos
+m2=1
+m1=0..*</panel_attributes>
+    <additional_attributes>80;25;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>340</x><y>2590</y><w>105</w><h>650</h></coordinates>
+    <panel_attributes>lt=&lt;&gt;-
+vigilantes
+m2=1
+m1=0..*</panel_attributes>
+    <additional_attributes>85;630;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2900</x><y>240</y><w>520</w><h>1413</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>500;20;20;20;20;1393;100;1393</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4080</x><y>240</y><w>420</w><h>1413</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>20;20;400;20;400;1393;370;1393</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4080</x><y>220</y><w>430</w><h>1093</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>20;20;410;20;410;1073;370;1073</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4080</x><y>260</y><w>410</w><h>1733</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>20;20;390;20;390;1713;370;1713</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2890</x><y>220</y><w>530</w><h>1101</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>510;20;20;20;20;1081;110;1081</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2880</x><y>200</y><w>540</w><h>777</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>520;20;20;20;20;757;120;757</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2910</x><y>260</y><w>510</w><h>1717</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>490;20;20;20;20;1697;90;1697</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4080</x><y>200</y><w>440</w><h>793</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>20;20;420;20;420;773;370;773</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2870</x><y>180</y><w>550</w><h>493</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>530;20;20;20;20;473;130;473</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4080</x><y>180</y><w>450</w><h>493</h></coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>20;20;430;20;430;473;370;473</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>1613</y><w>1940</w><h>317</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>1920;297;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4430</x><y>1613</y><w>1790</w><h>307</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>1770;287;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4430</x><y>1273</y><w>590</w><h>622</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>570;602;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4430</x><y>1953</y><w>1990</w><h>412</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>1970;392;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>1281</y><w>1940</w><h>159</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>1920;139;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>937</y><w>2990</w><h>118</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>2970;98;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>1865</y><w>3240</w><h>112</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>3220;20;20;92</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4430</x><y>953</y><w>2090</w><h>487</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>2070;467;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>230</y><w>2090</w><h>443</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>2070;20;20;423</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>4430</x><y>633</y><w>590</w><h>422</h></coordinates>
+    <panel_attributes>lt=&lt;.
+persiste</panel_attributes>
+    <additional_attributes>570;402;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>380</y><w>140</w><h>2210</h></coordinates>
+    <panel_attributes>lt=&lt;.
+guardar</panel_attributes>
+    <additional_attributes>20;2190;95;2190;95;20;120;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3705</x><y>380</y><w>115</w><h>2210</h></coordinates>
+    <panel_attributes>lt=&lt;.
+leer</panel_attributes>
+    <additional_attributes>95;2190;20;2190;20;20;45;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3630</x><y>380</y><w>140</w><h>2510</h></coordinates>
+    <panel_attributes>lt=&lt;.
+actualizar</panel_attributes>
+    <additional_attributes>20;2490;95;2490;95;20;120;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3705</x><y>380</y><w>115</w><h>2510</h></coordinates>
+    <panel_attributes>lt=&lt;.
+eliminar</panel_attributes>
+    <additional_attributes>95;2490;20;2490;20;20;45;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>3705</x><y>380</y><w>365</w><h>2810</h></coordinates>
+    <panel_attributes>lt=&lt;.
+buscar</panel_attributes>
+    <additional_attributes>345;2790;20;2790;20;20;45;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2100</x><y>1273</y><w>1720</w><h>57</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;37;1700;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2100</x><y>1290</y><w>920</w><h>363</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;900;343</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2100</x><y>1290</y><w>1720</w><h>363</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;1700;343</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2100</x><y>953</y><w>1720</w><h>377</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;357;1700;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>755</y><w>1120</w><h>238</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;1100;218</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>633</y><w>1120</w><h>162</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;142;1100;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>755</y><w>320</w><h>566</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;300;546</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>1280</y><w>320</w><h>697</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;300;677</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>1280</y><w>1120</w><h>713</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;1100;693</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2700</x><y>1280</y><w>1120</w><h>373</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;1100;353</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2660</x><y>220</y><w>360</w><h>453</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;20;340;433</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2060</x><y>195</y><w>160</w><h>65</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>140;45;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2060</x><y>633</y><w>960</w><h>112</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;92;940;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>2060</x><y>633</y><w>1760</w><h>112</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;92;1740;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>580</x><y>220</y><w>2240</w><h>1940</h></coordinates>
+    <panel_attributes>lt=&lt;.
+autentica</panel_attributes>
+    <additional_attributes>20;1920;2220;1920;2220;20;2100;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>430</x><y>195</y><w>1790</w><h>65</h></coordinates>
+    <panel_attributes>lt=&lt;.
+inicia</panel_attributes>
+    <additional_attributes>1770;45;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>270</y><w>115</w><h>1800</h></coordinates>
+    <panel_attributes>lt=&lt;.
+crea</panel_attributes>
+    <additional_attributes>95;1780;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>270</y><w>40</w><h>250</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>20;230;20;180;20;180;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>270</y><w>440</w><h>250</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>420;230;420;180;20;180;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>270</y><w>840</w><h>250</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>820;230;820;180;20;180;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>630</y><w>80</w><h>290</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>60;270;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>430</x><y>555</y><w>190</w><h>515</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>170;495;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>255</x><y>630</y><w>80</w><h>670</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>60;650;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>295</x><y>630</y><w>400</w><h>290</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>20;270;380;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>655</x><y>630</y><w>180</w><h>290</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>160;270;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>295</x><y>630</y><w>400</w><h>670</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>20;650;380;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>795</x><y>630</y><w>300</w><h>670</h></coordinates>
+    <panel_attributes>lt=&lt;.
+abre</panel_attributes>
+    <additional_attributes>20;650;280;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>1010</x><y>755</y><w>1210</w><h>675</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;655;1190;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>510</x><y>1280</y><w>1710</w><h>170</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;150;1690;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>510</x><y>1290</y><w>1110</w><h>160</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;140;1090;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>1010</x><y>705</y><w>610</w><h>365</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;345;590;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>1010</x><y>755</y><w>1210</w><h>315</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;295;1190;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>510</x><y>705</y><w>1110</w><h>345</h></coordinates>
+    <panel_attributes>lt=-
+m2=1
+m1=1</panel_attributes>
+    <additional_attributes>20;325;1090;20</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>810</x><y>0</y><w>6125</w><h>160</h></coordinates>
+    <panel_attributes>lt=&lt;.
+valida</panel_attributes>
+    <additional_attributes>6105;140;6105;20;20;20;20;140</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates><x>430</x><y>195</y><w>110</w><h>122</h></coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>90;102;20;20</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>140</y><w>350</w><h>150</h></coordinates>
+    <panel_attributes>&lt;&lt;views&gt;&gt;
+Main
+--
+--
++{static} main(String[] args): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>520</x><y>140</y><w>620</w><h>314</h></coordinates>
+    <panel_attributes>&lt;&lt;views&gt;&gt;
+UIHelper
+--
+-{static} teclado: Scanner
+--
++{static} mostrarTitulo(String titulo): void
++{static} mostrarSubtitulo(String subtitulo): void
++{static} leerTexto(String mensaje): String
++{static} leerEntero(String mensaje): int
++{static} leerBooleano(String mensaje): boolean
++{static} imprimirMensaje(String mensaje): void
++{static} imprimirError(String mensaje): void
++{static} imprimirExito(String mensaje): void
++{static} pausar(): void
++{static} leerRol(String mensaje): Rol
++{static} limpiarPantalla(): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>1600</x><y>140</y><w>480</w><h>150</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+MenuController
+--
+--
++arrancarMenuPorRol(Usuario usuarioLogueado): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>2200</x><y>140</y><w>480</w><h>200</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+LoginController
+--
+-usuarioDAO: UsuarioDAO
+-menuController: MenuController
+--
++procesarLogin(UsuarioLoginDTO loginDTO): Usuario</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3400</x><y>140</y><w>700</w><h>260</h></coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+IGenericDAO
+--
+--
++guardar(entidad: T): void
++obtenerTodos(): List&lt;T&gt;
++buscarPorId(id: String): T
++actualizar(entidad: T): void
++eliminar(id: String): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5700</x><y>140</y><w>560</w><h>220</h></coordinates>
+    <panel_attributes>&lt;&lt;abstract&gt;&gt;
+*Usuario*
+--
+-username: String
+-password: String
+--
++obtenerRol(): Rol</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6700</x><y>140</y><w>430</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;enumeration&gt;&gt;
+Rol
+--
+ADMINISTRADOR
+INVESTIGADOR
+VIGILANTE
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>500</y><w>350</w><h>150</h></coordinates>
+    <panel_attributes>&lt;&lt;views&gt;&gt;
+MenuAdministrador
+--
+--
++mostrarMenu(Usuario usuarioLogueado): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>500</x><y>500</y><w>350</w><h>150</h></coordinates>
+    <panel_attributes>&lt;&lt;views&gt;&gt;
+MenuInvestigador
+--
+--
++mostrarMenu(Usuario usuarioLogueado): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>900</x><y>500</y><w>350</w><h>150</h></coordinates>
+    <panel_attributes>&lt;&lt;views&gt;&gt;
+MenuVigilante
+--
+--
++mostrarMenu(Usuario usuarioLogueado): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5000</x><y>500</y><w>480</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+UsuarioAdministrador
+--
+--
++obtenerRol(): Rol</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5600</x><y>500</y><w>480</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+UsuarioInvestigador
+--
+--
++obtenerRol(): Rol</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6200</x><y>500</y><w>500</w><h>220</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+UsuarioVigilante
+--
+-vigilante: Vigilante
+--
++obtenerRol(): Rol</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>520</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+UsuarioDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-existeUsuario(String username): boolean
+-armarLinea(Usuario entidad): String
++guardar(Usuario entidad): void
++obtenerTodos(): List&lt;Usuario&gt;
++buscarPorId(String id): Usuario
++actualizar(Usuario entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>520</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+VigilanteDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-armarLinea(Vigilante entidad): String
+-existeVigilante(String codigo): boolean
++guardar(Vigilante entidad): void
++obtenerTodos(): List&lt;Vigilante&gt;
++buscarPorId(String id): Vigilante
++actualizar(Vigilante entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>1600</x><y>600</y><w>480</w><h>250</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+UsuariosController
+--
+-usuarioDAO: UsuarioDAO
+-vigilanteDAO: VigilanteDAO
+--
++registrarUsuario(String nombreUsuario, String password, Rol rol, String codigoVigilante): void
++listarUsuarios(): List&lt;Usuario&gt;
++eliminarUsuario(String usuarioAEliminar, Usuario usuarioLogueado): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>2200</x><y>600</y><w>520</w><h>350</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+BancarioController
+--
+-sucursalDAO: SucursalDAO
+-vigilanteDAO: VigilanteDAO
+-contratoDAO: ContratoVigilanciaDAO
+--
++registrarVigilante(String codigo, int edad): void
++registrarSucursal(String codigoSucursal, String domicilio, int numEmpleado, String codigoBanco): void
++registrarContratoVigilancia(String codigoSucursal, String codigoVigilancia, String codigoVigilante, String fechaStr, boolean conArma): void
++listarContratosVigilancia(): List&lt;ContratoVigilancia&gt;
++listarVigilantes(): List&lt;Vigilante&gt;
++listarSucursales(): List&lt;Sucursal&gt;
++buscarVigilantePorId(final String codigo): Vigilante</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>840</y><w>650</w><h>234</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+EntidadBancariaDAO
+--
+-{static} RUTA_ARCHIVO: String
+--
++guardar(EntidadBancaria entidad): void
++actualizar(EntidadBancaria entidad): void
+-reescribirArchivo(List&lt;EntidadBancaria&gt; entidades): void
++obtenerTodos(): List&lt;EntidadBancaria&gt;
++buscarPorId(String id): EntidadBancaria
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>840</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+SucursalDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-formatearParaCSV(Sucursal sucursal): String
+-existeSucursal(String codigo): boolean
++guardar(Sucursal entidad): void
++obtenerTodos(): List&lt;Sucursal&gt;
++buscarPorId(String id): Sucursal
++actualizar(Sucursal entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>900</y><w>430</w><h>260</h></coordinates>
+    <panel_attributes>&lt;&lt;views.submenues&gt;&gt;
+GestionUsuarios
+--
+-usuariosController: UsuariosController
+-usuarioActual: Usuario
+--
++mostrar(Rol rolUsuario, Usuario usuarioLogueado): void
+-ejecutarListarUsuarios(): void
+-ejecutarRegistrarUsuario(): void
+-ejecutarEliminarUsuario(): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>600</x><y>900</y><w>430</w><h>300</h></coordinates>
+    <panel_attributes>&lt;&lt;views.submenues&gt;&gt;
+GestionOperativa
+--
+-bancarioController: BancarioController
+--
++mostrar(Rol rolUsuario): void
+-ejecutarListarVigilantes(): void
+-ejecutarListarSucursales(): void
+-ejecutarListarContratos(): void
+-ejecutarRegistrarVigilante(): void
+-ejecutarRegistrarSucursal(): void
+-ejecutarRegistrarContrato(): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5000</x><y>940</y><w>480</w><h>190</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Vigilante
+--
+-codigo: String
+-edad: int
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6600</x><y>940</y><w>500</w><h>190</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+EntidadBancaria
+--
+-codigo: String
+-domicilioCentral: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>1600</x><y>1150</y><w>520</w><h>320</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+AsaltosController
+--
+-bandaDAO: BandaDAO
+-asaltanteDAO: AsaltanteDAO
+-asaltoDAO: AsaltoDAO
+-sucursalDAO: SucursalDAO
+--
++registrarBanda(String numeroBanda, int cantMiembro): void
++registrarAsaltante(String clave, String nombreCompleto, String numeroBanda): void
++registrarAsalto(String idAsalto, String claveAsaltante, String codigoSucursal, String fechaStr): void
++listarAsaltos(): List&lt;Asalto&gt;
++listarBandas(): List&lt;Banda&gt;</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>2200</x><y>1150</y><w>520</w><h>300</h></coordinates>
+    <panel_attributes>&lt;&lt;controllers&gt;&gt;
+JudicialController
+--
+-juezDAO: JuezDAO
+-casoJudicialDAO: CasoJudicialDAO
+-asaltoDAO: AsaltoDAO
+--
++registrarJuez(String claveInterna, int aniosServicio, String nombre): void
++registrarCasoJudicial(String idAsalto, String claveJuez, boolean condenado, int mesesCarcel): void
++listarJueces(): List&lt;Juez&gt;
++listarCasosJudiciales(): List&lt;CasoJudicial&gt;
++listarDetenidos(): List&lt;CasoJudicial&gt;</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>1160</y><w>650</w><h>282</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+ContratoVigilanciaDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-generarIdCompuesto(ContratoVigilancia c): String
+-formatearParaArchivo(ContratoVigilancia c): String
++existe(String id): boolean
++guardar(ContratoVigilancia entidad): void
++obtenerTodos(): List&lt;ContratoVigilancia&gt;
++buscarPorId(String id): ContratoVigilancia
++actualizar(ContratoVigilancia entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>1160</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+BandaDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-formatearParaArchivo(Banda b): String
++existe(String id): boolean
++guardar(Banda entidad): void
++obtenerTodos(): List&lt;Banda&gt;
++buscarPorId(String id): Banda
++actualizar(Banda entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>1280</y><w>430</w><h>300</h></coordinates>
+    <panel_attributes>&lt;&lt;views.submenues&gt;&gt;
+GestionJudicial
+--
+-judicialController: JudicialController
+-asaltosController: AsaltosController
+--
++mostrar(Rol rolUsuario): void
+-ejecutarListarDetenidos(): void
+-ejecutarListarBandas(): void
+-ejecutarListarAsaltos(): void
+-ejecutarListarJuecesYCondenas(): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>600</x><y>1280</y><w>430</w><h>260</h></coordinates>
+    <panel_attributes>&lt;&lt;views.submenues&gt;&gt;
+ConsultaVigilante
+--
+-bancarioController: BancarioController
+--
++mostrar(String miCodigo): void
+-ejecutarVerMisDatos(String miCodigo): void
+-ejecutarVerMisContratos(String miCodigo): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5550</x><y>1300</y><w>560</w><h>240</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+ContratoVigilancia
+--
+-sucursal: Sucursal
+-vigilante: Vigilante
+-fecha: LocalDate
+-conArma: boolean
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6500</x><y>1300</y><w>560</w><h>240</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Sucursal
+--
+-codigo: String
+-domicilio: String
+-numeroEmpleados: int
+-entidad: EntidadBancaria
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>1500</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+AsaltanteDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-formatearParaArchivo(Asaltante a): String
++guardar(Asaltante entidad): void
++obtenerTodos(): List&lt;Asaltante&gt;
++buscarPorId(String id): Asaltante
++actualizar(Asaltante entidad): void
++eliminar(String id): void
++existe(String id): boolean</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>1500</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+AsaltoDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-formatearParaArchivo(Asalto a): String
++existe(String id): boolean
++guardar(Asalto entidad): void
++obtenerTodos(): List&lt;Asalto&gt;
++buscarPorId(String id): Asalto
++actualizar(Asalto entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5000</x><y>1780</y><w>480</w><h>190</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Banda
+--
+-numeroBanda: String
+-cantMiembros: int
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>5550</x><y>1780</y><w>560</w><h>260</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Asaltante
+--
+-clave: String
+-nombreCompleto: String
+-banda: Banda
+-listaAsaltos: List&lt;Asalto&gt;
+--
++agregarAsalto(Asalto asalto): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6200</x><y>1780</y><w>560</w><h>240</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Asalto
+--
+-idAsalto: String
+-asaltante: Asaltante
+-sucursal: Sucursal
+-fecha: LocalDate
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6850</x><y>1780</y><w>480</w><h>210</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+Juez
+--
+-claveInterna: String
+-aniosServicio: int
+-nombre: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>1840</y><w>650</w><h>234</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+JuezDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
++guardar(Juez entidad): void
++obtenerTodos(): List&lt;Juez&gt;
++buscarPorId(String id): Juez
++actualizar(Juez entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>1840</y><w>650</w><h>266</h></coordinates>
+    <panel_attributes>&lt;&lt;daos&gt;&gt;
+CasoJudicialDAO
+--
+-RUTA_ARCHIVO: String
+--
+-crearArchivoSiNoExiste(): void
+-formatearParaArchivo(CasoJudicial c): String
++existe(String id): boolean
++guardar(CasoJudicial entidad): void
++obtenerTodos(): List&lt;CasoJudicial&gt;
++buscarPorId(String id): CasoJudicial
++actualizar(CasoJudicial entidad): void
++eliminar(String id): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>2050</y><w>500</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+UsuarioLoginDTO
+--
+-nombreUsuario: String
+-password: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>6400</x><y>2220</y><w>600</w><h>250</h></coordinates>
+    <panel_attributes>&lt;&lt;models&gt;&gt;
+CasoJudicial
+--
+-asalto: Asalto
+-juez: Juez
+-condenado: boolean
+-mesesCarcel: int
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>2400</y><w>520</w><h>210</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+VigilanteAsignadoDTO
+--
+-codigoVigilante: String
+-edad: int
+-portacionArma: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>700</x><y>2400</y><w>560</w><h>260</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+VigilanteContratoDTO
+--
+-codigoVigilante: String
+-edadVigilante: int
+-codigoSucursal: String
+-domicilioSucursal: String
+-fecha: String
+-portacionArma: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>2480</y><w>650</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;exceptions&gt;&gt;
+ErrorAlGuardarException
+--
+--
++ErrorAlGuardarException(tipoObjeto: String, motivo: String)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>2480</y><w>650</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;exceptions&gt;&gt;
+ErrorAlLeerException
+--
+--
++ErrorAlLeerException(tipoObjeto: String, motivo: String)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3000</x><y>2780</y><w>650</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;exceptions&gt;&gt;
+ErrorAlActualizarException
+--
+--
++ErrorAlActualizarException(tipoObjeto: String, motivo: String)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3800</x><y>2780</y><w>650</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;exceptions&gt;&gt;
+ErrorAlEliminarException
+--
+--
++ErrorAlEliminarException(tipoObjeto: String, motivo: String)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>2820</y><w>540</w><h>240</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+DetalleDelitoDTO
+--
+-idAsalto: String
+-fechaAsalto: String
+-detalleSucursal: String
+-nombreJuez: String
+-veredicto: String
+--</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>700</x><y>2820</y><w>560</w><h>250</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+HistorialAsaltanteDTO
+--
+-idAsaltante: String
+-nombreAsaltante: String
+-infoBanda: String
+-listaDeCrimenes: List&lt;DetalleDelitoDTO&gt;
+--
++agregarDelito(DetalleDelitoDTO delito): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>3400</x><y>3080</y><w>650</w><h>180</h></coordinates>
+    <panel_attributes>&lt;&lt;exceptions&gt;&gt;
+ObjetoNoEncontradoException
+--
+--
++ObjetoNoEncontradoException(tipoObjeto: String, id: String)</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>100</x><y>3220</y><w>650</w><h>300</h></coordinates>
+    <panel_attributes>&lt;&lt;dtos&gt;&gt;
+ReporteSucursalDTO
+--
+-codigoSucursal: String
+-domicilioSucursal: String
+-cantEmpleados: int
+-codigoBanco: String
+-domicilioCentralBanco: String
+-cantAsaltosSufridos: int
+-listadoVigilantes: List&lt;VigilanteAsignadoDTO&gt;
+--
++agregarVigilante(VigilanteAsignadoDTO vigilante): void</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>
