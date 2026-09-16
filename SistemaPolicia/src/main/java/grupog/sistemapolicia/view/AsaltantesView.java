@@ -34,6 +34,7 @@ public class AsaltantesView extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
         setSizeFull();
+        addClassName("gestion-view");
 
         clave.setRequiredIndicatorVisible(true);
         clave.setMaxLength(20);
@@ -55,6 +56,7 @@ public class AsaltantesView extends VerticalLayout {
         formulario.setDefaultVerticalComponentAlignment(Alignment.BASELINE);
         formulario.setWidthFull();
         formulario.getStyle().set("flex-wrap", "wrap");
+        formulario.addClassName("gestion-formulario");
 
         grilla = new Grid<>(Asaltante.class, false);
         grilla.addColumn(Asaltante::getClave).setHeader("Clave").setSortable(true);
@@ -62,6 +64,7 @@ public class AsaltantesView extends VerticalLayout {
         grilla.addColumn(asaltante -> asaltante.getBanda().getNumeroBanda())
                 .setHeader("Banda").setSortable(true);
         grilla.setSizeFull();
+        grilla.addClassName("gestion-grilla");
 
         add(new H2("Gestión de asaltantes"), formulario, grilla);
 
@@ -95,4 +98,3 @@ public class AsaltantesView extends VerticalLayout {
         grilla.setItems(service.listar());
     }
 }
-
