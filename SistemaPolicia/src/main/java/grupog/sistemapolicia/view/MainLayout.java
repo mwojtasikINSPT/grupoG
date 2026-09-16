@@ -9,12 +9,12 @@ import com.vaadin.flow.router.RouterLink;
 public class MainLayout extends AppLayout {
 
     public MainLayout() {
+        addClassName("policia-app");
         DrawerToggle menuToggle = new DrawerToggle();
+        menuToggle.addClassName("menu-toggle");
 
         H1 titulo = new H1("Sistema Policial");
-        titulo.getStyle()
-                .set("font-size", "18px")
-                .set("margin", "0");
+        titulo.addClassName("app-title");
 
         addToNavbar(menuToggle, titulo);
 
@@ -37,11 +37,7 @@ public class MainLayout extends AppLayout {
 
         Nav navegacion = new Nav(inicio, entidades, sucursales, vigilantes,
                 contratos, bandas, asaltantes, asaltos, jueces, casos, usuarios);
-        navegacion.getStyle()
-                .set("display", "flex")
-                .set("flex-direction", "column")
-                .set("gap", "8px")
-                .set("padding", "16px");
+        navegacion.addClassName("app-nav");
 
         addToDrawer(navegacion);
     }

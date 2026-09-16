@@ -1,0 +1,247 @@
+/* Vista piloto: estilo "Centro de mando". Solo presentación; sin lógica de negocio. */
+html {
+  --lumo-base-color: #101a23;
+  --lumo-primary-color: #53d7ef;
+  --lumo-primary-text-color: #70e3f5;
+  --lumo-primary-color-10pct: rgba(83, 215, 239, 0.12);
+  --lumo-primary-color-50pct: rgba(83, 215, 239, 0.5);
+  --lumo-border-radius-m: 10px;
+  background: #101a23;
+}
+
+body {
+  background: #101a23;
+}
+
+vaadin-app-layout.policia-app {
+  --vaadin-app-layout-drawer-width: 236px;
+  background: #101a23;
+}
+
+vaadin-app-layout.policia-app::part(navbar) {
+  background: #17232e;
+  border-bottom: 1px solid #2b3c49;
+  color: #edf6fa;
+}
+
+vaadin-app-layout.policia-app::part(drawer) {
+  background: #1a2833;
+  border-right: 1px solid #30414d;
+}
+
+vaadin-app-layout.policia-app::part(content) {
+  background: #101a23;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.menu-toggle {
+  color: #7adfeb;
+}
+
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 18px 12px;
+}
+
+.app-nav a {
+  display: block;
+  padding: 11px 13px;
+  color: #c0d0d9;
+  text-decoration: none;
+  border-radius: 9px;
+  border-left: 3px solid transparent;
+  font-size: 0.92rem;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.app-nav a:hover,
+.app-nav a:focus-visible {
+  background: #263b49;
+  color: #f1fbfe;
+}
+
+.app-nav a[highlight] {
+  background: #244354;
+  border-left-color: #55d8ee;
+  color: #a7f0fa;
+  font-weight: 650;
+}
+
+.inicio-view {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  min-height: 100%;
+  overflow-y: auto;
+  gap: 18px;
+  padding: clamp(14px, 2.5vw, 30px);
+  background-image:
+    linear-gradient(rgba(16, 26, 35, 0.91), rgba(16, 26, 35, 0.93)),
+    url("images/palacio-justicia.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.inicio-portada {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(330px, 57vh, 600px);
+  padding: clamp(28px, 5vw, 76px);
+  border: 1px solid #344b59;
+  border-radius: 16px;
+  background-image:
+    linear-gradient(90deg, rgba(8, 18, 27, 0.94) 0%, rgba(8, 18, 27, 0.80) 34%, rgba(8, 18, 27, 0.25) 74%),
+    url("images/patrullero-ciudad.jpg");
+  background-position: center, center 56%;
+  background-size: cover;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.24);
+}
+
+.inicio-portada span {
+  color: #8be9f7;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.inicio-portada h1 {
+  max-width: 650px;
+  margin: 14px 0 18px;
+  color: #f5fbfd;
+  font-size: clamp(2rem, 4.2vw, 3.5rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.inicio-portada p {
+  max-width: 580px;
+  margin: 0;
+  color: #d7e8ef;
+  font-size: clamp(1rem, 1.4vw, 1.18rem);
+  line-height: 1.6;
+}
+
+.inicio-view > h2 {
+  margin: 0;
+  color: #f5fbfd;
+  font-size: 1.25rem;
+}
+
+.inicio-accesos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.inicio-accesos a {
+  display: block;
+  padding: 19px 22px;
+  border: 1px solid #385361;
+  border-radius: 12px;
+  background: rgba(25, 42, 54, 0.88);
+  color: #dff8fc;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.inicio-accesos a:hover,
+.inicio-accesos a:focus-visible {
+  border-color: #59d7ec;
+  background: #254554;
+}
+
+.inicio-creditos {
+  color: #abc0c9;
+  font-size: 0.73rem;
+  line-height: 1.5;
+}
+
+.inicio-creditos a {
+  color: #91dfeb;
+}
+
+.gestion-view {
+  box-sizing: border-box;
+  gap: 16px;
+  padding: 28px;
+  background: #101a23;
+}
+
+.gestion-view h2 {
+  margin: 0 0 4px;
+  color: #f4f9fc;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.gestion-formulario {
+  box-sizing: border-box;
+  align-items: end;
+  gap: 14px;
+  padding: 18px 20px;
+  background: #1b2a35;
+  border: 1px solid #334653;
+  border-radius: 13px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.13);
+}
+
+.gestion-formulario vaadin-text-field,
+.gestion-formulario vaadin-combo-box {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.gestion-formulario vaadin-button[theme~="primary"] {
+  color: #0c2028;
+  font-weight: 700;
+}
+
+.gestion-grilla {
+  overflow: hidden;
+  background: #1b2a35;
+  border: 1px solid #334653;
+  border-radius: 13px;
+}
+
+.gestion-grilla::part(header-cell) {
+  background: #263b49;
+  color: #dcf3f7;
+}
+
+.gestion-grilla::part(row):hover {
+  background: rgba(83, 215, 239, 0.06);
+}
+
+@media (max-width: 700px) {
+  .inicio-portada {
+    min-height: 420px;
+    background-image:
+      linear-gradient(rgba(8, 18, 27, 0.82), rgba(8, 18, 27, 0.64)),
+      url("images/patrullero-ciudad.jpg");
+    background-position: center;
+  }
+
+  .inicio-accesos {
+    grid-template-columns: 1fr;
+  }
+
+  .gestion-view {
+    padding: 16px;
+  }
+
+  .gestion-formulario {
+    padding: 14px;
+  }
+}
