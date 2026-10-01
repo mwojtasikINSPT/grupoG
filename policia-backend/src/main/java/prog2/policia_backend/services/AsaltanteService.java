@@ -42,13 +42,24 @@ public class AsaltanteService {
                 GeneradorCodigo.generar("ASS", asaltante.getId())
         );
 
-        return convertirADTO(asaltanteRepository.save(asaltante));
+        asaltante = asaltanteRepository.save(asaltante);
+
+        if (asaltante.getBanda() != null) {
+            actualizarCantMiembros(asaltante.getBanda().getId());
+        }
+
+        return convertirADTO(asaltante);
     }
 
     public AsaltanteDTO actualizar(Long id, AsaltanteDTO dto) {
         Asaltante asaltante = asaltanteRepository.findById(id)
                 .filter(Asaltante::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asaltante", id));
+
+        Long bandaAnteriorId = asaltante.getBanda() != null
+                ? asaltante.getBanda().getId()
+                : null;
 
         asaltante.setNombre(dto.getNombre());
 
@@ -56,21 +67,43 @@ public class AsaltanteService {
             Banda banda = bandaRepository.findById(dto.getBandaId())
                     .filter(Banda::isActivo)
                     .orElseThrow(()
-                            -> new RecursoNoEncontradoException("Banda", dto.getBandaId()));
+                            -> new RecursoNoEncontradoException(
+                            "Banda", dto.getBandaId()));
+
             asaltante.setBanda(banda);
         } else {
             asaltante.setBanda(null);
         }
 
-        return convertirADTO(asaltanteRepository.save(asaltante));
+        asaltante = asaltanteRepository.save(asaltante);
+
+        if (bandaAnteriorId != null) {
+            actualizarCantMiembros(bandaAnteriorId);
+        }
+
+        if (asaltante.getBanda() != null) {
+            actualizarCantMiembros(asaltante.getBanda().getId());
+        }
+
+        return convertirADTO(asaltante);
     }
 
     public void eliminar(Long id) {
         Asaltante asaltante = asaltanteRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", id));
+                .filter(Asaltante::isActivo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asaltante", id));
+
+        Long bandaId = asaltante.getBanda() != null
+                ? asaltante.getBanda().getId()
+                : null;
 
         asaltante.setActivo(false);
         asaltanteRepository.save(asaltante);
+
+        if (bandaId != null) {
+            actualizarCantMiembros(bandaId);
+        }
     }
 
     private AsaltanteDTO convertirADTO(Asaltante asaltante) {
@@ -101,5 +134,17 @@ public class AsaltanteService {
         }
 
         return asaltante;
+    }
+
+    private void actualizarCantMiembros(Long bandaId) {
+        Banda banda = bandaRepository.findById(bandaId)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Banda", bandaId));
+
+        banda.setCantMiembros(
+                (int) asaltanteRepository.countByBanda_IdAndActivoTrue(bandaId)
+        );
+
+        bandaRepository.save(banda);
     }
 }

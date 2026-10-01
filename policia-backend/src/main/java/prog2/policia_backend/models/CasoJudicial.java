@@ -25,7 +25,7 @@ public class CasoJudicial {
     private boolean condenado;
     private int tiempoCarcel;
         
-    @OneToOne
+    @ManyToOne
     private Asalto asalto;
     @ManyToOne
     private Asaltante asaltante;
