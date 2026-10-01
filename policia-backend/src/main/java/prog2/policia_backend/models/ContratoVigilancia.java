@@ -1,0 +1,36 @@
+package prog2.policia_backend.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+
+import java.time.LocalDate;
+
+//relación entre Vigilante y Sucursal: Vigilante 1 - N ContratoVigilancia N ─ 1 Sucursal
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ContratoVigilancia {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private LocalDate fecha;
+    private boolean conArma;
+    private String codigo;
+
+    @ManyToOne
+    private Vigilante vigilante;
+
+    @ManyToOne
+    private Sucursal sucursal;
+
+    private boolean activo = true;
+}
