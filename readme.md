@@ -23,16 +23,12 @@ Backend desarrollado con **Spring Boot, Spring Data JPA, Hibernate y MySQL**.
 * 🐬 MySQL
 * 📦 Maven
 
-## 🗄️ Base de datos
 
-Crear una base de datos MySQL llamada:
+🗄️ Base de datos
 
+1. Crear la base de datos `policia_db`.
 ```sql
 CREATE DATABASE policia_db;
 ```
-
-Luego configurar las credenciales de conexión en:
-
-```text
-application-local.properties
-```
+2. Configurar las credenciales en `application-local.properties` (Modificar nombre de EXAMPLE).
+3. Ejecutar el Script `database/data.sql` para cargar los datos de prueba.
