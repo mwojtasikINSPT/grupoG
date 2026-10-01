@@ -20,16 +20,16 @@ public class CasoJudicial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private boolean activo = true;
+    private String codigo;
     private boolean condenado;
     private int tiempoCarcel;
-    private String codigo;
-
+        
     @OneToOne
     private Asalto asalto;
-
+    @ManyToOne
+    private Asaltante asaltante;
     @ManyToOne
     private Juez juez;
-
-    private boolean activo = true;
+    
 }

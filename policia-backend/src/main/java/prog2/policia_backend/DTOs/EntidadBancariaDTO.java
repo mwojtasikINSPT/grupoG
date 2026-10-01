@@ -12,4 +12,5 @@ public class EntidadBancariaDTO {
     private Long id;
     private String domicilioCentral;
     private String codigo;
+    private String nombre;
 }

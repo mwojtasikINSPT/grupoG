@@ -55,17 +55,20 @@ public class AsaltoService {
 
         asalto.setFecha(dto.getFecha());
 
-        Asaltante asaltante = asaltanteRepository.findById(dto.getAsaltanteId())
+        List<Asaltante> asaltantes = dto.getAsaltantesIds().stream()
+                .map(idAsaltante -> asaltanteRepository.findById(idAsaltante)
                 .filter(Asaltante::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Asaltante", dto.getAsaltanteId()));
+                        -> new RecursoNoEncontradoException(
+                        "Asaltante", idAsaltante)))
+                .toList();
 
         Sucursal sucursal = sucursalRepository.findById(dto.getSucursalId())
                 .filter(Sucursal::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Sucursal", dto.getSucursalId()));
 
-        asalto.setAsaltante(asaltante);
+        asalto.setAsaltantes(asaltantes);
         asalto.setSucursal(sucursal);
 
         return convertirADTO(asaltoRepository.save(asalto));
@@ -79,28 +82,35 @@ public class AsaltoService {
         asaltoRepository.save(asalto);
     }
 
+    // Convierte una Entity en un DTO para devolver datos al Controller.
     private AsaltoDTO convertirADTO(Asalto asalto) {
-        return new AsaltoDTO(
-                asalto.getId(),
-                asalto.getFecha(),
-                asalto.getAsaltante().getId(),
-                asalto.getSucursal().getId(),
-                asalto.getCodigo()
+        AsaltoDTO dto = new AsaltoDTO();
+        dto.setId(asalto.getId());
+        dto.setFecha(asalto.getFecha());
+        dto.setAsaltantesIds(
+                asalto.getAsaltantes().stream()
+                        .map(Asaltante::getId)
+                        .toList()
         );
+        dto.setSucursalId(asalto.getSucursal().getId());
+        dto.setCodigo(asalto.getCodigo());
+        return dto;
     }
 
+    // Convierte un DTO en una Entity para guardar o actualizar datos en la BBDD.
     private Asalto convertirAEntidad(AsaltoDTO dto) {
         Asalto asalto = new Asalto();
 
         asalto.setFecha(dto.getFecha());
 
-        asalto.setAsaltante(
-                asaltanteRepository.findById(dto.getAsaltanteId())
-                        .filter(Asaltante::isActivo)
-                        .orElseThrow(()
-                                -> new RecursoNoEncontradoException(
-                                "Asaltante", dto.getAsaltanteId()))
-        );
+        List<Asaltante> asaltantes = dto.getAsaltantesIds().stream()
+                .map(id -> asaltanteRepository.findById(id)
+                .filter(Asaltante::isActivo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asaltante", id)))
+                .toList();
+
+        asalto.setAsaltantes(asaltantes);
 
         asalto.setSucursal(
                 sucursalRepository.findById(dto.getSucursalId())

@@ -13,6 +13,7 @@ public class CasoJudicialDTO {
     private boolean condenado;
     private int tiempoCarcel;
     private Long asaltoId;
+    private Long asaltanteId;
     private Long juezId;
     private String codigo;
 }

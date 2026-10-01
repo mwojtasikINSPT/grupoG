@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,7 +14,7 @@ public class AsaltoDTO {
 
     private Long id;
     private LocalDate fecha;
-    private Long asaltanteId;
+    private List<Long> asaltantesIds;
     private Long sucursalId;
     private String codigo;
 }

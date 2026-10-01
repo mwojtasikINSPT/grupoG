@@ -78,6 +78,7 @@ public class CasoJudicialService {
                 caso.isCondenado(),
                 caso.getTiempoCarcel(),
                 caso.getAsalto().getId(),
+                caso.getAsaltante().getId(),
                 caso.getJuez().getId(),
                 caso.getCodigo()
         );

@@ -58,7 +58,8 @@ public class EntidadBancariaService {
         return new EntidadBancariaDTO(
                 entidad.getId(),
                 entidad.getDomicilioCentral(),
-                entidad.getCodigo()
+                entidad.getCodigo(),
+                entidad.getNombre()
         );
     }
 
