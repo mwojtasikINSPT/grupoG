@@ -15,6 +15,7 @@ import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
+import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +40,18 @@ public class SucursalService {
     }
 
     public SucursalDTO guardar(SucursalDTO dto) {
+
         Sucursal sucursal = convertirAEntidad(dto);
-        return convertirADTO(sucursalRepository.save(sucursal));
+
+        sucursal = sucursalRepository.save(sucursal);
+
+        sucursal.setCodigo(
+                GeneradorCodigo.generar("SUC", sucursal.getId())
+        );
+
+        sucursal = sucursalRepository.save(sucursal);
+
+        return convertirADTO(sucursal);
     }
 
     public SucursalDTO actualizar(Long id, SucursalDTO dto) {
