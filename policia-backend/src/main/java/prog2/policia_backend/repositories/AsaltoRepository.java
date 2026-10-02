@@ -8,4 +8,9 @@ import java.util.List;
 public interface AsaltoRepository extends JpaRepository<Asalto, Long> {
 
     List<Asalto> findByActivoTrue();
+    
+    boolean existsByIdAndActivoTrueAndAsaltantes_Id(
+        Long asaltoId,
+        Long asaltanteId
+);
 }

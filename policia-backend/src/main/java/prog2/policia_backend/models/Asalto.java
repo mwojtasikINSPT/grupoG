@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-//relaciona Asaltante con Sucursal: Asaltante 1 ─ N Asalto N ─ 1 Sucursal
+// Un Asalto puede tener varios Asaltantes y tiene una Sucursal
 @Entity
 @Data
 @NoArgsConstructor

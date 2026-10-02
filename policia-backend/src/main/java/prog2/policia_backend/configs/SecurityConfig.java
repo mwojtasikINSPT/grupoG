@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import prog2.policia_backend.models.RolUsuario;
 
 // Configuración principal de Spring Security
 @Configuration
@@ -59,17 +60,17 @@ public class SecurityConfig {
                         HttpMethod.GET,
                         "/api/vigilantes/*")
                 .hasAnyRole(
-                        "VIGILANTE",
-                        "INVESTIGADOR",
-                        "ADMINISTRADOR")
-                // Los investigadores y administradores pueden consultar todo.
+                        RolUsuario.VIGILANTE.name(),
+                        RolUsuario.INVESTIGADOR.name(),
+                        RolUsuario.ADMINISTRADOR.name())
+                // investigadores y administradores pueden consultar todo.
                 .requestMatchers(HttpMethod.GET, "/api/**")
                 .hasAnyRole(
-                        "INVESTIGADOR",
-                        "ADMINISTRADOR")
+                        RolUsuario.INVESTIGADOR.name(),
+                        RolUsuario.ADMINISTRADOR.name())
                 // Solo administradores pueden crear, modificar o eliminar.
                 .requestMatchers("/api/**")
-                .hasRole("ADMINISTRADOR")
+                .hasRole( RolUsuario.ADMINISTRADOR.name())
                 .requestMatchers("/error")
                 .permitAll()
                 .anyRequest()

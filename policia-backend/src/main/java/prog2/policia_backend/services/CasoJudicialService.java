@@ -40,6 +40,7 @@ public class CasoJudicialService {
     }
 
     public CasoJudicialDTO guardar(CasoJudicialDTO dto) {
+
         if (casoJudicialRepository.existsByAsalto_IdAndAsaltante_Id(
                 dto.getAsaltoId(),
                 dto.getAsaltanteId())) {
@@ -47,10 +48,21 @@ public class CasoJudicialService {
             throw new IllegalArgumentException();
         }
 
+        if (!asaltoRepository.existsByIdAndActivoTrueAndAsaltantes_Id(
+                dto.getAsaltoId(),
+                dto.getAsaltanteId())) {
+
+            throw new IllegalArgumentException();
+        }
+
         CasoJudicial caso = convertirAEntidad(dto);
+
         caso.setCondenado(false);
         caso.setTiempoCarcel(0);
-        return convertirADTO(casoJudicialRepository.save(caso));
+
+        return convertirADTO(
+                casoJudicialRepository.save(caso)
+        );
     }
 
     public CasoJudicialDTO actualizar(Long id, CasoJudicialDTO dto) {
