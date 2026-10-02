@@ -111,6 +111,26 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    // Devuelve 409 cuando se intenta dar de baja un juez con casos judiciales asociados.
+    @ExceptionHandler(JuezConCasosJudicialesException.class)
+    public ResponseEntity<Map<String, String>> manejarJuezConCasosJudiciales(
+            JuezConCasosJudicialesException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    // Devuelve 409 cuando se intenta reactivar un fallecido 
+    @ExceptionHandler(PersonaNoReactivableException.class)
+    public ResponseEntity<Map<String, String>> manejarPersonaNoReactivable(
+            PersonaNoReactivableException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Devuelve 500 ante errores inesperados no controlados 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarErrorGeneral(

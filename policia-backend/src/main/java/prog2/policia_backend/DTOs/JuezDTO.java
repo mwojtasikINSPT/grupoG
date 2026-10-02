@@ -7,8 +7,9 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
+
+import prog2.policia_backend.models.MotivoBajaPersona;
 
 @Data
 @NoArgsConstructor
@@ -16,15 +17,16 @@ import java.time.LocalDate;
 public class JuezDTO {
 
     private Long id;
-    
+
     @NotBlank
     private String nombre;
-    
+
     @NotNull
     @PastOrPresent
     private LocalDate juezDesde;
-    
+
     @Min(0)
     private int aniosServicio;
     private String codigo;
+    private MotivoBajaPersona motivoBaja;
 }

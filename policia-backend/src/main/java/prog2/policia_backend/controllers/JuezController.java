@@ -1,5 +1,6 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.services.JuezService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/jueces")
@@ -23,9 +22,9 @@ public class JuezController {
         return ResponseEntity.ok(juezService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<JuezDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(juezService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<JuezDTO> buscarPorCodigo(@PathVariable String codigo) {
+        return ResponseEntity.ok(juezService.buscarPorCodigo(codigo));
     }
 
     @PostMapping
@@ -34,17 +33,29 @@ public class JuezController {
                 .body(juezService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<JuezDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody JuezDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody JuezDTO dto) {
 
-        return ResponseEntity.ok(juezService.actualizar(id, dto));
+        return ResponseEntity.ok(juezService.actualizar(codigo, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        juezService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo,
+            @RequestBody JuezDTO dto) {
+
+        juezService.eliminar(codigo, dto);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<Void> reactivar(@PathVariable String codigo) {
+
+        juezService.reactivar(codigo);
+
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,21 +1,27 @@
 package prog2.policia_backend.services;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import prog2.policia_backend.DTOs.JuezDTO;
-import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
-import prog2.policia_backend.models.Juez;
-import prog2.policia_backend.repositories.JuezRepository;
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import prog2.policia_backend.DTOs.JuezDTO;
+import prog2.policia_backend.exceptions.JuezConCasosJudicialesException;
+import prog2.policia_backend.exceptions.PersonaNoReactivableException;
+import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.models.Juez;
+import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.repositories.JuezRepository;
+import prog2.policia_backend.repositories.CasoJudicialRepository;
+import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
 @RequiredArgsConstructor
 public class JuezService {
 
     private final JuezRepository juezRepository;
+    private final CasoJudicialRepository casoJudicialRepository;
 
     public List<JuezDTO> listar() {
         return juezRepository.findByActivoTrue()
@@ -24,22 +30,48 @@ public class JuezService {
                 .toList();
     }
 
-    public JuezDTO buscarPorId(Long id) {
-        return juezRepository.findById(id)
+    public JuezDTO buscarPorCodigo(String codigo) {
+        return juezRepository.findByCodigo(codigo)
                 .filter(Juez::isActivo)
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Juez", codigo));
+    }
+
+    public void reactivar(String codigo) {
+
+        Juez juez = juezRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Juez", codigo));
+
+        if (juez.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
+
+        juez.setActivo(true);
+        juez.setMotivoBaja(null);
+
+        juezRepository.save(juez);
     }
 
     public JuezDTO guardar(JuezDTO dto) {
         Juez juez = convertirAEntidad(dto);
-        return convertirADTO(juezRepository.save(juez));
+
+        juez = juezRepository.save(juez);
+
+        juez.setCodigo(
+                GeneradorCodigo.generar("JUE", juez.getId())
+        );
+
+        juez = juezRepository.save(juez);
+
+        return convertirADTO(juez);
     }
 
-    public JuezDTO actualizar(Long id, JuezDTO dto) {
-        Juez juez = juezRepository.findById(id)
+    public JuezDTO actualizar(String codigo, JuezDTO dto) {
+        Juez juez = juezRepository.findByCodigo(codigo)
                 .filter(Juez::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
 
         juez.setNombre(dto.getNombre());
         juez.setJuezDesde(dto.getJuezDesde());
@@ -47,11 +79,23 @@ public class JuezService {
         return convertirADTO(juezRepository.save(juez));
     }
 
-    public void eliminar(Long id) {
-        Juez juez = juezRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", id));
+    public void eliminar(String codigo, JuezDTO dto) {
+
+        Juez juez = juezRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Juez", codigo));
+
+        if (juez.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
+
+        if (casoJudicialRepository.existsByJuez_Id(juez.getId())) {
+            throw new JuezConCasosJudicialesException();
+        }
 
         juez.setActivo(false);
+        juez.setMotivoBaja(dto.getMotivoBaja());
+
         juezRepository.save(juez);
     }
 
@@ -67,7 +111,8 @@ public class JuezService {
                 juez.getNombre(),
                 juez.getJuezDesde(),
                 aniosServicio,
-                juez.getCodigo()
+                juez.getCodigo(),
+                juez.getMotivoBaja()
         );
     }
 
