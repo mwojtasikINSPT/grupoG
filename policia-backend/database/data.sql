@@ -1,3 +1,9 @@
+-- =================================================================
+-- NOTA PARA DESARROLLADORES:
+-- Todos los usuarios de prueba generados en este script tienen
+-- la contraseña por defecto: 1234
+-- =================================================================
+
 INSERT INTO banda (id, codigo, cant_miembros, activo) VALUES
 (1, 'BAN00001', 0, true),
 (2, 'BAN00002', 0, true),
@@ -10,30 +16,30 @@ INSERT INTO entidad_bancaria (id, nombre, domicilio_central, activo, codigo) VAL
 (3, 'Banco Nacional', 'Av. Rivadavia 4500, Buenos Aires', true, 'EBA00003'),
 (4, 'Banco Metropolitano', 'Av. Cabildo 2200, Buenos Aires', true, 'EBA00004');
 
-INSERT INTO vigilante (id, codigo, nombre, password, edad, activo) VALUES
-(1, 'VIG00001', 'Pedro Ramirez', '1234', 32, true),
-(2, 'VIG00002', 'Laura Fernandez', '1234', 28, true),
-(3, 'VIG00003', 'Martin Gonzalez', '1234', 41, true),
-(4, 'VIG00004', 'Sofia Acosta', '1234', 35, true),
-(5, 'VIG00005', 'Diego Romero', '1234', 30, true),
-(6, 'VIG00006', 'Carolina Silva', '1234', 27, true),
-(7, 'VIG00007', 'Hernan Torres', '1234', 45, true),
-(8, 'VIG00008', 'Luciana Castro', '1234', 33, true),
-(9, 'VIG00009', 'Gustavo Medina', '1234', 39, true),
-(10, 'VIG00010', 'Valeria Moreno', '1234', 26, true);
+INSERT INTO vigilante (id, codigo, nombre, password, edad, activo, rol) VALUES
+(1, 'VIG00001', 'Pedro Ramirez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 32, true, 'VIGILANTE'),
+(2, 'VIG00002', 'Laura Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 28, true, 'VIGILANTE'),
+(3, 'VIG00003', 'Martin Gonzalez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 41, true, 'VIGILANTE'),
+(4, 'VIG00004', 'Sofia Acosta', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 35, true, 'VIGILANTE'),
+(5, 'VIG00005', 'Diego Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 30, true, 'VIGILANTE'),
+(6, 'VIG00006', 'Carolina Silva', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 27, true, 'VIGILANTE'),
+(7, 'VIG00007', 'Hernan Torres', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 45, true, 'VIGILANTE'),
+(8, 'VIG00008', 'Luciana Castro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 33, true, 'VIGILANTE'),
+(9, 'VIG00009', 'Gustavo Medina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 39, true, 'VIGILANTE'),
+(10, 'VIG00010', 'Valeria Moreno', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 26, true, 'VIGILANTE');
 
-INSERT INTO investigador (id, codigo, nombre, password, activo) VALUES
-(1, 'INV00001', 'Lionel Messi', '1234', true),
-(2, 'INV00002', 'Angel Di Maria', '1234', true),
-(3, 'INV00003', 'Emiliano Martinez', '1234', true),
-(4, 'INV00004', 'Julian Alvarez', '1234', true),
-(5, 'INV00005', 'Rodrigo De Paul', '1234', true);
+INSERT INTO investigador (id, codigo, nombre, password, activo, rol) VALUES
+(1, 'INV00001', 'Lionel Messi', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', true, 'INVESTIGADOR'),
+(2, 'INV00002', 'Angel Di Maria', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', true, 'INVESTIGADOR'),
+(3, 'INV00003', 'Emiliano Martinez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', true, 'INVESTIGADOR'),
+(4, 'INV00004', 'Julian Alvarez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', true, 'INVESTIGADOR'),
+(5, 'INV00005', 'Rodrigo De Paul', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', true, 'INVESTIGADOR');
 
-INSERT INTO administrador (id, activo, codigo, nombre, password) VALUES
-(1, true, 'ADM00001', 'Charly Garcia', '1234'),
-(2, true, 'ADM00002', 'Fito Paez', '1234'),
-(3, true, 'ADM00003', 'Gustavo Cerati', '1234'),
-(4, true, 'ADM00004', 'Andres Calamaro', '1234');
+INSERT INTO administrador (id, activo, codigo, nombre, password, rol) VALUES
+(1, true, 'ADM00001', 'Charly Garcia', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 'ADMINISTRADOR'),
+(2, true, 'ADM00002', 'Fito Paez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 'ADMINISTRADOR'),
+(3, true, 'ADM00003', 'Gustavo Cerati', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 'ADMINISTRADOR'),
+(4, true, 'ADM00004', 'Andres Calamaro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy', 'ADMINISTRADOR');
 
 INSERT INTO juez (id, nombre, juez_desde, activo, codigo) VALUES
 (1, 'Alberto Fernandez', '2012-03-15', true, 'JUE00001'),
