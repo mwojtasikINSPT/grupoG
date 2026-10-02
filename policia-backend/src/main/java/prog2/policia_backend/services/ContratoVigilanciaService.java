@@ -10,6 +10,7 @@ import prog2.policia_backend.exceptions.ContratoVigilanciaCumplidoException;
 import prog2.policia_backend.exceptions.ContratoVigilanciaDuplicadoException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.ContratoVigilancia;
+import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.models.Vigilante;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
@@ -124,6 +125,8 @@ public class ContratoVigilanciaService {
         }
 
         contrato.setActivo(false);
+        contrato.setMotivoBaja(MotivoBajaContrato.CANCELACION);
+
         contratoVigilanciaRepository.save(contrato);
     }
 
@@ -144,7 +147,8 @@ public class ContratoVigilanciaService {
                 contrato.getVigilante().getId(),
                 contrato.getSucursal().getId(),
                 contrato.getCodigo(),
-                contrato.isActivo()
+                contrato.isActivo(),
+                contrato.getMotivoBaja()
         );
     }
 

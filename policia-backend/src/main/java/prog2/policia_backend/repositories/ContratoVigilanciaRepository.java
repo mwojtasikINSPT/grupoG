@@ -30,4 +30,10 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
     // Obtiene todos los contratos asociados a un vigilante, incluidos los inactivos.
     List<ContratoVigilancia> findByVigilante_Id(Long vigilanteId);
 
+    // Obtiene los contratos activos de una sucursal cuya fecha todavía es futura.
+    List<ContratoVigilancia> findBySucursal_IdAndFechaAfterAndActivoTrue(
+            Long sucursalId,
+            LocalDate fecha
+    );
+
 }
