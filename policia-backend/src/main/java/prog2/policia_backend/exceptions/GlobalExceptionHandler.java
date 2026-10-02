@@ -71,6 +71,26 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    // Devuelve 409 cuando se intenta eliminar un contrato del dia o cumplido
+    @ExceptionHandler(ContratoVigilanciaCumplidoException.class)
+    public ResponseEntity<Map<String, String>> manejarContratoVigilanciaCumplido(
+            ContratoVigilanciaCumplidoException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    // Devuelve 409 cuando un vigilante ya tiene un contrato activo en esa fecha
+    @ExceptionHandler(ContratoVigilanciaDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarContratoDuplicado(
+            ContratoVigilanciaDuplicadoException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Devuelve 500 ante errores inesperados no controlados 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarErrorGeneral(

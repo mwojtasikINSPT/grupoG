@@ -1,5 +1,6 @@
 package prog2.policia_backend.DTOs;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 public class ContratoVigilanciaDTO {
 
     private Long id;
+    
+    @FutureOrPresent
     @NotNull
     private LocalDate fecha;
     private boolean conArma;
