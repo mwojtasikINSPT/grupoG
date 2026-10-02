@@ -8,5 +8,4 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {
 
     //proporciona automáticamente save(), findById(), findAll(), deleteById(), existsById().
     List<Asaltante> findByActivoTrue();
-    long countByBanda_IdAndActivoTrue(Long bandaId);
 }

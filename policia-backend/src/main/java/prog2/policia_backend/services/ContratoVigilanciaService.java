@@ -38,6 +38,14 @@ public class ContratoVigilanciaService {
 
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
         ContratoVigilancia contrato = convertirAEntidad(dto);
+        if (contratoVigilanciaRepository
+                .existsByVigilante_IdAndFechaAndActivoTrue(
+                        dto.getVigilanteId(),
+                        dto.getFecha())) {
+
+            throw new IllegalArgumentException(
+                    "El vigilante ya tiene un contrato activo en esa fecha");
+        }
         return convertirADTO(contratoVigilanciaRepository.save(contrato));
     }
 
@@ -46,6 +54,18 @@ public class ContratoVigilanciaService {
                 .filter(ContratoVigilancia::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("ContratoVigilancia", id));
+
+        //no comparar contra el contrato actual
+        boolean existeOtroContrato = contratoVigilanciaRepository
+                .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
+                        dto.getVigilanteId(),
+                        dto.getFecha(),
+                        id);
+
+        if (existeOtroContrato) {
+            throw new IllegalArgumentException(
+                    "El vigilante ya tiene otro contrato activo en esa fecha");
+        }
 
         contrato.setFecha(dto.getFecha());
         contrato.setConArma(dto.isConArma());

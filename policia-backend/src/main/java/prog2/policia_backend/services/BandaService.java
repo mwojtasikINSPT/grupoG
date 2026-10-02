@@ -8,6 +8,7 @@ import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.repositories.BandaRepository;
 
 import java.util.List;
+import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +32,23 @@ public class BandaService {
 
     public BandaDTO guardar(BandaDTO dto) {
         Banda banda = convertirAEntidad(dto);
-        return convertirADTO(bandaRepository.save(banda));
+
+        banda = bandaRepository.save(banda);
+
+        banda.setCodigo(
+                GeneradorCodigo.generar("BAN", banda.getId())
+        );
+
+        banda = bandaRepository.save(banda);
+
+        return convertirADTO(banda);
     }
 
+    //Por el momento, no se usa para nada
     public BandaDTO actualizar(Long id, BandaDTO dto) {
         Banda banda = bandaRepository.findById(id)
                 .filter(Banda::isActivo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
-
-        banda.setCantMiembros(dto.getCantMiembros());
-
         return convertirADTO(bandaRepository.save(banda));
     }
 
@@ -61,9 +69,6 @@ public class BandaService {
     }
 
     private Banda convertirAEntidad(BandaDTO dto) {
-        Banda banda = new Banda();
-        banda.setCantMiembros(dto.getCantMiembros());
-
-        return banda;
+        return new Banda();
     }
 }

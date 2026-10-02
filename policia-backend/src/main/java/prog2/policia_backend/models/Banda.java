@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 //Relacion: Banda 1 - N Asaltante
 @Entity
@@ -20,7 +21,10 @@ public class Banda {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Formula("(SELECT COUNT(*) FROM asaltante a WHERE a.banda_id = id AND a.activo = true)")
     private int cantMiembros;
+
     @OneToMany(mappedBy = "banda")
     private List<Asaltante> asaltantes;
     private String codigo;

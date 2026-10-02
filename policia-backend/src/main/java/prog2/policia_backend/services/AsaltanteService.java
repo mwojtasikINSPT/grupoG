@@ -44,10 +44,6 @@ public class AsaltanteService {
 
         asaltante = asaltanteRepository.save(asaltante);
 
-        if (asaltante.getBanda() != null) {
-            actualizarCantMiembros(asaltante.getBanda().getId());
-        }
-
         return convertirADTO(asaltante);
     }
 
@@ -56,10 +52,6 @@ public class AsaltanteService {
                 .filter(Asaltante::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", id));
-
-        Long bandaAnteriorId = asaltante.getBanda() != null
-                ? asaltante.getBanda().getId()
-                : null;
 
         asaltante.setNombre(dto.getNombre());
 
@@ -77,14 +69,6 @@ public class AsaltanteService {
 
         asaltante = asaltanteRepository.save(asaltante);
 
-        if (bandaAnteriorId != null) {
-            actualizarCantMiembros(bandaAnteriorId);
-        }
-
-        if (asaltante.getBanda() != null) {
-            actualizarCantMiembros(asaltante.getBanda().getId());
-        }
-
         return convertirADTO(asaltante);
     }
 
@@ -94,16 +78,8 @@ public class AsaltanteService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", id));
 
-        Long bandaId = asaltante.getBanda() != null
-                ? asaltante.getBanda().getId()
-                : null;
-
         asaltante.setActivo(false);
         asaltanteRepository.save(asaltante);
-
-        if (bandaId != null) {
-            actualizarCantMiembros(bandaId);
-        }
     }
 
     private AsaltanteDTO convertirADTO(Asaltante asaltante) {
@@ -136,15 +112,4 @@ public class AsaltanteService {
         return asaltante;
     }
 
-    private void actualizarCantMiembros(Long bandaId) {
-        Banda banda = bandaRepository.findById(bandaId)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Banda", bandaId));
-
-        banda.setCantMiembros(
-                (int) asaltanteRepository.countByBanda_IdAndActivoTrue(bandaId)
-        );
-
-        bandaRepository.save(banda);
-    }
 }

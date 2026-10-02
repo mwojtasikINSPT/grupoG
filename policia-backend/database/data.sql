@@ -4,11 +4,11 @@
 -- la contraseña por defecto: 1234
 -- =================================================================
 
-INSERT INTO banda (id, codigo, cant_miembros, activo) VALUES
-(1, 'BAN00001', 0, true),
-(2, 'BAN00002', 0, true),
-(3, 'BAN00003', 0, true),
-(4, 'BAN00004', 0, true);
+INSERT INTO banda (id, codigo, activo) VALUES
+(1, 'BAN00001', true),
+(2, 'BAN00002', true),
+(3, 'BAN00003', true),
+(4, 'BAN00004', true);
 
 INSERT INTO entidad_bancaria (id, nombre, domicilio_central, activo, codigo) VALUES
 (1, 'Banco del Sur', 'Av. Corrientes 1200, Buenos Aires', true, 'EBA00001'),

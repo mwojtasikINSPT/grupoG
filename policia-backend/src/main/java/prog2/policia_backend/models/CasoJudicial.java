@@ -6,15 +6,20 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//relaciona Asalto con Juez: Asalto 1 ─ 1 CasoJudicial N - 1 Juez
+//Relaciona Asalto, Asaltante y Juez con cada caso judicial: Asalto 1 ─ N CasoJudicial N - 1 Juez
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"asalto_id", "asaltante_id"})
+})
 public class CasoJudicial {
 
     @Id
@@ -24,12 +29,14 @@ public class CasoJudicial {
     private String codigo;
     private boolean condenado;
     private int tiempoCarcel;
-        
+
     @ManyToOne
     private Asalto asalto;
+
     @ManyToOne
     private Asaltante asaltante;
+
     @ManyToOne
     private Juez juez;
-    
+
 }
