@@ -35,8 +35,8 @@ public class AsaltanteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<AsaltanteDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody AsaltanteDTO dto) {
+            @PathVariable Long id,
+            @Valid @RequestBody AsaltanteDTO dto) {
 
         return ResponseEntity.ok(asaltanteService.actualizar(id, dto));
     }

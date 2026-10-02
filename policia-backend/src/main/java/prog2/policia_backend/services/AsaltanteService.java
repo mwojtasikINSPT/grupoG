@@ -89,7 +89,8 @@ public class AsaltanteService {
                 asaltante.getBanda() != null
                 ? asaltante.getBanda().getId()
                 : null,
-                asaltante.getCodigo()
+                asaltante.getCodigo(),
+                asaltante.getMotivoBaja()
         );
     }
 
