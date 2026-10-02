@@ -1,5 +1,6 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,14 +28,14 @@ public class CasoJudicialController {
     }
 
     @PostMapping
-    public ResponseEntity<CasoJudicialDTO> guardar(@RequestBody CasoJudicialDTO dto) {
+    public ResponseEntity<CasoJudicialDTO> guardar(@Valid @RequestBody CasoJudicialDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(casoJudicialService.guardar(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CasoJudicialDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody CasoJudicialDTO dto) {
 
         return ResponseEntity.ok(casoJudicialService.actualizar(id, dto));

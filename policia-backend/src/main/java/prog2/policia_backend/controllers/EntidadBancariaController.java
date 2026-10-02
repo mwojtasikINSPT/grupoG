@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
 import prog2.policia_backend.services.EntidadBancariaService;
 
@@ -28,7 +30,7 @@ public class EntidadBancariaController {
 
     @PostMapping
     public ResponseEntity<EntidadBancariaDTO> guardar(
-            @RequestBody EntidadBancariaDTO dto) {
+            @Valid @RequestBody EntidadBancariaDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(entidadBancariaService.guardar(dto));
@@ -36,7 +38,7 @@ public class EntidadBancariaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<EntidadBancariaDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody EntidadBancariaDTO dto) {
 
         return ResponseEntity.ok(

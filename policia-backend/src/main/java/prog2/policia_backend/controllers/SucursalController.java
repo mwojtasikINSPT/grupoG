@@ -1,9 +1,11 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import prog2.policia_backend.DTOs.SucursalDTO;
 import prog2.policia_backend.services.SucursalService;
 
@@ -27,14 +29,14 @@ public class SucursalController {
     }
 
     @PostMapping
-    public ResponseEntity<SucursalDTO> guardar(@RequestBody SucursalDTO dto) {
+    public ResponseEntity<SucursalDTO> guardar(@Valid @RequestBody SucursalDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(sucursalService.guardar(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SucursalDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody SucursalDTO dto) {
 
         return ResponseEntity.ok(

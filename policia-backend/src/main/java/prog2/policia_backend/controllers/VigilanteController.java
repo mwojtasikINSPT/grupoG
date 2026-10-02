@@ -1,5 +1,6 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class VigilanteController {
     }
 
     @PostMapping
-    public ResponseEntity<VigilanteDTO> guardar(@RequestBody VigilanteDTO dto) {
+    public ResponseEntity<VigilanteDTO> guardar(@Valid @RequestBody VigilanteDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(vigilanteService.guardar(dto));
     }

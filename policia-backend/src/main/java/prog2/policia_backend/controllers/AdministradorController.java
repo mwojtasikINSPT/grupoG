@@ -1,5 +1,6 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AdministradorController {
 
     @PostMapping
     public ResponseEntity<AdministradorDTO> guardar(
-            @RequestBody AdministradorDTO dto) {
+            @Valid @RequestBody AdministradorDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(administradorService.guardar(dto));
@@ -37,7 +38,7 @@ public class AdministradorController {
     @PutMapping("/{id}")
     public ResponseEntity<AdministradorDTO> actualizar(
             @PathVariable Long id,
-            @RequestBody AdministradorDTO dto) {
+            @Valid @RequestBody AdministradorDTO dto) {
 
         return ResponseEntity.ok(
                 administradorService.actualizar(id, dto)

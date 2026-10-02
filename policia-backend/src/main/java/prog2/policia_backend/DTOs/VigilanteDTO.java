@@ -1,6 +1,9 @@
 package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +15,16 @@ public class VigilanteDTO {
 
     private Long id;
     private String codigo;
+
+    @NotBlank
     private String nombre;
-    
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @NotBlank
+    @Size(min = 4, max = 20)
     private String password;
-    private int edad;
     
+    @Min(18)
+    private int edad;
+
 }

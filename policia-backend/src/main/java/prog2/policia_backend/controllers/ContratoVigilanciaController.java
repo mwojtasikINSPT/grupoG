@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.services.ContratoVigilanciaService;
 
@@ -28,7 +30,7 @@ public class ContratoVigilanciaController {
 
     @PostMapping
     public ResponseEntity<ContratoVigilanciaDTO> guardar(
-            @RequestBody ContratoVigilanciaDTO dto) {
+            @Valid @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(contratoVigilanciaService.guardar(dto));
@@ -36,7 +38,7 @@ public class ContratoVigilanciaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ContratoVigilanciaDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.ok(

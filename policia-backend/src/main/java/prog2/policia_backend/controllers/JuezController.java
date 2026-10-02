@@ -1,9 +1,11 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.services.JuezService;
 
@@ -27,14 +29,14 @@ public class JuezController {
     }
 
     @PostMapping
-    public ResponseEntity<JuezDTO> guardar(@RequestBody JuezDTO dto) {
+    public ResponseEntity<JuezDTO> guardar(@Valid @RequestBody JuezDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(juezService.guardar(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<JuezDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody JuezDTO dto) {
 
         return ResponseEntity.ok(juezService.actualizar(id, dto));

@@ -1,9 +1,11 @@
 package prog2.policia_backend.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import prog2.policia_backend.DTOs.InvestigadorDTO;
 import prog2.policia_backend.services.InvestigadorService;
 
@@ -28,7 +30,7 @@ public class InvestigadorController {
 
     @PostMapping
     public ResponseEntity<InvestigadorDTO> guardar(
-            @RequestBody InvestigadorDTO dto) {
+            @Valid @RequestBody InvestigadorDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(investigadorService.guardar(dto));
@@ -36,7 +38,7 @@ public class InvestigadorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<InvestigadorDTO> actualizar(
-            @PathVariable Long id,
+            @Valid @PathVariable Long id,
             @RequestBody InvestigadorDTO dto) {
 
         return ResponseEntity.ok(
