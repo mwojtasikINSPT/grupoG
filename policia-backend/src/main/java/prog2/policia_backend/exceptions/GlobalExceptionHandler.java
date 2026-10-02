@@ -11,10 +11,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+// Centraliza el manejo de excepciones de la API y las convierte en respuestas HTTP
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handler para Recurso inexistente
+    //Devuelve 404 para Recurso inexistente
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(
             RecursoNoEncontradoException ex) {
@@ -24,6 +25,7 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    // Devuelve 400 cuando fallan las validaciones de los datos 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
@@ -42,23 +44,14 @@ public class GlobalExceptionHandler {
                 .body(errores);
     }
 
+    // Devuelve 403 cuando el usuario autenticado no tiene permiso
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body("Acceso denegado");
     }
 
-    // Intercepta errores inesperados no controlados previamente para devolver 500 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> manejarErrorGeneral(
-            Exception ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error interno del servidor"));
-    }
-
-    // Handler para validaciones de negocio y datos obligatorios
+    // Devuelve 400 cuando se viola una regla de negocio o se recibe un argumento inválido
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         Map<String, String> error = new HashMap<>();
@@ -66,5 +59,25 @@ public class GlobalExceptionHandler {
         error.put("mensaje", ex.getMessage()); // texto del Service
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // Devuelve 409 Conflict cuando se intenta eliminar una banda con miembros activos
+    @ExceptionHandler(BandaConMiembrosException.class)
+    public ResponseEntity<Map<String, String>> manejarBandaConMiembros(
+            BandaConMiembrosException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    // Devuelve 500 ante errores inesperados no controlados 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> manejarErrorGeneral(
+            Exception ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error interno del servidor"));
     }
 }

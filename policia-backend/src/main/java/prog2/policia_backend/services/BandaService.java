@@ -1,13 +1,15 @@
 package prog2.policia_backend.services;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import prog2.policia_backend.DTOs.BandaDTO;
+import prog2.policia_backend.exceptions.BandaConMiembrosException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.repositories.BandaRepository;
-
-import java.util.List;
+import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
@@ -15,6 +17,7 @@ import prog2.policia_backend.utils.GeneradorCodigo;
 public class BandaService {
 
     private final BandaRepository bandaRepository;
+    private final AsaltanteRepository asaltanteRepository;
 
     public List<BandaDTO> listar() {
         return bandaRepository.findByActivoTrue()
@@ -30,14 +33,13 @@ public class BandaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
     }
 
-    public BandaDTO guardar(BandaDTO dto) {
-        Banda banda = convertirAEntidad(dto);
+    public BandaDTO guardar() {
+        Banda banda = new Banda();
 
         banda = bandaRepository.save(banda);
 
         banda.setCodigo(
-                GeneradorCodigo.generar("BAN", banda.getId())
-        );
+                GeneradorCodigo.generar("BAN", banda.getId()));
 
         banda = bandaRepository.save(banda);
 
@@ -54,7 +56,13 @@ public class BandaService {
 
     public void eliminar(Long id) {
         Banda banda = bandaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
+                .filter(Banda::isActivo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Banda", id));
+
+        if (asaltanteRepository.existsByBanda_IdAndActivoTrue(id)) {
+            throw new BandaConMiembrosException();
+        }
 
         banda.setActivo(false);
         bandaRepository.save(banda);
@@ -68,7 +76,4 @@ public class BandaService {
         );
     }
 
-    private Banda convertirAEntidad(BandaDTO dto) {
-        return new Banda();
-    }
 }

@@ -27,9 +27,9 @@ public class BandaController {
     }
 
     @PostMapping
-    public ResponseEntity<BandaDTO> guardar(@RequestBody BandaDTO dto) {
+    public ResponseEntity<BandaDTO> guardar() {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bandaService.guardar(dto));
+                .body(bandaService.guardar());
     }
 
     @PutMapping("/{id}")
