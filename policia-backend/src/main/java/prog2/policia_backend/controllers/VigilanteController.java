@@ -8,6 +8,7 @@ import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.services.VigilanteService;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/vigilantes")
@@ -21,6 +22,11 @@ public class VigilanteController {
         return ResponseEntity.ok(vigilanteService.listar());
     }
 
+    @PreAuthorize( //para restricciones del id
+            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
+            + "or (hasRole('VIGILANTE') and "
+            + "#id == authentication.principal.id)"
+    )
     @GetMapping("/{id}")
     public ResponseEntity<VigilanteDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(vigilanteService.buscarPorId(id));

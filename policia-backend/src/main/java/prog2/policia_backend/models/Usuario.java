@@ -1,5 +1,7 @@
 package prog2.policia_backend.models;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,5 +23,9 @@ public abstract class Usuario {
     private String codigo;
     private String nombre;
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private RolUsuario rol;
+
     private boolean activo = true;
 }

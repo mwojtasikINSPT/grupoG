@@ -2,19 +2,22 @@ package prog2.policia_backend.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import prog2.policia_backend.DTOs.InvestigadorDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Investigador;
 import prog2.policia_backend.repositories.InvestigadorRepository;
-
-import java.util.List;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.models.RolUsuario;
 
 @Service
 @RequiredArgsConstructor
 public class InvestigadorService {
 
     private final InvestigadorRepository investigadorRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<InvestigadorDTO> listar() {
         return investigadorRepository.findByActivoTrue()
@@ -48,6 +51,9 @@ public class InvestigadorService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", id));
 
         investigador.setNombre(dto.getNombre());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            investigador.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
 
         return convertirADTO(investigadorRepository.save(investigador));
     }
@@ -64,7 +70,8 @@ public class InvestigadorService {
         return new InvestigadorDTO(
                 investigador.getId(),
                 investigador.getCodigo(),
-                investigador.getNombre()
+                investigador.getNombre(),
+                null
         );
     }
 
@@ -73,6 +80,13 @@ public class InvestigadorService {
 
         investigador.setCodigo(dto.getCodigo());
         investigador.setNombre(dto.getNombre());
+        investigador.setRol(RolUsuario.INVESTIGADOR);
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            investigador.setPassword(passwordEncoder.encode(dto.getPassword()));
+        } else {
+            throw new IllegalArgumentException("La contraseña es obligatoria para registrar un nuevo usuario");
+        }
 
         return investigador;
     }

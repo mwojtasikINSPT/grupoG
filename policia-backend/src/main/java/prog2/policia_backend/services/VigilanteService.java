@@ -1,20 +1,23 @@
 package prog2.policia_backend.services;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.models.Vigilante;
 import prog2.policia_backend.repositories.VigilanteRepository;
-
-import java.util.List;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor //inyecto atrb final
 public class VigilanteService {
 
     private final VigilanteRepository vigilanteRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<VigilanteDTO> listar() {
         return vigilanteRepository.findByActivoTrue()
@@ -48,8 +51,11 @@ public class VigilanteService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", id));
 
         vigilante.setNombre(dto.getNombre());
-        vigilante.setPassword(dto.getPassword());
         vigilante.setEdad(dto.getEdad());
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
 
         return convertirADTO(vigilanteRepository.save(vigilante));
     }
@@ -67,7 +73,7 @@ public class VigilanteService {
                 vigilante.getId(),
                 vigilante.getCodigo(),
                 vigilante.getNombre(),
-                vigilante.getPassword(),
+                null,
                 vigilante.getEdad()
         );
     }
@@ -77,8 +83,13 @@ public class VigilanteService {
 
         vigilante.setCodigo(dto.getCodigo());
         vigilante.setNombre(dto.getNombre());
-        vigilante.setPassword(dto.getPassword());
         vigilante.setEdad(dto.getEdad());
+        vigilante.setRol(RolUsuario.VIGILANTE);
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
+        } else {
+            throw new IllegalArgumentException("La contraseña es obligatoria para registrar un nuevo usuario");
+        }
 
         return vigilante;
     }

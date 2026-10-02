@@ -1,20 +1,27 @@
 package prog2.policia_backend.services;
 
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import prog2.policia_backend.DTOs.AdministradorDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Administrador;
 import prog2.policia_backend.repositories.AdministradorRepository;
-
-import java.util.List;
+import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.utils.GeneradorCodigo;
+
 
 @Service
 @RequiredArgsConstructor
 public class AdministradorService {
 
     private final AdministradorRepository administradorRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<AdministradorDTO> listar() {
         return administradorRepository.findByActivoTrue()
@@ -48,6 +55,9 @@ public class AdministradorService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", id));
 
         administrador.setNombre(dto.getNombre());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
 
         return convertirADTO(administradorRepository.save(administrador));
     }
@@ -61,11 +71,12 @@ public class AdministradorService {
     }
 
     private AdministradorDTO convertirADTO(Administrador administrador) {
-        AdministradorDTO dto = new AdministradorDTO();
-        dto.setId(administrador.getId());
-        dto.setCodigo(administrador.getCodigo());
-        dto.setNombre(administrador.getNombre());
-        return dto;
+        return new AdministradorDTO(
+                administrador.getId(),
+                administrador.getCodigo(),
+                administrador.getNombre(),
+                null
+        );
     }
 
     private Administrador convertirAEntidad(AdministradorDTO dto) {
@@ -73,6 +84,8 @@ public class AdministradorService {
 
         administrador.setCodigo(dto.getCodigo());
         administrador.setNombre(dto.getNombre());
+        administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
+        administrador.setRol(RolUsuario.ADMINISTRADOR);
 
         return administrador;
     }
