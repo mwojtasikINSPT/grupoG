@@ -6,8 +6,10 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import prog2.policia_backend.DTOs.InvestigadorDTO;
+import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Investigador;
+import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.InvestigadorRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.models.RolUsuario;
@@ -26,11 +28,12 @@ public class InvestigadorService {
                 .toList();
     }
 
-    public InvestigadorDTO buscarPorId(Long id) {
-        return investigadorRepository.findById(id)
+    public InvestigadorDTO buscarPorCodigo(String codigo) {
+        return investigadorRepository.findByCodigo(codigo)
                 .filter(Investigador::isActivo)
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Investigador", codigo));
     }
 
     public InvestigadorDTO guardar(InvestigadorDTO dto) {
@@ -42,28 +45,61 @@ public class InvestigadorService {
                 GeneradorCodigo.generar("INV", investigador.getId())
         );
 
-        return convertirADTO(investigadorRepository.save(investigador));
+        investigador = investigadorRepository.save(investigador);
+
+        return convertirADTO(investigador);
     }
 
-    public InvestigadorDTO actualizar(Long id, InvestigadorDTO dto) {
-        Investigador investigador = investigadorRepository.findById(id)
+    public InvestigadorDTO actualizar(String codigo, InvestigadorDTO dto) {
+
+        Investigador investigador = investigadorRepository.findByCodigo(codigo)
                 .filter(Investigador::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Investigador", codigo));
 
         investigador.setNombre(dto.getNombre());
+
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            investigador.setPassword(passwordEncoder.encode(dto.getPassword()));
+            investigador.setPassword(
+                    passwordEncoder.encode(dto.getPassword())
+            );
         }
 
         return convertirADTO(investigadorRepository.save(investigador));
     }
 
-    public void eliminar(Long id) {
-        Investigador investigador = investigadorRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", id));
+    public void eliminar(String codigo, InvestigadorDTO dto) {
+
+        Investigador investigador = investigadorRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Investigador", codigo));
+
+        if (investigador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
 
         investigador.setActivo(false);
+        investigador.setMotivoBaja(dto.getMotivoBaja());
+
         investigadorRepository.save(investigador);
+    }
+
+    public InvestigadorDTO reactivar(String codigo) {
+
+        Investigador investigador = investigadorRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Investigador", codigo));
+
+        if (investigador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
+
+        investigador.setActivo(true);
+        investigador.setMotivoBaja(null);
+
+        investigador = investigadorRepository.save(investigador);
+
+        return convertirADTO(investigador);
     }
 
     private InvestigadorDTO convertirADTO(Investigador investigador) {
@@ -71,7 +107,8 @@ public class InvestigadorService {
                 investigador.getId(),
                 investigador.getCodigo(),
                 investigador.getNombre(),
-                null
+                null,
+                investigador.getMotivoBaja()
         );
     }
 
@@ -81,12 +118,9 @@ public class InvestigadorService {
         investigador.setCodigo(dto.getCodigo());
         investigador.setNombre(dto.getNombre());
         investigador.setRol(RolUsuario.INVESTIGADOR);
-
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            investigador.setPassword(passwordEncoder.encode(dto.getPassword()));
-        } else {
-            throw new IllegalArgumentException("La contraseña es obligatoria para registrar un nuevo usuario");
-        }
+        investigador.setPassword(
+                passwordEncoder.encode(dto.getPassword())
+        );
 
         return investigador;
     }

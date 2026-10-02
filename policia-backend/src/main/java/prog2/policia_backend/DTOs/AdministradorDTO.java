@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import prog2.policia_backend.models.MotivoBajaPersona;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,4 +24,6 @@ public class AdministradorDTO {
     @NotBlank
     @Size(min = 4, max = 20)
     private String password;
+    
+    private MotivoBajaPersona motivoBaja;
 }

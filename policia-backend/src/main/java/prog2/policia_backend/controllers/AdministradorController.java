@@ -22,9 +22,13 @@ public class AdministradorController {
         return ResponseEntity.ok(administradorService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AdministradorDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(administradorService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<AdministradorDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                administradorService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
@@ -35,19 +39,32 @@ public class AdministradorController {
                 .body(administradorService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<AdministradorDTO> actualizar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             @Valid @RequestBody AdministradorDTO dto) {
 
         return ResponseEntity.ok(
-                administradorService.actualizar(id, dto)
+                administradorService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        administradorService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo,
+            @RequestBody AdministradorDTO dto) {
+
+        administradorService.eliminar(codigo, dto);
+
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<AdministradorDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                administradorService.reactivar(codigo)
+        );
     }
 }

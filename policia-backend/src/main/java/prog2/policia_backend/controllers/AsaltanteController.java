@@ -22,9 +22,15 @@ public class AsaltanteController {
         return ResponseEntity.ok(asaltanteService.listar());
     }
 
+    /*
     @GetMapping("/{id}")
     public ResponseEntity<AsaltanteDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(asaltanteService.buscarPorId(id));
+    }
+     */
+    @GetMapping("/{codigo}")
+    public ResponseEntity<AsaltanteDTO> buscarPorCodigo(@PathVariable String codigo) {
+        return ResponseEntity.ok(asaltanteService.buscarPorCodigo(codigo));
     }
 
     @PostMapping
@@ -33,17 +39,17 @@ public class AsaltanteController {
                 .body(asaltanteService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<AsaltanteDTO> actualizar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             @Valid @RequestBody AsaltanteDTO dto) {
 
-        return ResponseEntity.ok(asaltanteService.actualizar(id, dto));
+        return ResponseEntity.ok(asaltanteService.actualizar(codigo, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        asaltanteService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
+        asaltanteService.eliminar(codigo);
         return ResponseEntity.noContent().build();
     }
 }

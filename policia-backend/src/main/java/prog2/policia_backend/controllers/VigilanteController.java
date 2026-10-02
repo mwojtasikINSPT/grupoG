@@ -26,49 +26,71 @@ public class VigilanteController {
         return ResponseEntity.ok(vigilanteService.listar());
     }
 
-    @PreAuthorize( //para restricciones del id
-            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
-            + "or (hasRole('VIGILANTE') and "
-            + "#id == authentication.principal.id)"
-    )
-    @GetMapping("/{id}")
-    public ResponseEntity<VigilanteDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(vigilanteService.buscarPorId(id));
-    }
-
-    @GetMapping("/{id}/contratos")
     @PreAuthorize(
             "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
             + "or (hasRole('VIGILANTE') and "
-            + "#id == authentication.principal.id)"
+            + "#codigo == authentication.principal.codigo)"
     )
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
-            @PathVariable Long id) {
+    @GetMapping("/{codigo}")
+    public ResponseEntity<VigilanteDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
 
         return ResponseEntity.ok(
-                contratoVigilanciaService.listarPorVigilante(id)
+                vigilanteService.buscarPorCodigo(codigo)
+        );
+    }
+
+    @GetMapping("/{codigo}/contratos")
+    @PreAuthorize(
+            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
+            + "or (hasRole('VIGILANTE') and "
+            + "#codigo == authentication.principal.codigo)"
+    )
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
+            @PathVariable String codigo) {
+
+        // Por ahora necesitamos el ID interno para buscar los contratos.
+        VigilanteDTO vigilante = vigilanteService.buscarPorCodigo(codigo);
+
+        return ResponseEntity.ok(
+                contratoVigilanciaService.listarPorVigilante(vigilante.getId())
         );
     }
 
     @PostMapping
-    public ResponseEntity<VigilanteDTO> guardar(@Valid @RequestBody VigilanteDTO dto) {
+    public ResponseEntity<VigilanteDTO> guardar(
+            @Valid @RequestBody VigilanteDTO dto) {
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(vigilanteService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<VigilanteDTO> actualizar(
-            @PathVariable Long id,
-            @RequestBody VigilanteDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody VigilanteDTO dto) {
 
         return ResponseEntity.ok(
-                vigilanteService.actualizar(id, dto)
+                vigilanteService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        vigilanteService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo,
+            @RequestBody VigilanteDTO dto) {
+
+        vigilanteService.eliminar(codigo, dto);
+
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<VigilanteDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                vigilanteService.reactivar(codigo)
+        );
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import prog2.policia_backend.models.MotivoBajaPersona;
 
 @Data
 @NoArgsConstructor
@@ -23,8 +24,10 @@ public class VigilanteDTO {
     @NotBlank
     @Size(min = 4, max = 20)
     private String password;
-    
+
     @Min(18)
     private int edad;
+
+    private MotivoBajaPersona motivoBaja;
 
 }

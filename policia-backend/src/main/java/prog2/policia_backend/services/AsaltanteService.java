@@ -1,15 +1,16 @@
 package prog2.policia_backend.services;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.BandaRepository;
-
-import java.util.List;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Banda;
+import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
@@ -33,6 +34,14 @@ public class AsaltanteService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", id));
     }
 
+    public AsaltanteDTO buscarPorCodigo(String codigo) {
+        return asaltanteRepository.findByCodigo(codigo)
+                .filter(Asaltante::isActivo)
+                .map(this::convertirADTO)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asaltante", codigo));
+    }
+
     public AsaltanteDTO guardar(AsaltanteDTO dto) {
         Asaltante asaltante = convertirAEntidad(dto);
 
@@ -47,11 +56,11 @@ public class AsaltanteService {
         return convertirADTO(asaltante);
     }
 
-    public AsaltanteDTO actualizar(Long id, AsaltanteDTO dto) {
-        Asaltante asaltante = asaltanteRepository.findById(id)
+    public AsaltanteDTO actualizar(String codigo, AsaltanteDTO dto) {
+        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
                 .filter(Asaltante::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Asaltante", id));
+                        -> new RecursoNoEncontradoException("Asaltante", codigo));
 
         asaltante.setNombre(dto.getNombre());
 
@@ -72,13 +81,14 @@ public class AsaltanteService {
         return convertirADTO(asaltante);
     }
 
-    public void eliminar(Long id) {
-        Asaltante asaltante = asaltanteRepository.findById(id)
+    public void eliminar(String codigo) {
+        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
                 .filter(Asaltante::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Asaltante", id));
+                        -> new RecursoNoEncontradoException("Asaltante", codigo));
 
         asaltante.setActivo(false);
+        asaltante.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
         asaltanteRepository.save(asaltante);
     }
 

@@ -28,4 +28,7 @@ public abstract class Usuario {
     private RolUsuario rol;
 
     private boolean activo = true;
+
+    @Enumerated(EnumType.STRING)
+    private MotivoBajaPersona motivoBaja;
 }

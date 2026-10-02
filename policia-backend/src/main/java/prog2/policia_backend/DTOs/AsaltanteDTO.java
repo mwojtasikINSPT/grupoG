@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import prog2.policia_backend.models.MotivoBajaAsaltante;
+import prog2.policia_backend.models.MotivoBajaPersona;
 
 @Data
 @NoArgsConstructor
@@ -21,5 +21,5 @@ public class AsaltanteDTO {
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private MotivoBajaAsaltante motivoBaja;
+    private MotivoBajaPersona motivoBaja;
 }

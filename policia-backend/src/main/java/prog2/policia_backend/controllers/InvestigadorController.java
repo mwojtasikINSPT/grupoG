@@ -23,9 +23,13 @@ public class InvestigadorController {
         return ResponseEntity.ok(investigadorService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<InvestigadorDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(investigadorService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<InvestigadorDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                investigadorService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
@@ -36,19 +40,32 @@ public class InvestigadorController {
                 .body(investigadorService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<InvestigadorDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody InvestigadorDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody InvestigadorDTO dto) {
 
         return ResponseEntity.ok(
-                investigadorService.actualizar(id, dto)
+                investigadorService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        investigadorService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo,
+            @RequestBody InvestigadorDTO dto) {
+
+        investigadorService.eliminar(codigo, dto);
+
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<InvestigadorDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                investigadorService.reactivar(codigo)
+        );
     }
 }

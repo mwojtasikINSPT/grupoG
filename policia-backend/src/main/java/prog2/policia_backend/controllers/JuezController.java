@@ -52,10 +52,11 @@ public class JuezController {
     }
 
     @PatchMapping("/{codigo}/reactivar")
-    public ResponseEntity<Void> reactivar(@PathVariable String codigo) {
+    public ResponseEntity<JuezDTO> reactivar(
+            @PathVariable String codigo) {
 
-        juezService.reactivar(codigo);
-
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                juezService.reactivar(codigo)
+        );
     }
 }

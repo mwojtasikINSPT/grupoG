@@ -7,8 +7,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
+import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
+import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.models.Vigilante;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
@@ -30,11 +32,12 @@ public class VigilanteService {
                 .toList();
     }
 
-    public VigilanteDTO buscarPorId(Long id) {
-        return vigilanteRepository.findById(id)
+    public VigilanteDTO buscarPorCodigo(String codigo) {
+        return vigilanteRepository.findByCodigo(codigo)
                 .filter(Vigilante::isActivo)
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Vigilante", codigo));
     }
 
     public VigilanteDTO guardar(VigilanteDTO dto) {
@@ -46,37 +49,69 @@ public class VigilanteService {
                 GeneradorCodigo.generar("VIG", vigilante.getId())
         );
 
-        return convertirADTO(vigilanteRepository.save(vigilante));
+        vigilante = vigilanteRepository.save(vigilante);
+
+        return convertirADTO(vigilante);
     }
 
-    public VigilanteDTO actualizar(Long id, VigilanteDTO dto) {
-        Vigilante vigilante = vigilanteRepository.findById(id)
+    public VigilanteDTO actualizar(String codigo, VigilanteDTO dto) {
+
+        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
                 .filter(Vigilante::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Vigilante", codigo));
 
         vigilante.setNombre(dto.getNombre());
         vigilante.setEdad(dto.getEdad());
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
+            vigilante.setPassword(
+                    passwordEncoder.encode(dto.getPassword())
+            );
         }
 
         return convertirADTO(vigilanteRepository.save(vigilante));
     }
 
-    public void eliminar(Long id) {
-        Vigilante vigilante = vigilanteRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", id));
+    public void eliminar(String codigo, VigilanteDTO dto) {
+
+        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+
+        if (vigilante.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
 
         if (contratoVigilanciaRepository
                 .existsByVigilante_IdAndFechaGreaterThanAndActivoTrue(
-                        id, LocalDate.now())) {
+                        vigilante.getId(), LocalDate.now())) {
 
             throw new VigilanteConContratoFuturoException();
         }
 
         vigilante.setActivo(false);
+        vigilante.setMotivoBaja(dto.getMotivoBaja());
+
         vigilanteRepository.save(vigilante);
+    }
+
+    public VigilanteDTO reactivar(String codigo) {
+
+        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+
+        if (vigilante.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
+
+        vigilante.setActivo(true);
+        vigilante.setMotivoBaja(null);
+
+        vigilante = vigilanteRepository.save(vigilante);
+
+        return convertirADTO(vigilante);
     }
 
     private VigilanteDTO convertirADTO(Vigilante vigilante) {
@@ -85,7 +120,8 @@ public class VigilanteService {
                 vigilante.getCodigo(),
                 vigilante.getNombre(),
                 null,
-                vigilante.getEdad()
+                vigilante.getEdad(),
+                vigilante.getMotivoBaja()
         );
     }
 
@@ -96,11 +132,9 @@ public class VigilanteService {
         vigilante.setNombre(dto.getNombre());
         vigilante.setEdad(dto.getEdad());
         vigilante.setRol(RolUsuario.VIGILANTE);
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
-        } else {
-            throw new IllegalArgumentException("La contraseña es obligatoria para registrar un nuevo usuario");
-        }
+        vigilante.setPassword(
+                passwordEncoder.encode(dto.getPassword())
+        );
 
         return vigilante;
     }

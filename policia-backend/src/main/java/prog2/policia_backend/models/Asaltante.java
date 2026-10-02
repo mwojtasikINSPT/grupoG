@@ -28,5 +28,5 @@ public class Asaltante {
     private boolean activo = true;
 
     @Enumerated(EnumType.STRING)
-    private MotivoBajaAsaltante motivoBaja;
+    private MotivoBajaPersona motivoBaja;
 }

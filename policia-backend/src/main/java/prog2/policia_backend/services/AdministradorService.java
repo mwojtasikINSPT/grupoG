@@ -7,12 +7,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AdministradorDTO;
+import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Administrador;
+import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.AdministradorRepository;
 import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.utils.GeneradorCodigo;
-
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +31,12 @@ public class AdministradorService {
                 .toList();
     }
 
-    public AdministradorDTO buscarPorId(Long id) {
-        return administradorRepository.findById(id)
+    public AdministradorDTO buscarPorCodigo(String codigo) {
+        return administradorRepository.findByCodigo(codigo)
                 .filter(Administrador::isActivo)
                 .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Administrador", codigo));
     }
 
     public AdministradorDTO guardar(AdministradorDTO dto) {
@@ -46,28 +48,61 @@ public class AdministradorService {
                 GeneradorCodigo.generar("ADM", administrador.getId())
         );
 
-        return convertirADTO(administradorRepository.save(administrador));
+        administrador = administradorRepository.save(administrador);
+
+        return convertirADTO(administrador);
     }
 
-    public AdministradorDTO actualizar(Long id, AdministradorDTO dto) {
-        Administrador administrador = administradorRepository.findById(id)
+    public AdministradorDTO actualizar(String codigo, AdministradorDTO dto) {
+
+        Administrador administrador = administradorRepository.findByCodigo(codigo)
                 .filter(Administrador::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Administrador", codigo));
 
         administrador.setNombre(dto.getNombre());
+
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
+            administrador.setPassword(
+                    passwordEncoder.encode(dto.getPassword())
+            );
         }
 
         return convertirADTO(administradorRepository.save(administrador));
     }
 
-    public void eliminar(Long id) {
-        Administrador administrador = administradorRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", id));
+    public void eliminar(String codigo, AdministradorDTO dto) {
+
+        Administrador administrador = administradorRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Administrador", codigo));
+
+        if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
 
         administrador.setActivo(false);
+        administrador.setMotivoBaja(dto.getMotivoBaja());
+
         administradorRepository.save(administrador);
+    }
+
+    public AdministradorDTO reactivar(String codigo) {
+
+        Administrador administrador = administradorRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Administrador", codigo));
+
+        if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
+        }
+
+        administrador.setActivo(true);
+        administrador.setMotivoBaja(null);
+
+        administrador = administradorRepository.save(administrador);
+
+        return convertirADTO(administrador);
     }
 
     private AdministradorDTO convertirADTO(Administrador administrador) {
@@ -75,7 +110,8 @@ public class AdministradorService {
                 administrador.getId(),
                 administrador.getCodigo(),
                 administrador.getNombre(),
-                null
+                null,
+                administrador.getMotivoBaja()
         );
     }
 
@@ -84,7 +120,9 @@ public class AdministradorService {
 
         administrador.setCodigo(dto.getCodigo());
         administrador.setNombre(dto.getNombre());
-        administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
+        administrador.setPassword(
+                passwordEncoder.encode(dto.getPassword())
+        );
         administrador.setRol(RolUsuario.ADMINISTRADOR);
 
         return administrador;

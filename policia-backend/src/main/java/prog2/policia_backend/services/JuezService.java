@@ -38,7 +38,7 @@ public class JuezService {
                         -> new RecursoNoEncontradoException("Juez", codigo));
     }
 
-    public void reactivar(String codigo) {
+    public JuezDTO reactivar(String codigo) {
 
         Juez juez = juezRepository.findByCodigo(codigo)
                 .orElseThrow(()
@@ -51,7 +51,9 @@ public class JuezService {
         juez.setActivo(true);
         juez.setMotivoBaja(null);
 
-        juezRepository.save(juez);
+        juez = juezRepository.save(juez);
+
+        return convertirADTO(juez);
     }
 
     public JuezDTO guardar(JuezDTO dto) {
