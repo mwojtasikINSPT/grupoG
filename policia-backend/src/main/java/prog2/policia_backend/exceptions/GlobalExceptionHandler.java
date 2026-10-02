@@ -91,6 +91,16 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    // Devuelve 409 cuando se intenta dar de baja un vigilante con contratos activos
+    @ExceptionHandler(VigilanteConContratoFuturoException.class)
+    public ResponseEntity<Map<String, String>> manejarVigilanteConContratoFuturo(
+            VigilanteConContratoFuturoException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Devuelve 500 ante errores inesperados no controlados 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarErrorGeneral(

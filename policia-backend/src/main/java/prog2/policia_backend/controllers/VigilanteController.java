@@ -1,15 +1,17 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
+import prog2.policia_backend.services.ContratoVigilanciaService;
 import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.services.VigilanteService;
-
-import java.util.List;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/vigilantes")
@@ -17,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 public class VigilanteController {
 
     private final VigilanteService vigilanteService;
+    private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
     public ResponseEntity<List<VigilanteDTO>> listar() {
@@ -31,6 +34,20 @@ public class VigilanteController {
     @GetMapping("/{id}")
     public ResponseEntity<VigilanteDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(vigilanteService.buscarPorId(id));
+    }
+
+    @GetMapping("/{id}/contratos")
+    @PreAuthorize(
+            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
+            + "or (hasRole('VIGILANTE') and "
+            + "#id == authentication.principal.id)"
+    )
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                contratoVigilanciaService.listarPorVigilante(id)
+        );
     }
 
     @PostMapping

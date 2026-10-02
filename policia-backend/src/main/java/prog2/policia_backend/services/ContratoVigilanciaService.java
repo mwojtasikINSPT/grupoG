@@ -36,9 +36,9 @@ public class ContratoVigilanciaService {
         return contratoVigilanciaRepository.findById(id)
                 .filter(ContratoVigilancia::isActivo)
                 .map(this::convertirADTO)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException(
-                                "ContratoVigilancia", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "ContratoVigilancia", id));
     }
 
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
@@ -68,14 +68,14 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = contratoVigilanciaRepository.findById(id)
                 .filter(ContratoVigilancia::isActivo)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException(
-                                "ContratoVigilancia", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "ContratoVigilancia", id));
 
         // Comprueba que no exista otro contrato con el mismo
         // vigilante y fecha.
-        boolean existeOtroContrato =
-                contratoVigilanciaRepository
+        boolean existeOtroContrato
+                = contratoVigilanciaRepository
                         .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
                                 dto.getVigilanteId(),
                                 dto.getFecha(),
@@ -88,16 +88,16 @@ public class ContratoVigilanciaService {
         Vigilante vigilante = vigilanteRepository.findById(
                 dto.getVigilanteId())
                 .filter(Vigilante::isActivo)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException(
-                                "Vigilante", dto.getVigilanteId()));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Vigilante", dto.getVigilanteId()));
 
         Sucursal sucursal = sucursalRepository.findById(
                 dto.getSucursalId())
                 .filter(Sucursal::isActivo)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException(
-                                "Sucursal", dto.getSucursalId()));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Sucursal", dto.getSucursalId()));
 
         contrato.setFecha(dto.getFecha());
         contrato.setConArma(dto.isConArma());
@@ -113,9 +113,9 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = contratoVigilanciaRepository.findById(id)
                 .filter(ContratoVigilancia::isActivo)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException(
-                                "ContratoVigilancia", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "ContratoVigilancia", id));
 
         // Solo se permite eliminar contratos cuya fecha todavía
         // no haya llegado.
@@ -127,6 +127,13 @@ public class ContratoVigilanciaService {
         contratoVigilanciaRepository.save(contrato);
     }
 
+    public List<ContratoVigilanciaDTO> listarPorVigilante(Long vigilanteId) {
+        return contratoVigilanciaRepository.findByVigilante_Id(vigilanteId)
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     private ContratoVigilanciaDTO convertirADTO(
             ContratoVigilancia contrato) {
 
@@ -136,7 +143,8 @@ public class ContratoVigilanciaService {
                 contrato.isConArma(),
                 contrato.getVigilante().getId(),
                 contrato.getSucursal().getId(),
-                contrato.getCodigo()
+                contrato.getCodigo(),
+                contrato.isActivo()
         );
     }
 
@@ -151,19 +159,19 @@ public class ContratoVigilanciaService {
         contrato.setVigilante(
                 vigilanteRepository.findById(dto.getVigilanteId())
                         .filter(Vigilante::isActivo)
-                        .orElseThrow(() ->
-                                new RecursoNoEncontradoException(
-                                        "Vigilante",
-                                        dto.getVigilanteId()))
+                        .orElseThrow(()
+                                -> new RecursoNoEncontradoException(
+                                "Vigilante",
+                                dto.getVigilanteId()))
         );
 
         contrato.setSucursal(
                 sucursalRepository.findById(dto.getSucursalId())
                         .filter(Sucursal::isActivo)
-                        .orElseThrow(() ->
-                                new RecursoNoEncontradoException(
-                                        "Sucursal",
-                                        dto.getSucursalId()))
+                        .orElseThrow(()
+                                -> new RecursoNoEncontradoException(
+                                "Sucursal",
+                                dto.getSucursalId()))
         );
 
         return contrato;

@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 import prog2.policia_backend.models.RolUsuario;
 
 // Configuración principal de Spring Security
@@ -53,12 +54,19 @@ public class SecurityConfig {
                         SessionCreationPolicy.STATELESS))
                 // autenticación
                 .authorizeHttpRequests(auth -> auth
-                // El endpoint de un vigilante podrá ser accedido
-                // por los tres roles; luego @PreAuthorize decidirá
-                // si el vigilante puede ver ese ID.
+                // Permite consultar los contratos de un vigilante; @PreAuthorize
+                // controla que el vigilante solo pueda consultar los propios.
                 .requestMatchers(
                         HttpMethod.GET,
                         "/api/vigilantes/*")
+                .hasAnyRole(
+                        RolUsuario.VIGILANTE.name(),
+                        RolUsuario.INVESTIGADOR.name(),
+                        RolUsuario.ADMINISTRADOR.name())
+                // Permite consultar los contratos de un vigilante.
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/vigilantes/*/contratos")
                 .hasAnyRole(
                         RolUsuario.VIGILANTE.name(),
                         RolUsuario.INVESTIGADOR.name(),
@@ -70,7 +78,7 @@ public class SecurityConfig {
                         RolUsuario.ADMINISTRADOR.name())
                 // Solo administradores pueden crear, modificar o eliminar.
                 .requestMatchers("/api/**")
-                .hasRole( RolUsuario.ADMINISTRADOR.name())
+                .hasRole(RolUsuario.ADMINISTRADOR.name())
                 .requestMatchers("/error")
                 .permitAll()
                 .anyRequest()

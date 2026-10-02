@@ -1,5 +1,6 @@
 package prog2.policia_backend.services;
 
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -7,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
 import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.models.Vigilante;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.VigilanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
@@ -18,6 +21,7 @@ public class VigilanteService {
 
     private final VigilanteRepository vigilanteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
     public List<VigilanteDTO> listar() {
         return vigilanteRepository.findByActivoTrue()
@@ -63,6 +67,13 @@ public class VigilanteService {
     public void eliminar(Long id) {
         Vigilante vigilante = vigilanteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", id));
+
+        if (contratoVigilanciaRepository
+                .existsByVigilante_IdAndFechaGreaterThanAndActivoTrue(
+                        id, LocalDate.now())) {
+
+            throw new VigilanteConContratoFuturoException();
+        }
 
         vigilante.setActivo(false);
         vigilanteRepository.save(vigilante);

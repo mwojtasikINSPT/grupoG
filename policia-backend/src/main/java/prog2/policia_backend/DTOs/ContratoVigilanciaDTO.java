@@ -1,5 +1,6 @@
 package prog2.policia_backend.DTOs;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 public class ContratoVigilanciaDTO {
 
     private Long id;
-    
+
     @FutureOrPresent
     @NotNull
     private LocalDate fecha;
@@ -26,4 +27,7 @@ public class ContratoVigilanciaDTO {
     @NotNull
     private Long sucursalId;
     private String codigo;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private boolean activo;
 }
