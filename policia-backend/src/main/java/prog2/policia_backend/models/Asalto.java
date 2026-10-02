@@ -25,8 +25,11 @@ public class Asalto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private LocalDate fecha;
+
     private String codigo;
+
     @ManyToMany
     @JoinTable(
             name = "asalto_asaltante",
@@ -34,7 +37,7 @@ public class Asalto {
             inverseJoinColumns = @JoinColumn(name = "asaltante_id")
     )
     private List<Asaltante> asaltantes;
+
     @ManyToOne
     private Sucursal sucursal;
-    private boolean activo = true;
 }

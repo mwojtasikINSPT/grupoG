@@ -33,6 +33,14 @@ public class BandaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
     }
 
+    public BandaDTO buscarPorCodigo(String codigo) {
+        return bandaRepository.findByCodigo(codigo)
+                .filter(Banda::isActivo)
+                .map(this::convertirADTO)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Banda", codigo));
+    }
+
     public BandaDTO guardar() {
         Banda banda = new Banda();
 
@@ -46,6 +54,7 @@ public class BandaService {
         return convertirADTO(banda);
     }
 
+    /*
     //Por el momento, no se usa para nada
     public BandaDTO actualizar(Long id, BandaDTO dto) {
         Banda banda = bandaRepository.findById(id)
@@ -54,18 +63,31 @@ public class BandaService {
         return convertirADTO(bandaRepository.save(banda));
     }
 
-    public void eliminar(Long id) {
-        Banda banda = bandaRepository.findById(id)
+     */
+    public void eliminar(String codigo) {
+        Banda banda = bandaRepository.findByCodigo(codigo)
                 .filter(Banda::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Banda", id));
+                        -> new RecursoNoEncontradoException("Banda", codigo));
 
-        if (asaltanteRepository.existsByBanda_IdAndActivoTrue(id)) {
+        if (asaltanteRepository.existsByBanda_IdAndActivoTrue(banda.getId())) {
             throw new BandaConMiembrosException();
         }
 
         banda.setActivo(false);
         bandaRepository.save(banda);
+    }
+
+    public BandaDTO reactivar(String codigo) {
+        Banda banda = bandaRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Banda", codigo));
+
+        banda.setActivo(true);
+
+        banda = bandaRepository.save(banda);
+
+        return convertirADTO(banda);
     }
 
     private BandaDTO convertirADTO(Banda banda) {

@@ -33,13 +33,13 @@ public class ContratoVigilanciaService {
                 .toList();
     }
 
-    public ContratoVigilanciaDTO buscarPorId(Long id) {
-        return contratoVigilanciaRepository.findById(id)
+    public ContratoVigilanciaDTO buscarPorCodigo(String codigo) {
+        return contratoVigilanciaRepository.findByCodigo(codigo)
                 .filter(ContratoVigilancia::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", id));
+                        "ContratoVigilancia", codigo));
     }
 
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
@@ -65,22 +65,23 @@ public class ContratoVigilanciaService {
         return convertirADTO(contrato);
     }
 
-    public ContratoVigilanciaDTO actualizar(Long id, ContratoVigilanciaDTO dto) {
+    public ContratoVigilanciaDTO actualizar(
+            String codigo,
+            ContratoVigilanciaDTO dto) {
 
-        ContratoVigilancia contrato = contratoVigilanciaRepository.findById(id)
+        ContratoVigilancia contrato = contratoVigilanciaRepository
+                .findByCodigo(codigo)
                 .filter(ContratoVigilancia::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", id));
+                        "ContratoVigilancia", codigo));
 
-        // Comprueba que no exista otro contrato con el mismo
-        // vigilante y fecha.
         boolean existeOtroContrato
                 = contratoVigilanciaRepository
                         .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
                                 dto.getVigilanteId(),
                                 dto.getFecha(),
-                                id);
+                                contrato.getId());
 
         if (existeOtroContrato) {
             throw new ContratoVigilanciaDuplicadoException();
@@ -110,16 +111,15 @@ public class ContratoVigilanciaService {
         );
     }
 
-    public void eliminar(Long id) {
+    public void eliminar(String codigo) {
 
-        ContratoVigilancia contrato = contratoVigilanciaRepository.findById(id)
+        ContratoVigilancia contrato = contratoVigilanciaRepository
+                .findByCodigo(codigo)
                 .filter(ContratoVigilancia::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", id));
+                        "ContratoVigilancia", codigo));
 
-        // Solo se permite eliminar contratos cuya fecha todavía
-        // no haya llegado.
         if (!contrato.getFecha().isAfter(LocalDate.now())) {
             throw new ContratoVigilanciaCumplidoException();
         }
@@ -130,8 +130,15 @@ public class ContratoVigilanciaService {
         contratoVigilanciaRepository.save(contrato);
     }
 
-    public List<ContratoVigilanciaDTO> listarPorVigilante(Long vigilanteId) {
-        return contratoVigilanciaRepository.findByVigilante_Id(vigilanteId)
+    public List<ContratoVigilanciaDTO> listarPorVigilante(String codigo) {
+
+        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Vigilante", codigo));
+
+        return contratoVigilanciaRepository
+                .findByVigilante_Id(vigilante.getId())
                 .stream()
                 .map(this::convertirADTO)
                 .toList();

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import prog2.policia_backend.models.ContratoVigilancia;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigilancia, Long> {
 
@@ -35,5 +36,8 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
             Long sucursalId,
             LocalDate fecha
     );
+    
+    //Búsqueda por cód
+    Optional<ContratoVigilancia> findByCodigo(String codigo);
 
 }

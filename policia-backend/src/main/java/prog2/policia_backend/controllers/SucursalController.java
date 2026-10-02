@@ -23,30 +23,39 @@ public class SucursalController {
         return ResponseEntity.ok(sucursalService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SucursalDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(sucursalService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<SucursalDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                sucursalService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
-    public ResponseEntity<SucursalDTO> guardar(@Valid @RequestBody SucursalDTO dto) {
+    public ResponseEntity<SucursalDTO> guardar(
+            @Valid @RequestBody SucursalDTO dto) {
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(sucursalService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<SucursalDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody SucursalDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody SucursalDTO dto) {
 
         return ResponseEntity.ok(
-                sucursalService.actualizar(id, dto)
+                sucursalService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        sucursalService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo) {
+
+        sucursalService.eliminar(codigo);
+
         return ResponseEntity.noContent().build();
     }
 }

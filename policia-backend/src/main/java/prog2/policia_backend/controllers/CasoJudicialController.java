@@ -27,23 +27,28 @@ public class CasoJudicialController {
         return ResponseEntity.ok(casoJudicialService.buscarPorId(id));
     }
 
+    @GetMapping("/{codigo}")
+    public ResponseEntity<CasoJudicialDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                casoJudicialService.buscarPorCodigo(codigo)
+        );
+    }
+
     @PostMapping
     public ResponseEntity<CasoJudicialDTO> guardar(@Valid @RequestBody CasoJudicialDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(casoJudicialService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<CasoJudicialDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody CasoJudicialDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody CasoJudicialDTO dto) {
 
-        return ResponseEntity.ok(casoJudicialService.actualizar(id, dto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        casoJudicialService.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                casoJudicialService.actualizar(codigo, dto)
+        );
     }
 }

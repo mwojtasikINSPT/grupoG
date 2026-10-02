@@ -1,11 +1,11 @@
 package prog2.policia_backend.services;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
-import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.models.CasoJudicial;
 import prog2.policia_backend.models.Juez;
 import prog2.policia_backend.repositories.AsaltoRepository;
@@ -13,8 +13,11 @@ import prog2.policia_backend.repositories.CasoJudicialRepository;
 import prog2.policia_backend.repositories.JuezRepository;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.repositories.AsaltanteRepository;
-
-import java.util.List;
+import prog2.policia_backend.exceptions.AsaltanteNoParticipaEnAsaltoException;
+import prog2.policia_backend.exceptions.CasoCondenadoSinCarcelException;
+import prog2.policia_backend.exceptions.CasoJudicialYaExistenteException;
+import prog2.policia_backend.exceptions.CasoSinCondenaConCarcelException;
+import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
 @RequiredArgsConstructor
@@ -39,65 +42,91 @@ public class CasoJudicialService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("CasoJudicial", id));
     }
 
+    public CasoJudicialDTO buscarPorCodigo(String codigo) {
+        return casoJudicialRepository.findByCodigo(codigo)
+                .filter(CasoJudicial::isActivo)
+                .map(this::convertirADTO)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("CasoJudicial", codigo));
+    }
+
     public CasoJudicialDTO guardar(CasoJudicialDTO dto) {
 
         if (casoJudicialRepository.existsByAsalto_IdAndAsaltante_Id(
                 dto.getAsaltoId(),
                 dto.getAsaltanteId())) {
 
-            throw new IllegalArgumentException();
+            throw new CasoJudicialYaExistenteException();
         }
 
-        if (!asaltoRepository.existsByIdAndActivoTrueAndAsaltantes_Id(
+        if (!asaltoRepository.existsByIdAndAsaltantes_Id(
                 dto.getAsaltoId(),
                 dto.getAsaltanteId())) {
 
-            throw new IllegalArgumentException();
+            throw new AsaltanteNoParticipaEnAsaltoException();
         }
 
         CasoJudicial caso = convertirAEntidad(dto);
 
         caso.setCondenado(false);
         caso.setTiempoCarcel(0);
+        caso.setSentenciado(false);
+        caso.setActivo(true);
+        caso = casoJudicialRepository.save(caso);
+        caso.setCodigo(GeneradorCodigo.generar("CJU", caso.getId()));
+        caso = casoJudicialRepository.save(caso);
+
+        return convertirADTO(caso);
+    }
+
+    public CasoJudicialDTO actualizar(String codigo, CasoJudicialDTO dto) {
+
+        CasoJudicial caso = casoJudicialRepository.findByCodigo(codigo)
+                .filter(CasoJudicial::isActivo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "CasoJudicial", codigo));
+
+        validarCondena(
+                dto.isCondenado(),
+                dto.getTiempoCarcel()
+        );
+
+        Juez juez = juezRepository.findById(dto.getJuezId())
+                .filter(Juez::isActivo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Juez", dto.getJuezId()));
+
+        caso.setCondenado(dto.isCondenado());
+        caso.setTiempoCarcel(dto.getTiempoCarcel());
+        caso.setJuez(juez);
+        caso.setSentenciado(dto.isSentenciado());
+
+        if (dto.isSentenciado()) {
+            caso.setActivo(false);
+        }
 
         return convertirADTO(
                 casoJudicialRepository.save(caso)
         );
     }
 
-    public CasoJudicialDTO actualizar(Long id, CasoJudicialDTO dto) {
-        CasoJudicial caso = casoJudicialRepository.findById(id)
-                .filter(CasoJudicial::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("CasoJudicial", id));
-
-        validarCondena(dto.isCondenado(), dto.getTiempoCarcel());
-
-        Juez juez = juezRepository.findById(dto.getJuezId())
-                .filter(Juez::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Juez", dto.getJuezId()));
-
-        caso.setCondenado(dto.isCondenado());
-        caso.setTiempoCarcel(dto.getTiempoCarcel());
-        caso.setJuez(juez);
-
-        return convertirADTO(casoJudicialRepository.save(caso));
-    }
-
+    /*
     public void eliminar(Long id) {
         CasoJudicial caso = casoJudicialRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("CasoJudicial", id));
 
         caso.setActivo(false);
         casoJudicialRepository.save(caso);
-    }
-
+    
+     */
     private CasoJudicialDTO convertirADTO(CasoJudicial caso) {
         return new CasoJudicialDTO(
                 caso.getId(),
                 caso.isCondenado(),
                 caso.getTiempoCarcel(),
+                caso.isSentenciado(),
                 caso.getAsalto().getId(),
                 caso.getAsaltante().getId(),
                 caso.getJuez().getId(),
@@ -110,7 +139,6 @@ public class CasoJudicialService {
 
         caso.setAsalto(
                 asaltoRepository.findById(dto.getAsaltoId())
-                        .filter(Asalto::isActivo)
                         .orElseThrow(()
                                 -> new RecursoNoEncontradoException(
                                 "Asalto", dto.getAsaltoId()))
@@ -138,11 +166,11 @@ public class CasoJudicialService {
     private void validarCondena(boolean condenado, int tiempoCarcel) {
 
         if (!condenado && tiempoCarcel != 0) {
-            throw new IllegalArgumentException();
+            throw new CasoSinCondenaConCarcelException();
         }
 
         if (condenado && tiempoCarcel <= 0) {
-            throw new IllegalArgumentException();
+            throw new CasoCondenadoSinCarcelException();
         }
     }
 }

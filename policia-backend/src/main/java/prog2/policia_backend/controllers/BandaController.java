@@ -21,9 +21,13 @@ public class BandaController {
         return ResponseEntity.ok(bandaService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BandaDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(bandaService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<BandaDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                bandaService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
@@ -32,17 +36,20 @@ public class BandaController {
                 .body(bandaService.guardar());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BandaDTO> actualizar(
-            @PathVariable Long id,
-            @RequestBody BandaDTO dto) {
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo) {
 
-        return ResponseEntity.ok(bandaService.actualizar(id, dto));
+        bandaService.eliminar(codigo);
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        bandaService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<BandaDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                bandaService.reactivar(codigo)
+        );
     }
 }

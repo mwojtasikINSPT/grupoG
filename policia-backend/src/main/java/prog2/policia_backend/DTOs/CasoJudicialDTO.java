@@ -17,6 +17,8 @@ public class CasoJudicialDTO {
     @Min(0)
     private int tiempoCarcel;
 
+    private boolean sentenciado;
+
     @NotNull
     private Long asaltoId;
 
@@ -27,4 +29,5 @@ public class CasoJudicialDTO {
     private Long juezId;
 
     private String codigo;
+
 }

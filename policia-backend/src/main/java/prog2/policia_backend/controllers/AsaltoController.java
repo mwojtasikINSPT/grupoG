@@ -22,28 +22,30 @@ public class AsaltoController {
         return ResponseEntity.ok(asaltoService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AsaltoDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(asaltoService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<AsaltoDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                asaltoService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
-    public ResponseEntity<AsaltoDTO> guardar(@Valid @RequestBody AsaltoDTO dto) {
+    public ResponseEntity<AsaltoDTO> guardar(
+            @Valid @RequestBody AsaltoDTO dto) {
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(asaltoService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<AsaltoDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody AsaltoDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody AsaltoDTO dto) {
 
-        return ResponseEntity.ok(asaltoService.actualizar(id, dto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        asaltoService.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                asaltoService.actualizar(codigo, dto)
+        );
     }
 }

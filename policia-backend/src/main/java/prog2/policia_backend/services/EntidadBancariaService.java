@@ -26,12 +26,13 @@ public class EntidadBancariaService {
                 .toList();
     }
 
-    public EntidadBancariaDTO buscarPorId(Long id) {
-        return entidadBancariaRepository.findById(id)
+    public EntidadBancariaDTO buscarPorCodigo(String codigo) {
+        return entidadBancariaRepository.findByCodigo(codigo)
                 .filter(EntidadBancaria::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("EntidadBancaria", id));
+                        -> new RecursoNoEncontradoException(
+                        "EntidadBancaria", codigo));
     }
 
     public EntidadBancariaDTO guardar(EntidadBancariaDTO dto) {
@@ -48,34 +49,64 @@ public class EntidadBancariaService {
         return convertirADTO(entidad);
     }
 
-    public EntidadBancariaDTO actualizar(Long id, EntidadBancariaDTO dto) {
-        EntidadBancaria entidad = entidadBancariaRepository.findById(id)
+    public EntidadBancariaDTO actualizar(
+            String codigo,
+            EntidadBancariaDTO dto) {
+
+        EntidadBancaria entidad = entidadBancariaRepository
+                .findByCodigo(codigo)
                 .filter(EntidadBancaria::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("EntidadBancaria", id));
+                        -> new RecursoNoEncontradoException(
+                        "EntidadBancaria", codigo));
 
+        entidad.setNombre(dto.getNombre());
         entidad.setDomicilioCentral(dto.getDomicilioCentral());
 
-        return convertirADTO(entidadBancariaRepository.save(entidad));
+        return convertirADTO(
+                entidadBancariaRepository.save(entidad)
+        );
     }
 
-    //EB con SUC no se puede eliminar
-    public void eliminar(Long id) {
+    // EB con SUC activa no se puede eliminar
+    public void eliminar(String codigo) {
 
-        EntidadBancaria entidadBancaria = entidadBancariaRepository.findById(id)
+        EntidadBancaria entidadBancaria = entidadBancariaRepository
+                .findByCodigo(codigo)
                 .filter(EntidadBancaria::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("EntidadBancaria", id));
+                        -> new RecursoNoEncontradoException(
+                        "EntidadBancaria", codigo));
 
-        if (sucursalRepository.existsByEntidadBancaria_IdAndActivoTrue(id)) {
+        if (sucursalRepository.existsByEntidadBancaria_IdAndActivoTrue(
+                entidadBancaria.getId())) {
+
             throw new EntidadBancariaConSucursalesException();
         }
 
         entidadBancaria.setActivo(false);
+
         entidadBancariaRepository.save(entidadBancaria);
     }
 
-    private EntidadBancariaDTO convertirADTO(EntidadBancaria entidad) {
+    public EntidadBancariaDTO reactivar(String codigo) {
+
+        EntidadBancaria entidadBancaria = entidadBancariaRepository
+                .findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "EntidadBancaria", codigo));
+
+        entidadBancaria.setActivo(true);
+
+        entidadBancaria = entidadBancariaRepository.save(entidadBancaria);
+
+        return convertirADTO(entidadBancaria);
+    }
+
+    private EntidadBancariaDTO convertirADTO(
+            EntidadBancaria entidad) {
+
         return new EntidadBancariaDTO(
                 entidad.getId(),
                 entidad.getDomicilioCentral(),
@@ -84,7 +115,9 @@ public class EntidadBancariaService {
         );
     }
 
-    private EntidadBancaria convertirAEntidad(EntidadBancariaDTO dto) {
+    private EntidadBancaria convertirAEntidad(
+            EntidadBancariaDTO dto) {
+
         EntidadBancaria entidad = new EntidadBancaria();
 
         entidad.setDomicilioCentral(dto.getDomicilioCentral());

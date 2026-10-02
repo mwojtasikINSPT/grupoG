@@ -23,9 +23,13 @@ public class EntidadBancariaController {
         return ResponseEntity.ok(entidadBancariaService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EntidadBancariaDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(entidadBancariaService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<EntidadBancariaDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                entidadBancariaService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
@@ -36,19 +40,30 @@ public class EntidadBancariaController {
                 .body(entidadBancariaService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<EntidadBancariaDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody EntidadBancariaDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody EntidadBancariaDTO dto) {
 
         return ResponseEntity.ok(
-                entidadBancariaService.actualizar(id, dto)
+                entidadBancariaService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        entidadBancariaService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo) {
+
+        entidadBancariaService.eliminar(codigo);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<EntidadBancariaDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                entidadBancariaService.reactivar(codigo)
+        );
     }
 }

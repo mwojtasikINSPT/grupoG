@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import prog2.policia_backend.models.CasoJudicial;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long> {
 
@@ -16,4 +17,6 @@ public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long
     
     // Comprueba si el juez tiene algun caso judicial asociado
     boolean existsByJuez_Id(Long juezId);
+    
+    Optional<CasoJudicial> findByCodigo(String codigo);
 }

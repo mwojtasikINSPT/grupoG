@@ -4,7 +4,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -29,6 +28,7 @@ public class CasoJudicial {
     private String codigo;
     private boolean condenado;
     private int tiempoCarcel;
+    private boolean sentenciado;
 
     @ManyToOne
     private Asalto asalto;

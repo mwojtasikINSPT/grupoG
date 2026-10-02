@@ -44,6 +44,24 @@ public class GlobalExceptionHandler {
                 .body(errores);
     }
 
+    //Devuelve 400 datos de condena inválidos    
+    @ExceptionHandler(CasoSinCondenaConCarcelException.class)
+    public ResponseEntity<String> manejarCasoSinCondenaConCarcel(
+            CasoSinCondenaConCarcelException ex) {
+
+        return ResponseEntity.badRequest()
+                .body(ex.getMessage());
+    }
+
+    //Devuelve 400 datos de condena inválidos  
+    @ExceptionHandler(CasoCondenadoSinCarcelException.class)
+    public ResponseEntity<String> manejarCasoCondenadoSinCarcel(
+            CasoCondenadoSinCarcelException ex) {
+
+        return ResponseEntity.badRequest()
+                .body(ex.getMessage());
+    }
+
     // Devuelve 403 cuando el usuario autenticado no tiene permiso
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
@@ -129,6 +147,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    // Devuelve 409 repetido
+    @ExceptionHandler(CasoJudicialYaExistenteException.class)
+    public ResponseEntity<String> manejarCasoJudicialYaExistente(
+            CasoJudicialYaExistenteException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
+
+    //409 el asaltante no esta en el asalto
+    @ExceptionHandler(AsaltanteNoParticipaEnAsaltoException.class)
+    public ResponseEntity<String> manejarAsaltanteNoParticipa(
+            AsaltanteNoParticipaEnAsaltoException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
     }
 
     // Devuelve 500 ante errores inesperados no controlados 

@@ -49,11 +49,8 @@ public class VigilanteController {
     public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
             @PathVariable String codigo) {
 
-        // Por ahora necesitamos el ID interno para buscar los contratos.
-        VigilanteDTO vigilante = vigilanteService.buscarPorCodigo(codigo);
-
         return ResponseEntity.ok(
-                contratoVigilanciaService.listarPorVigilante(vigilante.getId())
+                contratoVigilanciaService.listarPorVigilante(codigo)
         );
     }
 

@@ -39,6 +39,14 @@ public class SucursalService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", id));
     }
 
+    public SucursalDTO buscarPorCodigo(String codigo) {
+        return sucursalRepository.findByCodigo(codigo)
+                .filter(Sucursal::isActivo)
+                .map(this::convertirADTO)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Sucursal", codigo));
+    }
+
     public SucursalDTO guardar(SucursalDTO dto) {
 
         Sucursal sucursal = convertirAEntidad(dto);
@@ -54,15 +62,17 @@ public class SucursalService {
         return convertirADTO(sucursal);
     }
 
-    public SucursalDTO actualizar(Long id, SucursalDTO dto) {
-        Sucursal sucursal = sucursalRepository.findById(id)
+    public SucursalDTO actualizar(String codigo, SucursalDTO dto) {
+        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
                 .filter(Sucursal::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", id));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Sucursal", codigo));
 
         sucursal.setDomicilio(dto.getDomicilio());
         sucursal.setCantEmpleados(dto.getCantEmpleados());
 
-        EntidadBancaria entidad = entidadBancariaRepository.findById(dto.getEntidadBancariaId())
+        EntidadBancaria entidad = entidadBancariaRepository
+                .findById(dto.getEntidadBancariaId())
                 .filter(EntidadBancaria::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
@@ -75,17 +85,17 @@ public class SucursalService {
     }
 
     @Transactional //Si falla la baja de alguno de los contratos o la suc, se revierte la operación
-    public void eliminar(Long id) {
+    public void eliminar(String codigo) {
 
-        Sucursal sucursal = sucursalRepository.findById(id)
+        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
                 .filter(Sucursal::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Sucursal", id));
+                        -> new RecursoNoEncontradoException("Sucursal", codigo));
 
         List<ContratoVigilancia> contratosFuturos
                 = contratoVigilanciaRepository
                         .findBySucursal_IdAndFechaAfterAndActivoTrue(
-                                id,
+                                sucursal.getId(),
                                 LocalDate.now());
 
         contratosFuturos.forEach(contrato -> {

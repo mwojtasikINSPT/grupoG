@@ -23,17 +23,24 @@ public class AsaltoService {
     private final SucursalRepository sucursalRepository;
 
     public List<AsaltoDTO> listar() {
-        return asaltoRepository.findByActivoTrue()
+        return asaltoRepository.findAll()
                 .stream()
                 .map(this::convertirADTO)
                 .toList();
     }
 
+    /*
     public AsaltoDTO buscarPorId(Long id) {
         return asaltoRepository.findById(id)
-                .filter(Asalto::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", id));
+    }
+     */
+    public AsaltoDTO buscarPorCodigo(String codigo) {
+        return asaltoRepository.findByCodigo(codigo)
+                .map(this::convertirADTO)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asalto", codigo));
     }
 
     public AsaltoDTO guardar(AsaltoDTO dto) {
@@ -48,10 +55,10 @@ public class AsaltoService {
         return convertirADTO(asaltoRepository.save(asalto));
     }
 
-    public AsaltoDTO actualizar(Long id, AsaltoDTO dto) {
-        Asalto asalto = asaltoRepository.findById(id)
-                .filter(Asalto::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", id));
+    public AsaltoDTO actualizar(String codigo, AsaltoDTO dto) {
+        Asalto asalto = asaltoRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Asalto", codigo));
 
         asalto.setFecha(dto.getFecha());
 
@@ -66,7 +73,8 @@ public class AsaltoService {
         Sucursal sucursal = sucursalRepository.findById(dto.getSucursalId())
                 .filter(Sucursal::isActivo)
                 .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Sucursal", dto.getSucursalId()));
+                        -> new RecursoNoEncontradoException(
+                        "Sucursal", dto.getSucursalId()));
 
         asalto.setAsaltantes(asaltantes);
         asalto.setSucursal(sucursal);
@@ -74,13 +82,6 @@ public class AsaltoService {
         return convertirADTO(asaltoRepository.save(asalto));
     }
 
-    public void eliminar(Long id) {
-        Asalto asalto = asaltoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", id));
-
-        asalto.setActivo(false);
-        asaltoRepository.save(asalto);
-    }
 
     // Convierte una Entity en un DTO para devolver datos al Controller.
     private AsaltoDTO convertirADTO(Asalto asalto) {

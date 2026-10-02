@@ -23,9 +23,13 @@ public class ContratoVigilanciaController {
         return ResponseEntity.ok(contratoVigilanciaService.listar());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ContratoVigilanciaDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(contratoVigilanciaService.buscarPorId(id));
+    @GetMapping("/{codigo}")
+    public ResponseEntity<ContratoVigilanciaDTO> buscarPorCodigo(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                contratoVigilanciaService.buscarPorCodigo(codigo)
+        );
     }
 
     @PostMapping
@@ -36,19 +40,22 @@ public class ContratoVigilanciaController {
                 .body(contratoVigilanciaService.guardar(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<ContratoVigilanciaDTO> actualizar(
-            @Valid @PathVariable Long id,
-            @RequestBody ContratoVigilanciaDTO dto) {
+            @PathVariable String codigo,
+            @Valid @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.ok(
-                contratoVigilanciaService.actualizar(id, dto)
+                contratoVigilanciaService.actualizar(codigo, dto)
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        contratoVigilanciaService.eliminar(id);
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo) {
+
+        contratoVigilanciaService.eliminar(codigo);
+
         return ResponseEntity.noContent().build();
     }
 }
