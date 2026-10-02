@@ -9,7 +9,9 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -17,10 +19,12 @@ import java.util.List;
 
 // Un Asalto puede tener varios Asaltantes y tiene una Sucursal
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Asalto {
+public class Asalto extends EntidadAuditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

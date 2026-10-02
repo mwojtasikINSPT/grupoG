@@ -7,16 +7,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Formula;
 
 //Relacion: Banda 1 - N Asaltante
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Banda {
+public class Banda extends EntidadAuditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

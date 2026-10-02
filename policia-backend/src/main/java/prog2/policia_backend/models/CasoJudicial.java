@@ -8,18 +8,22 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 //Relaciona Asalto, Asaltante y Juez con cada caso judicial: Asalto 1 ─ N CasoJudicial N - 1 Juez
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(uniqueConstraints = {
     @UniqueConstraint(columnNames = {"asalto_id", "asaltante_id"})
 })
-public class CasoJudicial {
+public class CasoJudicial extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

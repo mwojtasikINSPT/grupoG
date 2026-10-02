@@ -2,7 +2,9 @@ package prog2.policia_backend.models;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,10 +14,12 @@ import jakarta.persistence.OneToMany;
 
 //Cada EB tiene varias sucursales
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntidadBancaria {
+public class EntidadBancaria extends EntidadAuditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
