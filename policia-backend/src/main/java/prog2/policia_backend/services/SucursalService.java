@@ -123,7 +123,11 @@ public class SucursalService {
                 sucursal.getDomicilio(),
                 sucursal.getCantEmpleados(),
                 sucursal.getEntidadBancaria().getId(),
-                sucursal.getCodigo()
+                sucursal.getCodigo(),
+                sucursal.getFechaCreacion(),
+                sucursal.getFechaModificacion(),
+                sucursal.getCreadoPor(),
+                sucursal.getModificadoPor()
         );
     }
 

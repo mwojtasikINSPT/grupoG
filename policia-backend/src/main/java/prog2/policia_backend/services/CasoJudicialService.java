@@ -138,7 +138,11 @@ public class CasoJudicialService {
                 caso.getAsalto().getId(),
                 caso.getAsaltante().getId(),
                 caso.getJuez().getId(),
-                caso.getCodigo()
+                caso.getCodigo(),
+                caso.getFechaCreacion(),
+                caso.getFechaModificacion(),
+                caso.getCreadoPor(),
+                caso.getModificadoPor()
         );
     }
 

@@ -102,7 +102,11 @@ public class BandaService {
         return new BandaDTO(
                 banda.getId(),
                 banda.getCantMiembros(),
-                banda.getCodigo()
+                banda.getCodigo(),
+                banda.getFechaCreacion(),
+                banda.getFechaModificacion(),
+                banda.getCreadoPor(),
+                banda.getModificadoPor()
         );
     }
 

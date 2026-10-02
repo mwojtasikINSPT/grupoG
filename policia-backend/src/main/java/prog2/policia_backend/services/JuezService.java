@@ -122,7 +122,11 @@ public class JuezService {
                 juez.getJuezDesde(),
                 aniosServicio,
                 juez.getCodigo(),
-                juez.getMotivoBaja()
+                juez.getMotivoBaja(),
+                juez.getFechaCreacion(),
+                juez.getFechaModificacion(),
+                juez.getCreadoPor(),
+                juez.getModificadoPor()
         );
     }
 

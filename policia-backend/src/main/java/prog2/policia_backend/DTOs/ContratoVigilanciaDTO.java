@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,4 +35,16 @@ public class ContratoVigilanciaDTO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MotivoBajaContrato motivoBaja;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaCreacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaModificacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String creadoPor;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String modificadoPor;
 }

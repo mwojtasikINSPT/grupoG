@@ -104,11 +104,13 @@ public class AsaltanteService {
         return new AsaltanteDTO(
                 asaltante.getId(),
                 asaltante.getNombre(),
-                asaltante.getBanda() != null
-                ? asaltante.getBanda().getId()
-                : null,
+                asaltante.getBanda() != null ? asaltante.getBanda().getId() : null,
                 asaltante.getCodigo(),
-                asaltante.getMotivoBaja()
+                asaltante.getMotivoBaja(),
+                asaltante.getFechaCreacion(),
+                asaltante.getFechaModificacion(),
+                asaltante.getCreadoPor(),
+                asaltante.getModificadoPor()
         );
     }
 

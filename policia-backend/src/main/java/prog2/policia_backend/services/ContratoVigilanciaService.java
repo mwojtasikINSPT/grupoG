@@ -163,7 +163,11 @@ public class ContratoVigilanciaService {
                 contrato.getSucursal().getId(),
                 contrato.getCodigo(),
                 contrato.isActivo(),
-                contrato.getMotivoBaja()
+                contrato.getMotivoBaja(),
+                contrato.getFechaCreacion(),
+                contrato.getFechaModificacion(),
+                contrato.getCreadoPor(),
+                contrato.getModificadoPor()
         );
     }
 

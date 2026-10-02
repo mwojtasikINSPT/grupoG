@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -30,4 +32,15 @@ public class CasoJudicialDTO {
 
     private String codigo;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaCreacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaModificacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String creadoPor;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String modificadoPor;
 }

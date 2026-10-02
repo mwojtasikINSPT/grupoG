@@ -119,7 +119,11 @@ public class EntidadBancariaService {
                 entidad.getId(),
                 entidad.getDomicilioCentral(),
                 entidad.getCodigo(),
-                entidad.getNombre()
+                entidad.getNombre(),
+                entidad.getFechaCreacion(),
+                entidad.getFechaModificacion(),
+                entidad.getCreadoPor(),
+                entidad.getModificadoPor()
         );
     }
 

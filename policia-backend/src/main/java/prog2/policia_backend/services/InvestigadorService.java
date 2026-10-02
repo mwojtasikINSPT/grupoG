@@ -116,7 +116,11 @@ public class InvestigadorService {
                 investigador.getCodigo(),
                 investigador.getNombre(),
                 null,
-                investigador.getMotivoBaja()
+                investigador.getMotivoBaja(),
+                investigador.getFechaCreacion(),
+                investigador.getFechaModificacion(),
+                investigador.getCreadoPor(),
+                investigador.getModificadoPor()
         );
     }
 

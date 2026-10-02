@@ -26,18 +26,18 @@ public class AdministradorService {
 
     public List<AdministradorDTO> listar(Boolean activo) {
 
-    List<Administrador> administradores;
+        List<Administrador> administradores;
 
-    if (activo == null) {
-        administradores = administradorRepository.findAll();
-    } else {
-        administradores = administradorRepository.findByActivo(activo);
+        if (activo == null) {
+            administradores = administradorRepository.findAll();
+        } else {
+            administradores = administradorRepository.findByActivo(activo);
+        }
+
+        return administradores.stream()
+                .map(this::convertirADTO)
+                .toList();
     }
-
-    return administradores.stream()
-            .map(this::convertirADTO)
-            .toList();
-}
 
     public AdministradorDTO buscarPorCodigo(String codigo) {
         return administradorRepository.findByCodigo(codigo)
@@ -119,7 +119,11 @@ public class AdministradorService {
                 administrador.getCodigo(),
                 administrador.getNombre(),
                 null,
-                administrador.getMotivoBaja()
+                administrador.getMotivoBaja(),
+                administrador.getFechaCreacion(),
+                administrador.getFechaModificacion(),
+                administrador.getCreadoPor(),
+                administrador.getModificadoPor()
         );
     }
 

@@ -82,7 +82,6 @@ public class AsaltoService {
         return convertirADTO(asaltoRepository.save(asalto));
     }
 
-
     // Convierte una Entity en un DTO para devolver datos al Controller.
     private AsaltoDTO convertirADTO(Asalto asalto) {
         AsaltoDTO dto = new AsaltoDTO();
@@ -95,6 +94,11 @@ public class AsaltoService {
         );
         dto.setSucursalId(asalto.getSucursal().getId());
         dto.setCodigo(asalto.getCodigo());
+        dto.setFechaCreacion(asalto.getFechaCreacion());
+        dto.setFechaModificacion(asalto.getFechaModificacion());
+        dto.setCreadoPor(asalto.getCreadoPor());
+        dto.setModificadoPor(asalto.getModificadoPor());
+        
         return dto;
     }
 

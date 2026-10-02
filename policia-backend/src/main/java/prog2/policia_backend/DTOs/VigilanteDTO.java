@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,5 +30,17 @@ public class VigilanteDTO {
     private int edad;
 
     private MotivoBajaPersona motivoBaja;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaCreacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime fechaModificacion;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String creadoPor;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String modificadoPor;
 
 }

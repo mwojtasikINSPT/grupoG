@@ -129,7 +129,11 @@ public class VigilanteService {
                 vigilante.getNombre(),
                 null,
                 vigilante.getEdad(),
-                vigilante.getMotivoBaja()
+                vigilante.getMotivoBaja(),
+                vigilante.getFechaCreacion(),
+                vigilante.getFechaModificacion(),
+                vigilante.getCreadoPor(),
+                vigilante.getModificadoPor()
         );
     }
 
