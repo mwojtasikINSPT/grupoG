@@ -18,8 +18,12 @@ public class AdministradorController {
     private final AdministradorService administradorService;
 
     @GetMapping
-    public ResponseEntity<List<AdministradorDTO>> listar() {
-        return ResponseEntity.ok(administradorService.listar());
+    public ResponseEntity<List<AdministradorDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                administradorService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

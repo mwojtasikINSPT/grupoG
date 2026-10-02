@@ -19,8 +19,12 @@ public class InvestigadorController {
     private final InvestigadorService investigadorService;
 
     @GetMapping
-    public ResponseEntity<List<InvestigadorDTO>> listar() {
-        return ResponseEntity.ok(investigadorService.listar());
+    public ResponseEntity<List<InvestigadorDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                investigadorService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

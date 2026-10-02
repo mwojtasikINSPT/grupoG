@@ -20,9 +20,17 @@ public class AsaltanteService {
     private final AsaltanteRepository asaltanteRepository;
     private final BandaRepository bandaRepository;
 
-    public List<AsaltanteDTO> listar() {
-        return asaltanteRepository.findByActivoTrue()
-                .stream()
+    public List<AsaltanteDTO> listar(Boolean activo) {
+
+        List<Asaltante> asaltantes;
+
+        if (activo == null) {
+            asaltantes = asaltanteRepository.findAll();
+        } else {
+            asaltantes = asaltanteRepository.findByActivo(activo);
+        }
+
+        return asaltantes.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

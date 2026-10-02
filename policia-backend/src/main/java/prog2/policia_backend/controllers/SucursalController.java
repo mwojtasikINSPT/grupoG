@@ -19,8 +19,12 @@ public class SucursalController {
     private final SucursalService sucursalService;
 
     @GetMapping
-    public ResponseEntity<List<SucursalDTO>> listar() {
-        return ResponseEntity.ok(sucursalService.listar());
+    public ResponseEntity<List<SucursalDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                sucursalService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

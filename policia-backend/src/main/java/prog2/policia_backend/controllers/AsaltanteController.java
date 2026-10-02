@@ -18,8 +18,12 @@ public class AsaltanteController {
     private final AsaltanteService asaltanteService;
 
     @GetMapping
-    public ResponseEntity<List<AsaltanteDTO>> listar() {
-        return ResponseEntity.ok(asaltanteService.listar());
+    public ResponseEntity<List<AsaltanteDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                asaltanteService.listar(activo)
+        );
     }
 
     /*

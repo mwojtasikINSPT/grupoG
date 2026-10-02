@@ -26,9 +26,17 @@ public class ContratoVigilanciaService {
     private final VigilanteRepository vigilanteRepository;
     private final SucursalRepository sucursalRepository;
 
-    public List<ContratoVigilanciaDTO> listar() {
-        return contratoVigilanciaRepository.findByActivoTrue()
-                .stream()
+    public List<ContratoVigilanciaDTO> listar(Boolean activo) {
+
+        List<ContratoVigilancia> contratos;
+
+        if (activo == null) {
+            contratos = contratoVigilanciaRepository.findAll();
+        } else {
+            contratos = contratoVigilanciaRepository.findByActivo(activo);
+        }
+
+        return contratos.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

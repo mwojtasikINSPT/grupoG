@@ -19,8 +19,12 @@ public class ContratoVigilanciaController {
     private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listar() {
-        return ResponseEntity.ok(contratoVigilanciaService.listar());
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                contratoVigilanciaService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

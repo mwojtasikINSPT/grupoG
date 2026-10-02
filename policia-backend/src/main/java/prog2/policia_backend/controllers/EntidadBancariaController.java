@@ -19,8 +19,12 @@ public class EntidadBancariaController {
     private final EntidadBancariaService entidadBancariaService;
 
     @GetMapping
-    public ResponseEntity<List<EntidadBancariaDTO>> listar() {
-        return ResponseEntity.ok(entidadBancariaService.listar());
+    public ResponseEntity<List<EntidadBancariaDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                entidadBancariaService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

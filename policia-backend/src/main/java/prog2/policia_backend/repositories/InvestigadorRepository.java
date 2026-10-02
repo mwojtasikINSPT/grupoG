@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface InvestigadorRepository extends JpaRepository<Investigador, Long> {
 
-    List<Investigador> findByActivoTrue();
+    List<Investigador> findByActivo(boolean activo);
     Optional<Investigador> findByCodigo(String codigo);
 }

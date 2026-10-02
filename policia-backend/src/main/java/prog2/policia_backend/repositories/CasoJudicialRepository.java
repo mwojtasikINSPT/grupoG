@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long> {
 
-    List<CasoJudicial> findByActivoTrue();
+    List<CasoJudicial> findByActivo(boolean activo);
 
     boolean existsByAsalto_IdAndAsaltante_Id(
             Long asaltoId,

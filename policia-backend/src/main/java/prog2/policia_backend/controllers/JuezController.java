@@ -18,8 +18,12 @@ public class JuezController {
     private final JuezService juezService;
 
     @GetMapping
-    public ResponseEntity<List<JuezDTO>> listar() {
-        return ResponseEntity.ok(juezService.listar());
+    public ResponseEntity<List<JuezDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                juezService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

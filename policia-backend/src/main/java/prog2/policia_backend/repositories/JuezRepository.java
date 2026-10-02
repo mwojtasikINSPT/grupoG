@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface JuezRepository extends JpaRepository<Juez, Long> {
 
-    List<Juez> findByActivoTrue();
+    List<Juez> findByActivo(boolean activo);
     
     Optional<Juez> findByCodigo(String codigo);
 }

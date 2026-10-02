@@ -17,8 +17,12 @@ public class BandaController {
     private final BandaService bandaService;
 
     @GetMapping
-    public ResponseEntity<List<BandaDTO>> listar() {
-        return ResponseEntity.ok(bandaService.listar());
+    public ResponseEntity<List<BandaDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                bandaService.listar(activo)
+        );
     }
 
     @GetMapping("/{codigo}")

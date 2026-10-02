@@ -25,9 +25,17 @@ public class VigilanteService {
     private final PasswordEncoder passwordEncoder;
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
-    public List<VigilanteDTO> listar() {
-        return vigilanteRepository.findByActivoTrue()
-                .stream()
+    public List<VigilanteDTO> listar(Boolean activo) {
+
+        List<Vigilante> vigilantes;
+
+        if (activo == null) {
+            vigilantes = vigilanteRepository.findAll();
+        } else {
+            vigilantes = vigilanteRepository.findByActivo(activo);
+        }
+
+        return vigilantes.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

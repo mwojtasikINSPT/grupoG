@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface AdministradorRepository extends JpaRepository<Administrador, Long> {
 
-    List<Administrador> findByActivoTrue();
+    List<Administrador> findByActivo(boolean activo);
     Optional<Administrador> findByCodigo(String codigo);
 }

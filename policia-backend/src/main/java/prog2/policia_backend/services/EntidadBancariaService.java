@@ -19,9 +19,17 @@ public class EntidadBancariaService {
     private final EntidadBancariaRepository entidadBancariaRepository;
     private final SucursalRepository sucursalRepository;
 
-    public List<EntidadBancariaDTO> listar() {
-        return entidadBancariaRepository.findByActivoTrue()
-                .stream()
+    public List<EntidadBancariaDTO> listar(Boolean activo) {
+
+        List<EntidadBancaria> entidades;
+
+        if (activo == null) {
+            entidades = entidadBancariaRepository.findAll();
+        } else {
+            entidades = entidadBancariaRepository.findByActivo(activo);
+        }
+
+        return entidades.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

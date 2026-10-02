@@ -24,12 +24,20 @@ public class AdministradorService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<AdministradorDTO> listar() {
-        return administradorRepository.findByActivoTrue()
-                .stream()
-                .map(this::convertirADTO)
-                .toList();
+    public List<AdministradorDTO> listar(Boolean activo) {
+
+    List<Administrador> administradores;
+
+    if (activo == null) {
+        administradores = administradorRepository.findAll();
+    } else {
+        administradores = administradorRepository.findByActivo(activo);
     }
+
+    return administradores.stream()
+            .map(this::convertirADTO)
+            .toList();
+}
 
     public AdministradorDTO buscarPorCodigo(String codigo) {
         return administradorRepository.findByCodigo(codigo)

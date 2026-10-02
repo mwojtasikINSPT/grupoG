@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface BandaRepository extends JpaRepository<Banda, Long> {
 
-    List<Banda> findByActivoTrue();
+    List<Banda> findByActivo(boolean activo);
     
     Optional<Banda> findByCodigo(String codigo);
 }

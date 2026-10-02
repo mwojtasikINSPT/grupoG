@@ -9,10 +9,10 @@ import prog2.policia_backend.models.Sucursal;
 
 public interface SucursalRepository extends JpaRepository<Sucursal, Long> {
 
-    List<Sucursal> findByActivoTrue();
+    List<Sucursal> findByActivo(boolean activo);
 
     // Comprueba si la entidad bancaria tiene al menos una sucursal activa.
     boolean existsByEntidadBancaria_IdAndActivoTrue(Long entidadBancariaId);
-    
+
     Optional<Sucursal> findByCodigo(String codigo);
 }

@@ -22,8 +22,12 @@ public class VigilanteController {
     private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
-    public ResponseEntity<List<VigilanteDTO>> listar() {
-        return ResponseEntity.ok(vigilanteService.listar());
+    public ResponseEntity<List<VigilanteDTO>> listar(
+            @RequestParam(required = false) Boolean activo) {
+
+        return ResponseEntity.ok(
+                vigilanteService.listar(activo)
+        );
     }
 
     @PreAuthorize(

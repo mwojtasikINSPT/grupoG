@@ -21,9 +21,17 @@ public class InvestigadorService {
     private final InvestigadorRepository investigadorRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<InvestigadorDTO> listar() {
-        return investigadorRepository.findByActivoTrue()
-                .stream()
+    public List<InvestigadorDTO> listar(Boolean activo) {
+
+        List<Investigador> investigadores;
+
+        if (activo == null) {
+            investigadores = investigadorRepository.findAll();
+        } else {
+            investigadores = investigadorRepository.findByActivo(activo);
+        }
+
+        return investigadores.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

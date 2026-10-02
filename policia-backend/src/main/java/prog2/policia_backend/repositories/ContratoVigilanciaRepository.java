@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigilancia, Long> {
 
-    List<ContratoVigilancia> findByActivoTrue();
+    List<ContratoVigilancia> findByActivo(boolean activo);
 
     boolean existsByVigilante_IdAndFechaAndActivoTrue(
             Long vigilanteId,

@@ -25,9 +25,17 @@ public class SucursalService {
     private final EntidadBancariaRepository entidadBancariaRepository;
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
-    public List<SucursalDTO> listar() {
-        return sucursalRepository.findByActivoTrue()
-                .stream()
+    public List<SucursalDTO> listar(Boolean activo) {
+
+        List<Sucursal> sucursales;
+
+        if (activo == null) {
+            sucursales = sucursalRepository.findAll();
+        } else {
+            sucursales = sucursalRepository.findByActivo(activo);
+        }
+
+        return sucursales.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

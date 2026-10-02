@@ -28,9 +28,17 @@ public class CasoJudicialService {
     private final JuezRepository juezRepository;
     private final AsaltanteRepository asaltanteRepository;
 
-    public List<CasoJudicialDTO> listar() {
-        return casoJudicialRepository.findByActivoTrue()
-                .stream()
+    public List<CasoJudicialDTO> listar(Boolean activo) {
+
+        List<CasoJudicial> casos;
+
+        if (activo == null) {
+            casos = casoJudicialRepository.findAll();
+        } else {
+            casos = casoJudicialRepository.findByActivo(activo);
+        }
+
+        return casos.stream()
                 .map(this::convertirADTO)
                 .toList();
     }
