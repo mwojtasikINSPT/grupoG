@@ -54,8 +54,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 //habilita el flujo cruzado (CORS) para Vaadin
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .cors(cors -> {
-                })
                 .sessionManagement(session
                         -> session.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS))

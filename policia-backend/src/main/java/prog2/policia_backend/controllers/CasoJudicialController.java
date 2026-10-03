@@ -26,11 +26,6 @@ public class CasoJudicialController {
         );
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CasoJudicialDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(casoJudicialService.buscarPorId(id));
-    }
-
     @GetMapping("/{codigo}")
     public ResponseEntity<CasoJudicialDTO> buscarPorCodigo(
             @PathVariable String codigo) {
