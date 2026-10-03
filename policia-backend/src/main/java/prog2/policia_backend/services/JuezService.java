@@ -40,7 +40,7 @@ public class JuezService {
 
     public JuezDTO buscarPorCodigo(String codigo) {
         return juezRepository.findByCodigo(codigo)
-                .filter(Juez::isActivo)
+                //.filter(Juez::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Juez", codigo));

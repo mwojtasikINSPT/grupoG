@@ -41,7 +41,7 @@ public class AdministradorService {
 
     public AdministradorDTO buscarPorCodigo(String codigo) {
         return administradorRepository.findByCodigo(codigo)
-                .filter(Administrador::isActivo)
+                //.filter(Administrador::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Administrador", codigo));

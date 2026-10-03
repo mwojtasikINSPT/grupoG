@@ -36,7 +36,7 @@ public class EntidadBancariaService {
 
     public EntidadBancariaDTO buscarPorCodigo(String codigo) {
         return entidadBancariaRepository.findByCodigo(codigo)
-                .filter(EntidadBancaria::isActivo)
+                //.filter(EntidadBancaria::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(

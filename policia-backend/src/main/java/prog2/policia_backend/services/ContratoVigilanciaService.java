@@ -43,7 +43,7 @@ public class ContratoVigilanciaService {
 
     public ContratoVigilanciaDTO buscarPorCodigo(String codigo) {
         return contratoVigilanciaRepository.findByCodigo(codigo)
-                .filter(ContratoVigilancia::isActivo)
+                //.filter(ContratoVigilancia::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(

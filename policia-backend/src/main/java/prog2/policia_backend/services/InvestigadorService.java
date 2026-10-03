@@ -38,7 +38,7 @@ public class InvestigadorService {
 
     public InvestigadorDTO buscarPorCodigo(String codigo) {
         return investigadorRepository.findByCodigo(codigo)
-                .filter(Investigador::isActivo)
+                //.filter(Investigador::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));

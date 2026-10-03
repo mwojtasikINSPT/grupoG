@@ -36,7 +36,7 @@ public class BandaService {
 
     public BandaDTO buscarPorId(Long id) {
         return bandaRepository.findById(id)
-                .filter(Banda::isActivo)
+                //.filter(Banda::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
     }

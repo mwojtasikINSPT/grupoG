@@ -42,7 +42,7 @@ public class VigilanteService {
 
     public VigilanteDTO buscarPorCodigo(String codigo) {
         return vigilanteRepository.findByCodigo(codigo)
-                .filter(Vigilante::isActivo)
+                //.filter(Vigilante::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Vigilante", codigo));

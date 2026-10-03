@@ -44,7 +44,7 @@ public class AsaltanteService {
 
     public AsaltanteDTO buscarPorCodigo(String codigo) {
         return asaltanteRepository.findByCodigo(codigo)
-                .filter(Asaltante::isActivo)
+                //.filter(Asaltante::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", codigo));

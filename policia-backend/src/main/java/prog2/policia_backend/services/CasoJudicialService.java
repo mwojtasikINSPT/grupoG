@@ -45,7 +45,7 @@ public class CasoJudicialService {
 
     public CasoJudicialDTO buscarPorId(Long id) {
         return casoJudicialRepository.findById(id)
-                .filter(CasoJudicial::isActivo)
+                //.filter(CasoJudicial::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(() -> new RecursoNoEncontradoException("CasoJudicial", id));
     }
