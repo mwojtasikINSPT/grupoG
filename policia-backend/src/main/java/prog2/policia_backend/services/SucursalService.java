@@ -7,13 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.SucursalDTO;
+import prog2.policia_backend.exceptions.MotivoCierreSucursalObligatorioException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.exceptions.SucursalNoReactivableException;
+import prog2.policia_backend.exceptions.SucursalYaActivaException;
+import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.ContratoVigilancia;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.models.MotivoBajaContrato;
+import prog2.policia_backend.models.MotivoCierreSucursal;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
@@ -49,7 +54,6 @@ public class SucursalService {
 
     public SucursalDTO buscarPorCodigo(String codigo) {
         return sucursalRepository.findByCodigo(codigo)
-                .filter(Sucursal::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
@@ -93,12 +97,19 @@ public class SucursalService {
     }
 
     @Transactional //Si falla la baja de alguno de los contratos o la suc, se revierte la operación
-    public void eliminar(String codigo) {
+    public void eliminar(String codigo, SucursalDTO dto) {
 
         Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .filter(Sucursal::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
+
+        if (!sucursal.isActivo()) {
+            throw new SucursalYaCerradaException();
+        }
+
+        if (dto.getMotivoCierre() == null) {
+            throw new MotivoCierreSucursalObligatorioException();
+        }
 
         List<ContratoVigilancia> contratosFuturos
                 = contratoVigilanciaRepository
@@ -114,7 +125,31 @@ public class SucursalService {
         contratoVigilanciaRepository.saveAll(contratosFuturos);
 
         sucursal.setActivo(false);
+
+        sucursal.setMotivoCierre(dto.getMotivoCierre());
         sucursalRepository.save(sucursal);
+    }
+
+    public SucursalDTO reactivar(String codigo) {
+
+        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                "Sucursal", codigo));
+
+        if (sucursal.isActivo()) {
+            throw new SucursalYaActivaException();
+        }
+
+        if (sucursal.getMotivoCierre()
+                == MotivoCierreSucursal.CIERRE_DEFINITIVO) {
+
+            throw new SucursalNoReactivableException();
+        }
+
+        sucursal.setActivo(true);
+        sucursal.setMotivoCierre(null);
+
+        return convertirADTO(sucursalRepository.save(sucursal));
     }
 
     private SucursalDTO convertirADTO(Sucursal sucursal) {
@@ -124,6 +159,7 @@ public class SucursalService {
                 sucursal.getCantEmpleados(),
                 sucursal.getEntidadBancaria().getId(),
                 sucursal.getCodigo(),
+                sucursal.getMotivoCierre(),
                 sucursal.getFechaCreacion(),
                 sucursal.getFechaModificacion(),
                 sucursal.getCreadoPor(),

@@ -1,6 +1,8 @@
 package prog2.policia_backend.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,8 +27,12 @@ public class Sucursal extends EntidadAuditable {
     private Long id;
     private String domicilio;
     private int cantEmpleados;
+    
     @ManyToOne
     private EntidadBancaria entidadBancaria;
     private boolean activo = true;
     private String codigo;
+
+    @Enumerated(EnumType.STRING)
+    private MotivoCierreSucursal motivoCierre;
 }

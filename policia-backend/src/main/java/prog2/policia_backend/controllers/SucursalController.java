@@ -56,10 +56,20 @@ public class SucursalController {
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo) {
+            @PathVariable String codigo,
+            @RequestBody SucursalDTO dto) {
 
-        sucursalService.eliminar(codigo);
-
+        sucursalService.eliminar(codigo, dto);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<SucursalDTO> reactivar(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                sucursalService.reactivar(codigo)
+        );
+    }
+
 }

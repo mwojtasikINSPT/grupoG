@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import prog2.policia_backend.models.MotivoCierreSucursal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,12 +21,14 @@ public class SucursalDTO {
     @NotBlank
     private String domicilio;
 
+    @NotNull
     @Min(0)
-    private int cantEmpleados;
+    private Integer cantEmpleados;
 
     @NotNull
     private Long entidadBancariaId;
     private String codigo;
+    private MotivoCierreSucursal motivoCierre;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

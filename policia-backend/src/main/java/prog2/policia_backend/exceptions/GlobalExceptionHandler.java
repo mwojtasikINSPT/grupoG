@@ -44,127 +44,51 @@ public class GlobalExceptionHandler {
                 .body(errores);
     }
 
-    //Devuelve 400 datos de condena inválidos    
-    @ExceptionHandler(CasoSinCondenaConCarcelException.class)
-    public ResponseEntity<String> manejarCasoSinCondenaConCarcel(
-            CasoSinCondenaConCarcelException ex) {
+    // Devuelve 400 cuando se viola una regla de negocio
+    @ExceptionHandler({
+        CasoSinCondenaConCarcelException.class,
+        CasoCondenadoSinCarcelException.class
+    })
+    public ResponseEntity<Map<String, String>> manejarError400(
+            RuntimeException ex) {
 
-        return ResponseEntity.badRequest()
-                .body(ex.getMessage());
-    }
-
-    //Devuelve 400 datos de condena inválidos  
-    @ExceptionHandler(CasoCondenadoSinCarcelException.class)
-    public ResponseEntity<String> manejarCasoCondenadoSinCarcel(
-            CasoCondenadoSinCarcelException ex) {
-
-        return ResponseEntity.badRequest()
-                .body(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "error", "Petición incorrecta",
+                        "mensaje", ex.getMessage()
+                ));
     }
 
     // Devuelve 403 cuando el usuario autenticado no tiene permiso
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("Acceso denegado");
+                .body("Acceso denegado - Revise sus credenciales");
     }
 
-    // Devuelve 400 cuando se viola una regla de negocio o se recibe un argumento inválido
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Petición incorrecta");
-        error.put("mensaje", ex.getMessage()); // texto del Service
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
-    // Devuelve 409 Conflict cuando se intenta eliminar una banda con miembros activos
-    @ExceptionHandler(BandaConMiembrosException.class)
-    public ResponseEntity<Map<String, String>> manejarBandaConMiembros(
-            BandaConMiembrosException ex) {
+    // Devuelve 409 Conflict ante conflictos de reglas de negocio
+    @ExceptionHandler({
+        BandaConMiembrosException.class,
+        ContratoVigilanciaCumplidoException.class,
+        ContratoVigilanciaDuplicadoException.class,
+        VigilanteConContratoFuturoException.class,
+        EntidadBancariaConSucursalesException.class,
+        JuezConCasosJudicialesException.class,
+        PersonaNoReactivableException.class,
+        CasoJudicialYaExistenteException.class,
+        AsaltanteNoParticipaEnAsaltoException.class,
+        SucursalYaCerradaException.class,
+        MotivoCierreSucursalObligatorioException.class,
+        SucursalNoReactivableException.class,
+        SucursalYaActivaException.class,
+    })
+    public ResponseEntity<Map<String, String>> manejarConflicto(
+            RuntimeException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando se intenta eliminar un contrato del dia o cumplido
-    @ExceptionHandler(ContratoVigilanciaCumplidoException.class)
-    public ResponseEntity<Map<String, String>> manejarContratoVigilanciaCumplido(
-            ContratoVigilanciaCumplidoException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando un vigilante ya tiene un contrato activo en esa fecha
-    @ExceptionHandler(ContratoVigilanciaDuplicadoException.class)
-    public ResponseEntity<Map<String, String>> manejarContratoDuplicado(
-            ContratoVigilanciaDuplicadoException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando se intenta dar de baja un vigilante con contratos activos
-    @ExceptionHandler(VigilanteConContratoFuturoException.class)
-    public ResponseEntity<Map<String, String>> manejarVigilanteConContratoFuturo(
-            VigilanteConContratoFuturoException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando se intenta dar de baja una entidad bancaria con sucursales activas.
-    @ExceptionHandler(EntidadBancariaConSucursalesException.class)
-    public ResponseEntity<Map<String, String>> manejarEntidadBancariaConSucursales(
-            EntidadBancariaConSucursalesException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando se intenta dar de baja un juez con casos judiciales asociados.
-    @ExceptionHandler(JuezConCasosJudicialesException.class)
-    public ResponseEntity<Map<String, String>> manejarJuezConCasosJudiciales(
-            JuezConCasosJudicialesException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 cuando se intenta reactivar un fallecido 
-    @ExceptionHandler(PersonaNoReactivableException.class)
-    public ResponseEntity<Map<String, String>> manejarPersonaNoReactivable(
-            PersonaNoReactivableException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
-    }
-
-    // Devuelve 409 repetido
-    @ExceptionHandler(CasoJudicialYaExistenteException.class)
-    public ResponseEntity<String> manejarCasoJudicialYaExistente(
-            CasoJudicialYaExistenteException ex) {
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ex.getMessage());
-    }
-
-    //409 el asaltante no esta en el asalto
-    @ExceptionHandler(AsaltanteNoParticipaEnAsaltoException.class)
-    public ResponseEntity<String> manejarAsaltanteNoParticipa(
-            AsaltanteNoParticipaEnAsaltoException ex) {
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ex.getMessage());
     }
 
     // Devuelve 500 ante errores inesperados no controlados 
