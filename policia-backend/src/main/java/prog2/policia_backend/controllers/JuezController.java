@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.JuezDTO;
+import prog2.policia_backend.services.CasoJudicialService;
 import prog2.policia_backend.services.JuezService;
 
 @RestController
@@ -16,6 +18,7 @@ import prog2.policia_backend.services.JuezService;
 public class JuezController {
 
     private final JuezService juezService;
+    private final CasoJudicialService casoJudicialService;
 
     @GetMapping
     public ResponseEntity<List<JuezDTO>> listar(
@@ -29,6 +32,15 @@ public class JuezController {
     @GetMapping("/{codigo}")
     public ResponseEntity<JuezDTO> buscarPorCodigo(@PathVariable String codigo) {
         return ResponseEntity.ok(juezService.buscarPorCodigo(codigo));
+    }
+
+    @GetMapping("/{codigo}/casos-judiciales")
+    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                casoJudicialService.listarPorJuez(codigo)
+        );
     }
 
     @PostMapping
@@ -63,4 +75,5 @@ public class JuezController {
                 juezService.reactivar(codigo)
         );
     }
+
 }

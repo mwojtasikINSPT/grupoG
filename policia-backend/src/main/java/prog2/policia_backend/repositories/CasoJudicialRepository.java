@@ -21,4 +21,6 @@ public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long
     Optional<CasoJudicial> findByCodigo(String codigo);
     
     List<CasoJudicial> findByAsaltante_Id(Long asaltanteId);
+    
+    List<CasoJudicial> findByJuez_Id(Long juezId);
 }
