@@ -72,12 +72,12 @@ public class AsaltanteService {
 
         asaltante.setNombre(dto.getNombre());
 
-        if (dto.getBandaId() != null) {
-            Banda banda = bandaRepository.findById(dto.getBandaId())
+        if (dto.getBandaCodigo() != null) {
+            Banda banda = bandaRepository.findByCodigo(dto.getBandaCodigo())
                     .filter(Banda::isActivo)
                     .orElseThrow(()
                             -> new RecursoNoEncontradoException(
-                            "Banda", dto.getBandaId()));
+                            "Banda", dto.getBandaCodigo()));
 
             asaltante.setBanda(banda);
         } else {
@@ -104,7 +104,7 @@ public class AsaltanteService {
         return new AsaltanteDTO(
                 asaltante.getId(),
                 asaltante.getNombre(),
-                asaltante.getBanda() != null ? asaltante.getBanda().getId() : null,
+                asaltante.getBanda() != null ? asaltante.getBanda().getCodigo() : null,
                 asaltante.getCodigo(),
                 asaltante.getMotivoBaja(),
                 asaltante.getFechaCreacion(),
@@ -120,13 +120,13 @@ public class AsaltanteService {
 
         asaltante.setNombre(dto.getNombre());
 
-        if (dto.getBandaId() != null) {
+        if (dto.getBandaCodigo() != null) {
             asaltante.setBanda(
-                    bandaRepository.findById(dto.getBandaId())
+                    bandaRepository.findByCodigo(dto.getBandaCodigo())
                             .filter(Banda::isActivo)
                             .orElseThrow(()
                                     -> new RecursoNoEncontradoException(
-                                    "Banda", dto.getBandaId()))
+                                    "Banda", dto.getBandaCodigo()))
             );
         }
 

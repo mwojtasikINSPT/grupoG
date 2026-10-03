@@ -10,6 +10,7 @@ import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 
 import java.util.List;
+import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.utils.GeneradorCodigo;
@@ -21,6 +22,7 @@ public class AsaltoService {
     private final AsaltoRepository asaltoRepository;
     private final AsaltanteRepository asaltanteRepository;
     private final SucursalRepository sucursalRepository;
+    private final AsaltanteService asaltanteService;
 
     public List<AsaltoDTO> listar() {
         return asaltoRepository.findAll()
@@ -41,6 +43,20 @@ public class AsaltoService {
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asalto", codigo));
+    }
+
+    public List<AsaltoDTO> listarPorAsaltante(String codigo) {
+
+        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Asaltante", codigo));
+
+        return asaltoRepository
+                .findByAsaltantes_Id(asaltante.getId())
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
     }
 
     public AsaltoDTO guardar(AsaltoDTO dto) {
@@ -92,13 +108,30 @@ public class AsaltoService {
                         .map(Asaltante::getId)
                         .toList()
         );
+        dto.setAsaltantes(
+                asalto.getAsaltantes().stream()
+                        .map(asaltante -> new AsaltanteDTO(
+                        asaltante.getId(),
+                        asaltante.getNombre(),
+                        asaltante.getBanda() != null
+                        ? asaltante.getBanda().getCodigo()
+                        : null,
+                        asaltante.getCodigo(),
+                        asaltante.getMotivoBaja(),
+                        asaltante.getFechaCreacion(),
+                        asaltante.getFechaModificacion(),
+                        asaltante.getCreadoPor(),
+                        asaltante.getModificadoPor()
+                ))
+                        .toList()
+        );
         dto.setSucursalId(asalto.getSucursal().getId());
         dto.setCodigo(asalto.getCodigo());
         dto.setFechaCreacion(asalto.getFechaCreacion());
         dto.setFechaModificacion(asalto.getFechaModificacion());
         dto.setCreadoPor(asalto.getCreadoPor());
         dto.setModificadoPor(asalto.getModificadoPor());
-        
+
         return dto;
     }
 
@@ -127,4 +160,5 @@ public class AsaltoService {
 
         return asalto;
     }
+
 }

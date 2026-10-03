@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import prog2.policia_backend.DTOs.AsaltanteDTO;
+import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.services.AsaltanteService;
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
+import prog2.policia_backend.services.AsaltoService;
 import prog2.policia_backend.services.CasoJudicialService;
 
 @RestController
@@ -19,6 +21,7 @@ public class AsaltanteController {
 
     private final AsaltanteService asaltanteService;
     private final CasoJudicialService casoJudicialService;
+    private final AsaltoService asaltoService;
 
     @GetMapping
     public ResponseEntity<List<AsaltanteDTO>> listar(
@@ -66,6 +69,15 @@ public class AsaltanteController {
 
         return ResponseEntity.ok(
                 casoJudicialService.listarPorAsaltante(codigo)
+        );
+    }
+
+    @GetMapping("/{codigo}/asaltos")
+    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                asaltoService.listarPorAsaltante(codigo)
         );
     }
 }

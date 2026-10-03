@@ -18,7 +18,7 @@ public class AsaltanteDTO {
 
     @NotBlank
     private String nombre;
-    private Long bandaId;
+    private String bandaCodigo;
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

@@ -29,6 +29,9 @@ public class AsaltoDTO {
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<AsaltanteDTO> asaltantes;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

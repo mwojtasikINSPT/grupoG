@@ -12,4 +12,5 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
     boolean existsByBanda_IdAndActivoTrue(Long bandaId);
     
     Optional<Asaltante> findByCodigo(String codigo);
+    
 }
