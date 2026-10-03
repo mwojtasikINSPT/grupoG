@@ -79,7 +79,8 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = contratoVigilanciaRepository
                 .findByCodigo(codigo)
-                .filter(ContratoVigilancia::isActivo)
+                //.filter(ContratoVigilancia::isActivo)
+                .filter(ContratoVigilancia::getActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
                         "ContratoVigilancia", codigo));
@@ -110,7 +111,7 @@ public class ContratoVigilanciaService {
                         "Sucursal", dto.getSucursalId()));
 
         contrato.setFecha(dto.getFecha());
-        contrato.setConArma(dto.isConArma());
+        contrato.setConArma(dto.getConArma());
         contrato.setVigilante(vigilante);
         contrato.setSucursal(sucursal);
 
@@ -123,7 +124,8 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = contratoVigilanciaRepository
                 .findByCodigo(codigo)
-                .filter(ContratoVigilancia::isActivo)
+                //.filter(ContratoVigilancia::isActivo)
+                .filter(ContratoVigilancia::getActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
                         "ContratoVigilancia", codigo));
@@ -152,17 +154,31 @@ public class ContratoVigilanciaService {
                 .toList();
     }
 
+    public List<ContratoVigilanciaDTO> listarPorSucursal(String codigo) {
+
+        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Sucursal", codigo));
+
+        return contratoVigilanciaRepository
+                .findBySucursal_Id(sucursal.getId())
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     private ContratoVigilanciaDTO convertirADTO(
             ContratoVigilancia contrato) {
 
         return new ContratoVigilanciaDTO(
                 contrato.getId(),
                 contrato.getFecha(),
-                contrato.isConArma(),
+                contrato.getConArma(), // Corregido: obtener el dato del contrato
                 contrato.getVigilante().getId(),
                 contrato.getSucursal().getId(),
                 contrato.getCodigo(),
-                contrato.isActivo(),
+                contrato.getActivo(), // Corregido: usar get en lugar de is
                 contrato.getMotivoBaja(),
                 contrato.getFechaCreacion(),
                 contrato.getFechaModificacion(),
@@ -177,7 +193,8 @@ public class ContratoVigilanciaService {
         ContratoVigilancia contrato = new ContratoVigilancia();
 
         contrato.setFecha(dto.getFecha());
-        contrato.setConArma(dto.isConArma());
+        //contrato.setConArma(dto.isConArma());
+        contrato.setConArma(dto.getConArma());
 
         contrato.setVigilante(
                 vigilanteRepository.findById(dto.getVigilanteId())

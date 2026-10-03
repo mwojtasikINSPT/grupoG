@@ -21,7 +21,7 @@ public class ContratoVigilanciaDTO {
     @FutureOrPresent
     @NotNull
     private LocalDate fecha;
-    private boolean conArma;
+    private Boolean conArma;
 
     @NotNull
     private Long vigilanteId;
@@ -31,7 +31,7 @@ public class ContratoVigilanciaDTO {
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private boolean activo;
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MotivoBajaContrato motivoBaja;

@@ -1,15 +1,16 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.DTOs.SucursalDTO;
 import prog2.policia_backend.services.SucursalService;
-
-import java.util.List;
+import prog2.policia_backend.services.ContratoVigilanciaService;
 
 @RestController
 @RequestMapping("/api/sucursales")
@@ -17,6 +18,7 @@ import java.util.List;
 public class SucursalController {
 
     private final SucursalService sucursalService;
+    private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
     public ResponseEntity<List<SucursalDTO>> listar(
@@ -33,6 +35,15 @@ public class SucursalController {
 
         return ResponseEntity.ok(
                 sucursalService.buscarPorCodigo(codigo)
+        );
+    }
+
+    @GetMapping("/{codigo}/contratos")
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                contratoVigilanciaService.listarPorSucursal(codigo)
         );
     }
 

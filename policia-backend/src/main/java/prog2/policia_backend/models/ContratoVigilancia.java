@@ -30,7 +30,7 @@ public class ContratoVigilancia extends EntidadAuditable{
     private Long id;
 
     private LocalDate fecha;
-    private boolean conArma;
+    private Boolean conArma;
     private String codigo;
 
     @ManyToOne
@@ -39,7 +39,7 @@ public class ContratoVigilancia extends EntidadAuditable{
     @ManyToOne
     private Sucursal sucursal;
 
-    private boolean activo = true;
+    private Boolean activo = true;
 
     @Enumerated(EnumType.STRING)
     private MotivoBajaContrato motivoBaja;

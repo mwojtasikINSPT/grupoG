@@ -152,7 +152,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
                         "error",
-                        "El JSON enviado no es válido"
+                        "El JSON enviado no es válido",
+                         "detalle", ex.getMessage()
                 ));
     }
 }
