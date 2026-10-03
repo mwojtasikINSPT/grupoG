@@ -174,11 +174,11 @@ public class ContratoVigilanciaService {
         return new ContratoVigilanciaDTO(
                 contrato.getId(),
                 contrato.getFecha(),
-                contrato.getConArma(), // Corregido: obtener el dato del contrato
+                contrato.getConArma(), 
                 contrato.getVigilante().getId(),
                 contrato.getSucursal().getId(),
                 contrato.getCodigo(),
-                contrato.getActivo(), // Corregido: usar get en lugar de is
+                contrato.getActivo(), 
                 contrato.getMotivoBaja(),
                 contrato.getFechaCreacion(),
                 contrato.getFechaModificacion(),

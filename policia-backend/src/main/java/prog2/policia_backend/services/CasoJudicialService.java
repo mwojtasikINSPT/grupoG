@@ -211,6 +211,6 @@ public class CasoJudicialService {
 
         if (condenado && tiempoCarcel <= 0) {
             throw new CasoCondenadoSinCarcelException();
-        }
+        }        
     }
 }
