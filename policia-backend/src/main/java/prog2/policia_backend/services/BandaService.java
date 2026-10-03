@@ -43,7 +43,7 @@ public class BandaService {
 
     public BandaDTO buscarPorCodigo(String codigo) {
         return bandaRepository.findByCodigo(codigo)
-                .filter(Banda::isActivo)
+                //.filter(Banda::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Banda", codigo));

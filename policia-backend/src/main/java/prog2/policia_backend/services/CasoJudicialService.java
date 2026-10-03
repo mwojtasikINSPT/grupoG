@@ -52,7 +52,7 @@ public class CasoJudicialService {
 
     public CasoJudicialDTO buscarPorCodigo(String codigo) {
         return casoJudicialRepository.findByCodigo(codigo)
-                .filter(CasoJudicial::isActivo)
+                //.filter(CasoJudicial::isActivo)
                 .map(this::convertirADTO)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("CasoJudicial", codigo));
