@@ -1,5 +1,6 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
+import prog2.policia_backend.DTOs.SucursalDTO;
 import prog2.policia_backend.services.EntidadBancariaService;
-
-import java.util.List;
+import prog2.policia_backend.services.SucursalService;
 
 @RestController
 @RequestMapping("/api/entidades-bancarias")
@@ -17,6 +18,7 @@ import java.util.List;
 public class EntidadBancariaController {
 
     private final EntidadBancariaService entidadBancariaService;
+    private final SucursalService sucursalService;
 
     @GetMapping
     public ResponseEntity<List<EntidadBancariaDTO>> listar(
@@ -33,6 +35,15 @@ public class EntidadBancariaController {
 
         return ResponseEntity.ok(
                 entidadBancariaService.buscarPorCodigo(codigo)
+        );
+    }
+
+    @GetMapping("/{codigo}/sucursales")
+    public ResponseEntity<List<SucursalDTO>> listarSucursales(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                sucursalService.listarPorEntidadBancaria(codigo)
         );
     }
 

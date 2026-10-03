@@ -15,4 +15,6 @@ public interface SucursalRepository extends JpaRepository<Sucursal, Long> {
     boolean existsByEntidadBancaria_IdAndActivoTrue(Long entidadBancariaId);
 
     Optional<Sucursal> findByCodigo(String codigo);
+
+    List<Sucursal> findByEntidadBancaria_Id(Long entidadBancariaId);
 }

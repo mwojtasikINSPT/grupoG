@@ -59,6 +59,21 @@ public class SucursalService {
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
     }
 
+    public List<SucursalDTO> listarPorEntidadBancaria(String codigo) {
+
+        EntidadBancaria entidad = entidadBancariaRepository
+                .findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "EntidadBancaria", codigo));
+
+        return sucursalRepository
+                .findByEntidadBancaria_Id(entidad.getId())
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     public SucursalDTO guardar(SucursalDTO dto) {
 
         Sucursal sucursal = convertirAEntidad(dto);
