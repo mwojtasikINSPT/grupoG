@@ -44,13 +44,16 @@ public class SecurityConfig {
         return provider;
     }
 
-    // Define cómo se protege la API.
+    // Define cómo se protege la API
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
+                //apaga la protección CSRF (en APIs REST sin estado)
                 .csrf(csrf -> csrf.disable())
+                //habilita el flujo cruzado (CORS) para Vaadin
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .cors(cors -> {
                 })
                 .sessionManagement(session
@@ -100,22 +103,24 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
-
+        //Para que admita peticiones desde el front
         configuration.setAllowedOrigins(
                 List.of("http://localhost:8081")
         );
-
+        //métodos HTTP permitidos. OPTIONS para peticiones previas de control del navegador        
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         );
-
+        // Habilita los encabezados necesarios
         configuration.setAllowedHeaders(
                 List.of("Authorization", "Content-Type")
         );
-
+        // Permite que el navegador incluya credenciales
+        configuration.setAllowCredentials(true);
+        // Crea contenedor que asociará las reglas definidas con las rutas web la app
         UrlBasedCorsConfigurationSource source
                 = new UrlBasedCorsConfigurationSource();
-
+        //// Aplica esta config de seguridad a todos los endpoints ("/**")
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
