@@ -22,7 +22,6 @@ public class AsaltoService {
     private final AsaltoRepository asaltoRepository;
     private final AsaltanteRepository asaltanteRepository;
     private final SucursalRepository sucursalRepository;
-    private final AsaltanteService asaltanteService;
 
     public List<AsaltoDTO> listar() {
         return asaltoRepository.findAll()
@@ -54,6 +53,20 @@ public class AsaltoService {
 
         return asaltoRepository
                 .findByAsaltantes_Id(asaltante.getId())
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
+
+    public List<AsaltoDTO> listarPorSucursal(String codigo) {
+
+        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Sucursal", codigo));
+
+        return asaltoRepository
+                .findBySucursal_Id(sucursal.getId())
                 .stream()
                 .map(this::convertirADTO)
                 .toList();

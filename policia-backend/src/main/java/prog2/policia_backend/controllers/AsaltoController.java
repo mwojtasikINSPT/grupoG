@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.services.AsaltoService;
-import prog2.policia_backend.DTOs.AsaltanteDTO;
 
 @RestController
 @RequestMapping("/api/asaltos")

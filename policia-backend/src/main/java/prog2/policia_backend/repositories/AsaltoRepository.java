@@ -17,4 +17,5 @@ public interface AsaltoRepository extends JpaRepository<Asalto, Long> {
 
     List<Asalto> findByAsaltantes_Id(Long asaltanteId);
 
+    List<Asalto> findBySucursal_Id(Long sucursalId);
 }

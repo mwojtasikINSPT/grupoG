@@ -6,9 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import prog2.policia_backend.DTOs.AsaltoDTO;
 
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.DTOs.SucursalDTO;
+import prog2.policia_backend.services.AsaltoService;
 import prog2.policia_backend.services.SucursalService;
 import prog2.policia_backend.services.ContratoVigilanciaService;
 
@@ -19,6 +21,7 @@ public class SucursalController {
 
     private final SucursalService sucursalService;
     private final ContratoVigilanciaService contratoVigilanciaService;
+    private final AsaltoService asaltoService;
 
     @GetMapping
     public ResponseEntity<List<SucursalDTO>> listar(
@@ -44,6 +47,15 @@ public class SucursalController {
 
         return ResponseEntity.ok(
                 contratoVigilanciaService.listarPorSucursal(codigo)
+        );
+    }
+
+    @GetMapping("/{codigo}/asaltos")
+    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                asaltoService.listarPorSucursal(codigo)
         );
     }
 
