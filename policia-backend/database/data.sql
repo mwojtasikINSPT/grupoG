@@ -86,9 +86,9 @@ INSERT INTO contrato_vigilancia (id, fecha, con_arma, codigo, vigilante_id, sucu
 (2, '2026-09-05', false, 'CDV00002', 2, 6, true),
 (3, '2026-09-10', true,  'CDV00003', 3, 10, true);
 
-INSERT INTO asalto (id, fecha, codigo, sucursal_id, activo) VALUES
-(1, '2026-09-12', 'AST00001', 3, true),
-(2, '2026-09-25', 'AST00002', 10, true);
+INSERT INTO asalto (id, fecha, codigo, sucursal_id) VALUES
+(1, '2026-09-12', 'AST00001', 3),
+(2, '2026-09-25', 'AST00002', 10);
 
 INSERT INTO asalto_asaltante (asalto_id, asaltante_id) VALUES
 (1, 1),
@@ -99,7 +99,7 @@ INSERT INTO asalto_asaltante (asalto_id, asaltante_id) VALUES
 INSERT INTO caso_judicial
 (id, activo, codigo, condenado, tiempo_carcel, asalto_id, asaltante_id, juez_id)
 VALUES
-(1, true, 'CJU00001', true, 5, 1, 1, 1),
-(2, true, 'CJU00002', false, 0, 2, 4, 2),
-(3, true, 'CJU00003', true, 8, 2, 7, 3),
-(4, true, 'CJU00004', true, 3, 2, 10, 4);
+(1, false, 'CJU00001', true, 5, 1, 1, 1),
+(2, true,  'CJU00002', false, 0, 2, 4, 2),
+(3, false, 'CJU00003', true, 8, 2, 7, 3),
+(4, false, 'CJU00004', true, 3, 2, 10, 4);
