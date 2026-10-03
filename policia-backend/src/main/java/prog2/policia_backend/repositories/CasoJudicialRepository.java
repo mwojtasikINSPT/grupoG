@@ -19,4 +19,6 @@ public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long
     boolean existsByJuez_Id(Long juezId);
     
     Optional<CasoJudicial> findByCodigo(String codigo);
+    
+    List<CasoJudicial> findByAsaltante_Id(Long asaltanteId);
 }

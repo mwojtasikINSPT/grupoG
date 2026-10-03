@@ -1,14 +1,16 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.services.AsaltanteService;
-
-import java.util.List;
+import prog2.policia_backend.DTOs.CasoJudicialDTO;
+import prog2.policia_backend.services.CasoJudicialService;
 
 @RestController
 @RequestMapping("/api/asaltantes")
@@ -16,6 +18,7 @@ import java.util.List;
 public class AsaltanteController {
 
     private final AsaltanteService asaltanteService;
+    private final CasoJudicialService casoJudicialService;
 
     @GetMapping
     public ResponseEntity<List<AsaltanteDTO>> listar(
@@ -55,5 +58,14 @@ public class AsaltanteController {
     public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
         asaltanteService.eliminar(codigo);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{codigo}/casos-judiciales")
+    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(
+            @PathVariable String codigo) {
+
+        return ResponseEntity.ok(
+                casoJudicialService.listarPorAsaltante(codigo)
+        );
     }
 }

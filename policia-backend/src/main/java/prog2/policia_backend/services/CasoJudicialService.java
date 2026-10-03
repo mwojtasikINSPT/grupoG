@@ -120,6 +120,20 @@ public class CasoJudicialService {
         );
     }
 
+    public List<CasoJudicialDTO> listarPorAsaltante(String codigo) {
+
+        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException(
+                        "Asaltante", codigo));
+
+        return casoJudicialRepository
+                .findByAsaltante_Id(asaltante.getId())
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     /*
     public void eliminar(Long id) {
         CasoJudicial caso = casoJudicialRepository.findById(id)
