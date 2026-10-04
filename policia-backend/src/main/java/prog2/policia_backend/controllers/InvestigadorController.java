@@ -47,7 +47,7 @@ public class InvestigadorController {
     @PutMapping("/{codigo}")
     public ResponseEntity<InvestigadorDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody InvestigadorDTO dto) {
+            @RequestBody InvestigadorDTO dto) {
 
         return ResponseEntity.ok(
                 investigadorService.actualizar(codigo, dto)

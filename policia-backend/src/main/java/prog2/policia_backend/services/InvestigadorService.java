@@ -6,7 +6,10 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import prog2.policia_backend.DTOs.InvestigadorDTO;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
+import prog2.policia_backend.exceptions.PersonaYaActivaException;
+import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Investigador;
 import prog2.policia_backend.models.MotivoBajaPersona;
@@ -65,7 +68,9 @@ public class InvestigadorService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));
 
-        investigador.setNombre(dto.getNombre());
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            investigador.setNombre(dto.getNombre());
+        }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             investigador.setPassword(
@@ -82,6 +87,13 @@ public class InvestigadorService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));
 
+        if (!investigador.isActivo()) {
+        throw new PersonaYaInactivaException();
+    }
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
         if (investigador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
         }
@@ -97,6 +109,10 @@ public class InvestigadorService {
         Investigador investigador = investigadorRepository.findByCodigo(codigo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));
+
+        if (investigador.isActivo()) {
+        throw new PersonaYaActivaException();
+    }
 
         if (investigador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
