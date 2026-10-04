@@ -17,6 +17,7 @@ import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.repositories.VigilanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,26 @@ public class ContratoVigilanciaService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
                         "ContratoVigilancia", codigo));
+    }
+
+    public List<ContratoVigilanciaDTO> buscarPorNombreVigilante(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return contratoVigilanciaRepository.findAll()
+                .stream()
+                .filter(contrato
+                        -> activo == null
+                || contrato.getActivo() == activo)
+                .filter(contrato
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        contrato.getVigilante().getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
     }
 
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
@@ -174,11 +195,11 @@ public class ContratoVigilanciaService {
         return new ContratoVigilanciaDTO(
                 contrato.getId(),
                 contrato.getFecha(),
-                contrato.getConArma(), 
+                contrato.getConArma(),
                 contrato.getVigilante().getId(),
                 contrato.getSucursal().getId(),
                 contrato.getCodigo(),
-                contrato.getActivo(), 
+                contrato.getActivo(),
                 contrato.getMotivoBaja(),
                 contrato.getFechaCreacion(),
                 contrato.getFechaModificacion(),

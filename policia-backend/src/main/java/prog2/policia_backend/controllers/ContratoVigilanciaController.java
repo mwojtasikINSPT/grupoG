@@ -20,7 +20,15 @@ public class ContratoVigilanciaController {
 
     @GetMapping
     public ResponseEntity<List<ContratoVigilanciaDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String vigilante) {
+
+        if (vigilante != null && !vigilante.isBlank()) {
+            return ResponseEntity.ok(
+                    contratoVigilanciaService.buscarPorNombreVigilante(
+                            vigilante, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 contratoVigilanciaService.listar(activo)
