@@ -47,6 +47,46 @@ public class EntidadBancariaService {
                         "EntidadBancaria", codigo));
     }
 
+    public List<EntidadBancariaDTO> buscarPorDomicilio(
+            String domicilio,
+            Boolean activo) {
+
+        String domicilioNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(domicilio);
+
+        return entidadBancariaRepository.findAll()
+                .stream()
+                .filter(entidad
+                        -> activo == null
+                || entidad.isActivo() == activo)
+                .filter(entidad
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        entidad.getDomicilioCentral()
+                ).contains(domicilioNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
+    public List<EntidadBancariaDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return entidadBancariaRepository.findAll()
+                .stream()
+                .filter(entidad
+                        -> activo == null
+                || entidad.isActivo() == activo)
+                .filter(entidad
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        entidad.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     public EntidadBancariaDTO guardar(EntidadBancariaDTO dto) {
         EntidadBancaria entidad = convertirAEntidad(dto);
 

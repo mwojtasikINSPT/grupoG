@@ -60,6 +60,26 @@ public class SucursalService {
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
     }
 
+    public List<SucursalDTO> buscarPorDomicilio(
+            String domicilio,
+            Boolean activo) {
+
+        String domicilioNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(domicilio);
+
+        return sucursalRepository.findAll()
+                .stream()
+                .filter(sucursal
+                        -> activo == null
+                || sucursal.isActivo() == activo)
+                .filter(sucursal
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        sucursal.getDomicilio()
+                ).contains(domicilioNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     public List<SucursalDTO> listarPorEntidadBancaria(String codigo) {
 
         EntidadBancaria entidad = entidadBancariaRepository

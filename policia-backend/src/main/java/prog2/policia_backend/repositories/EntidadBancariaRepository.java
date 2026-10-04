@@ -9,6 +9,10 @@ import java.util.Optional;
 public interface EntidadBancariaRepository extends JpaRepository<EntidadBancaria, Long> {
 
     List<EntidadBancaria> findByActivo(boolean activo);
-    
+
     Optional<EntidadBancaria> findByCodigo(String codigo);
+
+    List<EntidadBancaria> findByNombreContainingIgnoreCase(String nombre);
+
+    //List<EntidadBancaria> findByDomicilioCentralContainingIgnoreCase(String domicilio);
 }

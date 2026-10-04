@@ -60,12 +60,12 @@ public class JuezService {
 
         return juezRepository.findAll()
                 .stream()
-                .filter(administrador
+                .filter(juez
                         -> activo == null
-                || administrador.isActivo() == activo)
-                .filter(administrador
+                || juez.isActivo() == activo)
+                .filter(juez
                         -> NormalizadorTexto.normalizarParaBuscar(
-                        administrador.getNombre()
+                        juez.getNombre()
                 ).contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();

@@ -65,12 +65,12 @@ public class AsaltanteService {
 
         return asaltanteRepository.findAll()
                 .stream()
-                .filter(administrador
+                .filter(asaltante
                         -> activo == null
-                || administrador.isActivo() == activo)
-                .filter(administrador
+                || asaltante.isActivo() == activo)
+                .filter(asaltante
                         -> NormalizadorTexto.normalizarParaBuscar(
-                        administrador.getNombre()
+                        asaltante.getNombre()
                 ).contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();

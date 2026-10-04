@@ -58,12 +58,12 @@ public class InvestigadorService {
 
         return investigadorRepository.findAll()
                 .stream()
-                .filter(administrador
+                .filter(investigador
                         -> activo == null
-                || administrador.isActivo() == activo)
-                .filter(administrador
+                || investigador.isActivo() == activo)
+                .filter(investigador
                         -> NormalizadorTexto.normalizarParaBuscar(
-                        administrador.getNombre()
+                        investigador.getNombre()
                 ).contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();

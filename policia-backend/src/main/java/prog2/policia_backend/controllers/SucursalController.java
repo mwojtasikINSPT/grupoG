@@ -25,7 +25,14 @@ public class SucursalController {
 
     @GetMapping
     public ResponseEntity<List<SucursalDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String nombre) {
+
+        if (nombre != null && !nombre.isBlank()) {
+            return ResponseEntity.ok(
+                    sucursalService.buscarPorDomicilio(nombre, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 sucursalService.listar(activo)
