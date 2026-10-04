@@ -13,4 +13,6 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
     
     Optional<Asaltante> findByCodigo(String codigo);
     
+    
+    List<Asaltante> findByNombreContainingIgnoreCase(String nombre);
 }

@@ -55,6 +55,26 @@ public class AsaltanteService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", codigo));
     }
+    
+    public List<AsaltanteDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return asaltanteRepository.findAll()
+                .stream()
+                .filter(administrador
+                        -> activo == null
+                || administrador.isActivo() == activo)
+                .filter(administrador
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        administrador.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
 
     public AsaltanteDTO guardar(AsaltanteDTO dto) {
         Asaltante asaltante = convertirAEntidad(dto);

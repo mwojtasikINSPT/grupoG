@@ -25,7 +25,14 @@ public class AsaltanteController {
 
     @GetMapping
     public ResponseEntity<List<AsaltanteDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String nombre) {
+
+        if (nombre != null && !nombre.isBlank()) {
+            return ResponseEntity.ok(
+                    asaltanteService.buscarPorNombre(nombre, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 asaltanteService.listar(activo)
