@@ -17,6 +17,7 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +81,9 @@ public class AsaltanteService {
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            asaltante.setNombre(dto.getNombre());
+            asaltante.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (Boolean.TRUE.equals(dto.getQuitarDeBanda())) {
@@ -148,7 +151,9 @@ public class AsaltanteService {
     private Asaltante convertirAEntidad(AsaltanteDTO dto) {
         Asaltante asaltante = new Asaltante();
 
-        asaltante.setNombre(dto.getNombre());
+        asaltante.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
 
         if (dto.getBandaCodigo() != null) {
             asaltante.setBanda(

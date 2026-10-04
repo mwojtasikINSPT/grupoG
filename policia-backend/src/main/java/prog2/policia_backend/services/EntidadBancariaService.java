@@ -14,6 +14,7 @@ import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +73,9 @@ public class EntidadBancariaService {
                         "EntidadBancaria", codigo));
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            entidad.setNombre(dto.getNombre());
+            entidad.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (dto.getDomicilioCentral() != null
@@ -155,7 +158,9 @@ public class EntidadBancariaService {
         EntidadBancaria entidad = new EntidadBancaria();
 
         entidad.setDomicilioCentral(dto.getDomicilioCentral());
-        entidad.setNombre(dto.getNombre());
+        entidad.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
 
         return entidad;
     }

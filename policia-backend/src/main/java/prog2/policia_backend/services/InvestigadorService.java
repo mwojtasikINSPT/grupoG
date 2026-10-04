@@ -17,6 +17,7 @@ import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.InvestigadorRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.models.RolUsuario;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -72,8 +73,11 @@ public class InvestigadorService {
         if (!investigador.isActivo()) {
             throw new PersonaInactivaException();
         }
+
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            investigador.setNombre(dto.getNombre());
+            investigador.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
@@ -148,7 +152,9 @@ public class InvestigadorService {
         Investigador investigador = new Investigador();
 
         investigador.setCodigo(dto.getCodigo());
-        investigador.setNombre(dto.getNombre());
+        investigador.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
         investigador.setRol(RolUsuario.INVESTIGADOR);
         investigador.setPassword(
                 passwordEncoder.encode(dto.getPassword())

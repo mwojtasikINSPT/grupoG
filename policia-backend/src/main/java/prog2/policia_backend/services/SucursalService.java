@@ -21,6 +21,7 @@ import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.models.MotivoCierreSucursal;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +98,7 @@ public class SucursalService {
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
 
         if (dto.getDomicilio() != null && !dto.getDomicilio().isBlank()) {
-            sucursal.setDomicilio(dto.getDomicilio());
+            sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
         }
 
         if (dto.getCantEmpleados() != null) {
@@ -193,7 +194,7 @@ public class SucursalService {
     private Sucursal convertirAEntidad(SucursalDTO dto) {
         Sucursal sucursal = new Sucursal();
 
-        sucursal.setDomicilio(dto.getDomicilio());
+        sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
         sucursal.setCantEmpleados(dto.getCantEmpleados());
 
         sucursal.setEntidadBancaria(

@@ -21,6 +21,7 @@ import prog2.policia_backend.models.Vigilante;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.VigilanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor //inyecto atrb final
@@ -83,7 +84,9 @@ public class VigilanteService {
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            vigilante.setNombre(dto.getNombre());
+            vigilante.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (dto.getEdad() != null) {
@@ -176,7 +179,9 @@ public class VigilanteService {
         Vigilante vigilante = new Vigilante();
 
         vigilante.setCodigo(dto.getCodigo());
-        vigilante.setNombre(dto.getNombre());
+        vigilante.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
         vigilante.setEdad(dto.getEdad());
         vigilante.setRol(RolUsuario.VIGILANTE);
         vigilante.setPassword(

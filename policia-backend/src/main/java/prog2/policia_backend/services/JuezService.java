@@ -19,6 +19,7 @@ import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.JuezRepository;
 import prog2.policia_backend.repositories.CasoJudicialRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -98,7 +99,9 @@ public class JuezService {
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            juez.setNombre(dto.getNombre());
+            juez.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (dto.getJuezDesde() != null) {
@@ -160,7 +163,9 @@ public class JuezService {
     private Juez convertirAEntidad(JuezDTO dto) {
         Juez juez = new Juez();
 
-        juez.setNombre(dto.getNombre());
+        juez.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
         juez.setJuezDesde(dto.getJuezDesde());
 
         return juez;

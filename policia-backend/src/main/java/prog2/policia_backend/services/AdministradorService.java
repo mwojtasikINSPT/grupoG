@@ -18,6 +18,7 @@ import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.AdministradorRepository;
 import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.utils.GeneradorCodigo;
+import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -75,8 +76,11 @@ public class AdministradorService {
         if (!administrador.isActivo()) {
             throw new PersonaInactivaException();
         }
+
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            administrador.setNombre(dto.getNombre());
+            administrador.setNombre(
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+            );
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
@@ -152,7 +156,9 @@ public class AdministradorService {
         Administrador administrador = new Administrador();
 
         administrador.setCodigo(dto.getCodigo());
-        administrador.setNombre(dto.getNombre());
+        administrador.setNombre(
+                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
+        );
         administrador.setPassword(
                 passwordEncoder.encode(dto.getPassword())
         );
