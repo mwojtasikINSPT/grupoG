@@ -46,7 +46,7 @@ public class AdministradorController {
     @PutMapping("/{codigo}")
     public ResponseEntity<AdministradorDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody AdministradorDTO dto) {
+            @RequestBody AdministradorDTO dto) {
 
         return ResponseEntity.ok(
                 administradorService.actualizar(codigo, dto)

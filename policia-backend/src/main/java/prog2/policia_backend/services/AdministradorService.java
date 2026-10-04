@@ -7,7 +7,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AdministradorDTO;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
+import prog2.policia_backend.exceptions.PersonaYaActivaException;
+import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Administrador;
 import prog2.policia_backend.models.MotivoBajaPersona;
@@ -68,7 +71,9 @@ public class AdministradorService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Administrador", codigo));
 
-        administrador.setNombre(dto.getNombre());
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            administrador.setNombre(dto.getNombre());
+        }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             administrador.setPassword(
@@ -84,6 +89,14 @@ public class AdministradorService {
         Administrador administrador = administradorRepository.findByCodigo(codigo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Administrador", codigo));
+
+        if (!administrador.isActivo()) {
+            throw new PersonaYaInactivaException();
+        }
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
 
         if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
@@ -103,6 +116,10 @@ public class AdministradorService {
 
         if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
+        }
+
+        if (administrador.isActivo()) {
+            throw new PersonaYaActivaException();
         }
 
         administrador.setActivo(true);
