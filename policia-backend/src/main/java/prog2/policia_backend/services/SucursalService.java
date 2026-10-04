@@ -90,23 +90,31 @@ public class SucursalService {
     }
 
     public SucursalDTO actualizar(String codigo, SucursalDTO dto) {
+
         Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
                 .filter(Sucursal::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Sucursal", codigo));
 
-        sucursal.setDomicilio(dto.getDomicilio());
-        sucursal.setCantEmpleados(dto.getCantEmpleados());
+        if (dto.getDomicilio() != null && !dto.getDomicilio().isBlank()) {
+            sucursal.setDomicilio(dto.getDomicilio());
+        }
 
-        EntidadBancaria entidad = entidadBancariaRepository
-                .findById(dto.getEntidadBancariaId())
-                .filter(EntidadBancaria::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria",
-                        dto.getEntidadBancariaId()));
+        if (dto.getCantEmpleados() != null) {
+            sucursal.setCantEmpleados(dto.getCantEmpleados());
+        }
 
-        sucursal.setEntidadBancaria(entidad);
+        if (dto.getEntidadBancariaId() != null) {
+            EntidadBancaria entidad = entidadBancariaRepository
+                    .findById(dto.getEntidadBancariaId())
+                    .filter(EntidadBancaria::isActivo)
+                    .orElseThrow(()
+                            -> new RecursoNoEncontradoException(
+                            "EntidadBancaria",
+                            dto.getEntidadBancariaId()));
+
+            sucursal.setEntidadBancaria(entidad);
+        }
 
         return convertirADTO(sucursalRepository.save(sucursal));
     }

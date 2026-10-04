@@ -70,7 +70,7 @@ public class SucursalController {
     @PutMapping("/{codigo}")
     public ResponseEntity<SucursalDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody SucursalDTO dto) {
+            @RequestBody SucursalDTO dto) {
 
         return ResponseEntity.ok(
                 sucursalService.actualizar(codigo, dto)

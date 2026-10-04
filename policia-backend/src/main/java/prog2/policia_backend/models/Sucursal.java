@@ -26,7 +26,7 @@ public class Sucursal extends EntidadAuditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String domicilio;
-    private int cantEmpleados;
+    private Integer cantEmpleados;
     
     @ManyToOne
     private EntidadBancaria entidadBancaria;

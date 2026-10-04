@@ -3,6 +3,7 @@ package prog2.policia_backend.DTOs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -26,8 +27,9 @@ public class VigilanteDTO {
     @Size(min = 4, max = 20)
     private String password;
 
+    @NotNull
     @Min(18)
-    private int edad;
+    private Integer edad;
 
     private MotivoBajaPersona motivoBaja;
 
