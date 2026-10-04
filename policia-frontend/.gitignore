@@ -32,3 +32,38 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Java
+*.class
+
+# Vaadin
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Vaadin generated frontend files
+/frontend/
+!/frontend/.gitkeep
+policia-frontend/src/main/frontend/generated/
+src/main/frontend/generated/
+
+# Generated Vaadin files
+*.ts
+*.js
+*.map
+
+# Vaadin / frontend build
+.vaadin/
+vite.config.ts
+vite.generated.ts
+webpack.config.js
+webpack.generated.js
+
+# IDE - NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+build/
+dist/
