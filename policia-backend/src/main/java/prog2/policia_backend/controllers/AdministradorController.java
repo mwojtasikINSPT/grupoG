@@ -19,7 +19,14 @@ public class AdministradorController {
 
     @GetMapping
     public ResponseEntity<List<AdministradorDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String nombre) {
+
+        if (nombre != null && !nombre.isBlank()) {
+            return ResponseEntity.ok(
+                    administradorService.buscarPorNombre(nombre, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 administradorService.listar(activo)

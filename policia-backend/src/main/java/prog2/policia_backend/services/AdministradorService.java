@@ -52,6 +52,26 @@ public class AdministradorService {
                         -> new RecursoNoEncontradoException("Administrador", codigo));
     }
 
+    public List<AdministradorDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return administradorRepository.findAll()
+                .stream()
+                .filter(administrador
+                        -> activo == null
+                || administrador.isActivo() == activo)
+                .filter(administrador
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        administrador.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
     public AdministradorDTO guardar(AdministradorDTO dto) {
         Administrador administrador = convertirAEntidad(dto);
 

@@ -10,4 +10,5 @@ public interface AdministradorRepository extends JpaRepository<Administrador, Lo
 
     List<Administrador> findByActivo(boolean activo);
     Optional<Administrador> findByCodigo(String codigo);
+    List<Administrador> findByNombreContainingIgnoreCase(String nombre);
 }
