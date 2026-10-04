@@ -10,4 +10,6 @@ public interface InvestigadorRepository extends JpaRepository<Investigador, Long
 
     List<Investigador> findByActivo(boolean activo);
     Optional<Investigador> findByCodigo(String codigo);
+    
+    List<Investigador> findByNombreContainingIgnoreCase(String nombre);
 }

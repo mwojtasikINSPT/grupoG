@@ -20,7 +20,14 @@ public class InvestigadorController {
 
     @GetMapping
     public ResponseEntity<List<InvestigadorDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String nombre) {
+
+        if (nombre != null && !nombre.isBlank()) {
+            return ResponseEntity.ok(
+                    investigadorService.buscarPorNombre(nombre, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 investigadorService.listar(activo)

@@ -48,6 +48,26 @@ public class InvestigadorService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));
     }
+    
+    public List<InvestigadorDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return investigadorRepository.findAll()
+                .stream()
+                .filter(administrador
+                        -> activo == null
+                || administrador.isActivo() == activo)
+                .filter(administrador
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        administrador.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
 
     public InvestigadorDTO guardar(InvestigadorDTO dto) {
         Investigador investigador = convertirAEntidad(dto);
