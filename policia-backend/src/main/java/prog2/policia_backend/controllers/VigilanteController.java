@@ -23,12 +23,20 @@ public class VigilanteController {
 
     @GetMapping
     public ResponseEntity<List<VigilanteDTO>> listar(
-            @RequestParam(required = false) Boolean activo) {
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String nombre) {
+
+        if (nombre != null && !nombre.isBlank()) {
+            return ResponseEntity.ok(
+                    vigilanteService.buscarPorNombre(nombre, activo)
+            );
+        }
 
         return ResponseEntity.ok(
                 vigilanteService.listar(activo)
         );
     }
+
 
     @PreAuthorize(
             "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "

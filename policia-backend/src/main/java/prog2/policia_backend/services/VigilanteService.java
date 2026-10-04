@@ -53,6 +53,27 @@ public class VigilanteService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Vigilante", codigo));
     }
+    
+     public List<VigilanteDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return vigilanteRepository.findAll()
+                .stream()
+                .filter(administrador
+                        -> activo == null
+                || administrador.isActivo() == activo)
+                .filter(administrador
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        administrador.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
 
     public VigilanteDTO guardar(VigilanteDTO dto) {
 
