@@ -23,6 +23,8 @@ public class AsaltanteDTO {
 
     private MotivoBajaPersona motivoBaja;
 
+    private Boolean quitarDeBanda;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;
 

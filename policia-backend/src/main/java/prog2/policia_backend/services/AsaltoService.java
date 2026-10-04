@@ -131,6 +131,7 @@ public class AsaltoService {
                         : null,
                         asaltante.getCodigo(),
                         asaltante.getMotivoBaja(),
+                                null, //quitar de banda
                         asaltante.getFechaCreacion(),
                         asaltante.getFechaModificacion(),
                         asaltante.getCreadoPor(),

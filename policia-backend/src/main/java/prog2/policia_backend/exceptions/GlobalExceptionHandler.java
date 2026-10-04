@@ -74,6 +74,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         AsaltanteNoParticipaEnAsaltoException.class,
         BandaConMiembrosException.class,
+        BandaInactivaException.class,
         CasoJudicialYaExistenteException.class,
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
