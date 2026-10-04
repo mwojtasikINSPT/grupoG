@@ -72,22 +72,23 @@ public class GlobalExceptionHandler {
 
     // Devuelve 409 Conflict ante conflictos de reglas de negocio
     @ExceptionHandler({
+        AsaltanteNoParticipaEnAsaltoException.class,
         BandaConMiembrosException.class,
-        MotivoBajaObligatorioException.class,
+        CasoJudicialYaExistenteException.class,
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
-        VigilanteConContratoFuturoException.class,
         EntidadBancariaConSucursalesException.class,
         JuezConCasosJudicialesException.class,
+        MotivoBajaObligatorioException.class,
+        MotivoBajaAsaltanteInvalidoException.class,        
+        MotivoCierreSucursalObligatorioException.class,
         PersonaYaActivaException.class, 
         PersonaYaInactivaException.class, 
         PersonaNoReactivableException.class,
-        CasoJudicialYaExistenteException.class,
-        AsaltanteNoParticipaEnAsaltoException.class,
         SucursalYaCerradaException.class,
-        MotivoCierreSucursalObligatorioException.class,
         SucursalNoReactivableException.class,
-        SucursalYaActivaException.class,})
+        SucursalYaActivaException.class,    
+        VigilanteConContratoFuturoException.class})
     public ResponseEntity<Map<String, String>> manejarConflicto(
             RuntimeException ex) {
 

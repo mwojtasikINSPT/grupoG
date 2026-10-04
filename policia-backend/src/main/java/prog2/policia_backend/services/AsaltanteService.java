@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AsaltanteDTO;
+import prog2.policia_backend.exceptions.MotivoBajaAsaltanteInvalidoException;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.BandaRepository;
@@ -89,11 +92,23 @@ public class AsaltanteService {
         return convertirADTO(asaltante);
     }
 
-    public void eliminar(String codigo) {
+    public void eliminar(String codigo, AsaltanteDTO dto) {
         Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
                 .filter(Asaltante::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", codigo));
+
+        if (!asaltante.isActivo()) {
+            throw new PersonaYaInactivaException();
+        }
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
+
+        if (dto.getMotivoBaja() != MotivoBajaPersona.FALLECIMIENTO) {
+            throw new MotivoBajaAsaltanteInvalidoException();
+        }
 
         asaltante.setActivo(false);
         asaltante.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);

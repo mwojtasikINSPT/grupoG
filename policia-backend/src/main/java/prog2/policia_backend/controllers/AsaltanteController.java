@@ -52,14 +52,18 @@ public class AsaltanteController {
     @PutMapping("/{codigo}")
     public ResponseEntity<AsaltanteDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody AsaltanteDTO dto) {
+            @RequestBody AsaltanteDTO dto) {
 
         return ResponseEntity.ok(asaltanteService.actualizar(codigo, dto));
     }
 
     @DeleteMapping("/{codigo}")
-    public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
-        asaltanteService.eliminar(codigo);
+    public ResponseEntity<Void> eliminar(
+            @PathVariable String codigo,
+            @RequestBody AsaltanteDTO dto) {
+
+        asaltanteService.eliminar(codigo, dto);
+
         return ResponseEntity.noContent().build();
     }
 

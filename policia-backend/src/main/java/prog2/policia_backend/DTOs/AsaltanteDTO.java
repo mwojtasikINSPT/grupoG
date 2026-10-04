@@ -21,7 +21,6 @@ public class AsaltanteDTO {
     private String bandaCodigo;
     private String codigo;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MotivoBajaPersona motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
