@@ -58,7 +58,7 @@ public class EntidadBancariaController {
     @PutMapping("/{codigo}")
     public ResponseEntity<EntidadBancariaDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody EntidadBancariaDTO dto) {
+            @RequestBody EntidadBancariaDTO dto) {
 
         return ResponseEntity.ok(
                 entidadBancariaService.actualizar(codigo, dto)
@@ -67,9 +67,11 @@ public class EntidadBancariaController {
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo) {
+            @PathVariable String codigo,
+            @RequestBody EntidadBancariaDTO dto) {
 
-        entidadBancariaService.eliminar(codigo);
+        entidadBancariaService.eliminar(codigo, dto);
+
         return ResponseEntity.noContent().build();
     }
 

@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
 import prog2.policia_backend.exceptions.EntidadBancariaConSucursalesException;
+import prog2.policia_backend.exceptions.EntidadYaActivaException;
+import prog2.policia_backend.exceptions.EntidadYaInactivaException;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
@@ -68,8 +71,14 @@ public class EntidadBancariaService {
                         -> new RecursoNoEncontradoException(
                         "EntidadBancaria", codigo));
 
-        entidad.setNombre(dto.getNombre());
-        entidad.setDomicilioCentral(dto.getDomicilioCentral());
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            entidad.setNombre(dto.getNombre());
+        }
+
+        if (dto.getDomicilioCentral() != null
+                && !dto.getDomicilioCentral().isBlank()) {
+            entidad.setDomicilioCentral(dto.getDomicilioCentral());
+        }
 
         return convertirADTO(
                 entidadBancariaRepository.save(entidad)
@@ -77,14 +86,21 @@ public class EntidadBancariaService {
     }
 
     // EB con SUC activa no se puede eliminar
-    public void eliminar(String codigo) {
+    public void eliminar(String codigo, EntidadBancariaDTO dto) {
 
         EntidadBancaria entidadBancaria = entidadBancariaRepository
                 .findByCodigo(codigo)
-                .filter(EntidadBancaria::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
                         "EntidadBancaria", codigo));
+
+        if (!entidadBancaria.isActivo()) {
+            throw new EntidadYaInactivaException();
+        }
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
 
         if (sucursalRepository.existsByEntidadBancaria_IdAndActivoTrue(
                 entidadBancaria.getId())) {
@@ -93,6 +109,7 @@ public class EntidadBancariaService {
         }
 
         entidadBancaria.setActivo(false);
+        entidadBancaria.setMotivoBaja(dto.getMotivoBaja());
 
         entidadBancariaRepository.save(entidadBancaria);
     }
@@ -104,6 +121,10 @@ public class EntidadBancariaService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException(
                         "EntidadBancaria", codigo));
+
+        if (entidadBancaria.isActivo()) {
+            throw new EntidadYaActivaException();
+        }
 
         entidadBancaria.setActivo(true);
 
@@ -120,6 +141,7 @@ public class EntidadBancariaService {
                 entidad.getDomicilioCentral(),
                 entidad.getCodigo(),
                 entidad.getNombre(),
+                entidad.getMotivoBaja(),
                 entidad.getFechaCreacion(),
                 entidad.getFechaModificacion(),
                 entidad.getCreadoPor(),

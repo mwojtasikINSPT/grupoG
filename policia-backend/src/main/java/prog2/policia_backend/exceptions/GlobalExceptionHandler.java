@@ -78,6 +78,8 @@ public class GlobalExceptionHandler {
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
         EntidadBancariaConSucursalesException.class,
+        EntidadYaActivaException.class,
+        EntidadYaInactivaException.class,
         JuezConCasosJudicialesException.class,
         MotivoBajaObligatorioException.class,
         MotivoBajaAsaltanteInvalidoException.class,        

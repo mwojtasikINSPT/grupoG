@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
+import prog2.policia_backend.models.MotivoBajaEntidadBancaria;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,8 @@ public class EntidadBancariaDTO {
 
     @NotBlank
     private String nombre;
+
+    private MotivoBajaEntidadBancaria motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

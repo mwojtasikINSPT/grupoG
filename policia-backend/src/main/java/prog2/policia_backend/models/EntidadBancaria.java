@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,7 +21,7 @@ import jakarta.persistence.OneToMany;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntidadBancaria extends EntidadAuditable{
+public class EntidadBancaria extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +33,7 @@ public class EntidadBancaria extends EntidadAuditable{
     private List<Sucursal> sucursales;
     private boolean activo = true;
     private String codigo;
+
+    @Enumerated(EnumType.STRING)
+    private MotivoBajaEntidadBancaria motivoBaja;
 }
