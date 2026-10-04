@@ -61,7 +61,7 @@ public class InvestigadorController {
         );
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody InvestigadorDTO dto) {

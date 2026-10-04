@@ -60,7 +60,7 @@ public class AdministradorController {
         );
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody AdministradorDTO dto) {

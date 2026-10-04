@@ -64,7 +64,7 @@ public class AsaltanteController {
         return ResponseEntity.ok(asaltanteService.actualizar(codigo, dto));
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody AsaltanteDTO dto) {

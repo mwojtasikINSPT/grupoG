@@ -37,7 +37,6 @@ public class VigilanteController {
         );
     }
 
-
     @PreAuthorize(
             "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
             + "or (hasRole('VIGILANTE') and "
@@ -84,7 +83,7 @@ public class VigilanteController {
         );
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody VigilanteDTO dto) {

@@ -64,7 +64,7 @@ public class JuezController {
         return ResponseEntity.ok(juezService.actualizar(codigo, dto));
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody JuezDTO dto) {

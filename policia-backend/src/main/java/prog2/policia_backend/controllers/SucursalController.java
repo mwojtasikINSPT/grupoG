@@ -84,7 +84,7 @@ public class SucursalController {
         );
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo,
             @RequestBody SucursalDTO dto) {

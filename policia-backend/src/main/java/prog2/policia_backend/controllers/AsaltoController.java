@@ -29,9 +29,7 @@ public class AsaltoController {
         return ResponseEntity.ok(
                 asaltoService.buscarPorCodigo(codigo)
         );
-    }
-
- 
+    } 
 
     @PostMapping
     public ResponseEntity<AsaltoDTO> guardar(

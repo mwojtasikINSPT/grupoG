@@ -62,7 +62,7 @@ public class ContratoVigilanciaController {
         );
     }
 
-    @DeleteMapping("/{codigo}")
+    @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(
             @PathVariable String codigo) {
 
