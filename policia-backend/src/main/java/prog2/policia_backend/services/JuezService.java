@@ -50,6 +50,27 @@ public class JuezService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Juez", codigo));
     }
+    
+     public List<JuezDTO> buscarPorNombre(
+            String nombre,
+            Boolean activo) {
+
+        String nombreNormalizado
+                = NormalizadorTexto.normalizarParaBuscar(nombre);
+
+        return juezRepository.findAll()
+                .stream()
+                .filter(administrador
+                        -> activo == null
+                || administrador.isActivo() == activo)
+                .filter(administrador
+                        -> NormalizadorTexto.normalizarParaBuscar(
+                        administrador.getNombre()
+                ).contains(nombreNormalizado))
+                .map(this::convertirADTO)
+                .toList();
+    }
+
 
     public JuezDTO reactivar(String codigo) {
 

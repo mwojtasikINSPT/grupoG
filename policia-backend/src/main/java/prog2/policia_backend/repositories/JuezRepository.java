@@ -11,4 +11,7 @@ public interface JuezRepository extends JpaRepository<Juez, Long> {
     List<Juez> findByActivo(boolean activo);
     
     Optional<Juez> findByCodigo(String codigo);
+    
+    
+    List<Juez> findByNombreContainingIgnoreCase(String nombre);
 }
