@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.exceptions.JuezConCasosJudicialesException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.PersonaYaActivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
@@ -88,9 +89,13 @@ public class JuezService {
     public JuezDTO actualizar(String codigo, JuezDTO dto) {
 
         Juez juez = juezRepository.findByCodigo(codigo)
-                .filter(Juez::isActivo)
+                //.filter(Juez::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Juez", codigo));
+
+        if (!juez.isActivo()) {
+            throw new PersonaInactivaException();
+        }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             juez.setNombre(dto.getNombre());

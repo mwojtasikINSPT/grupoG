@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AdministradorDTO;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.PersonaYaActivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
@@ -67,10 +68,13 @@ public class AdministradorService {
     public AdministradorDTO actualizar(String codigo, AdministradorDTO dto) {
 
         Administrador administrador = administradorRepository.findByCodigo(codigo)
-                .filter(Administrador::isActivo)
+                //.filter(Administrador::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Administrador", codigo));
 
+        if (!administrador.isActivo()) {
+            throw new PersonaInactivaException();
+        }
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             administrador.setNombre(dto.getNombre());
         }

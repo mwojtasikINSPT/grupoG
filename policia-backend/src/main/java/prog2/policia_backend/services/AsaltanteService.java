@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.exceptions.MotivoBajaAsaltanteInvalidoException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -69,13 +70,18 @@ public class AsaltanteService {
 
     public AsaltanteDTO actualizar(String codigo, AsaltanteDTO dto) {
         Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
-                .filter(Asaltante::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Asaltante", codigo));
 
-        asaltante.setNombre(dto.getNombre());
+        if (!asaltante.isActivo()) {
+            throw new PersonaInactivaException();
+        }
 
-        if (dto.getBandaCodigo() != null) {
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            asaltante.setNombre(dto.getNombre());
+        }
+
+        if (dto.getBandaCodigo() != null && !dto.getBandaCodigo().isBlank()) {
             Banda banda = bandaRepository.findByCodigo(dto.getBandaCodigo())
                     .filter(Banda::isActivo)
                     .orElseThrow(()
@@ -83,8 +89,6 @@ public class AsaltanteService {
                             "Banda", dto.getBandaCodigo()));
 
             asaltante.setBanda(banda);
-        } else {
-            asaltante.setBanda(null);
         }
 
         asaltante = asaltanteRepository.save(asaltante);

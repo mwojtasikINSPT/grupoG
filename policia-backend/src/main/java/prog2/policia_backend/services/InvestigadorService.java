@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import prog2.policia_backend.DTOs.InvestigadorDTO;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.PersonaYaActivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
@@ -64,10 +65,13 @@ public class InvestigadorService {
     public InvestigadorDTO actualizar(String codigo, InvestigadorDTO dto) {
 
         Investigador investigador = investigadorRepository.findByCodigo(codigo)
-                .filter(Investigador::isActivo)
+                //.filter(Investigador::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Investigador", codigo));
 
+        if (!investigador.isActivo()) {
+            throw new PersonaInactivaException();
+        }
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             investigador.setNombre(dto.getNombre());
         }
@@ -88,8 +92,8 @@ public class InvestigadorService {
                         -> new RecursoNoEncontradoException("Investigador", codigo));
 
         if (!investigador.isActivo()) {
-        throw new PersonaYaInactivaException();
-    }
+            throw new PersonaYaInactivaException();
+        }
 
         if (dto.getMotivoBaja() == null) {
             throw new MotivoBajaObligatorioException();
@@ -111,8 +115,8 @@ public class InvestigadorService {
                         -> new RecursoNoEncontradoException("Investigador", codigo));
 
         if (investigador.isActivo()) {
-        throw new PersonaYaActivaException();
-    }
+            throw new PersonaYaActivaException();
+        }
 
         if (investigador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
