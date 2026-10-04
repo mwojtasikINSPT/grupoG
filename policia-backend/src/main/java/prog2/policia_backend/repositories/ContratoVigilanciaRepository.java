@@ -22,11 +22,10 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
             Long id
     );
 
-    // Comprueba si el vigilante tiene algún contrato activo con fecha futura.
-    boolean existsByVigilante_IdAndFechaGreaterThanAndActivoTrue(
-            Long vigilanteId,
-            LocalDate fecha
-    );
+    // Comprueba si el vigilante tiene algún contrato activo con fecha hoy o futura.
+    boolean existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
+        Long vigilanteId,
+        LocalDate fecha);
 
     // Obtiene todos los contratos asociados a un vigilante, incluidos los inactivos.
     List<ContratoVigilancia> findByVigilante_Id(Long vigilanteId);

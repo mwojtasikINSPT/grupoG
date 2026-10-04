@@ -7,7 +7,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
+import prog2.policia_backend.exceptions.EdadMaximaExcedidaException;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
+import prog2.policia_backend.exceptions.PersonaYaActivaException;
+import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
 import prog2.policia_backend.models.MotivoBajaPersona;
@@ -49,6 +54,11 @@ public class VigilanteService {
     }
 
     public VigilanteDTO guardar(VigilanteDTO dto) {
+
+        if (dto.getEdad() > 65) {
+            throw new EdadMaximaExcedidaException();
+        }
+
         Vigilante vigilante = convertirAEntidad(dto);
 
         vigilante = vigilanteRepository.save(vigilante);
@@ -65,12 +75,25 @@ public class VigilanteService {
     public VigilanteDTO actualizar(String codigo, VigilanteDTO dto) {
 
         Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                .filter(Vigilante::isActivo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Vigilante", codigo));
 
-        vigilante.setNombre(dto.getNombre());
-        vigilante.setEdad(dto.getEdad());
+        if (!vigilante.isActivo()) {
+            throw new PersonaInactivaException();
+        }
+
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            vigilante.setNombre(dto.getNombre());
+        }
+
+        if (dto.getEdad() != null) {
+
+            if (dto.getEdad() > 65) {
+                throw new EdadMaximaExcedidaException();
+            }
+
+            vigilante.setEdad(dto.getEdad());
+        }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             vigilante.setPassword(
@@ -87,12 +110,20 @@ public class VigilanteService {
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Vigilante", codigo));
 
+        if (!vigilante.isActivo()) {
+            throw new PersonaYaInactivaException();
+        }
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
+
         if (vigilante.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
         }
 
         if (contratoVigilanciaRepository
-                .existsByVigilante_IdAndFechaGreaterThanAndActivoTrue(
+                .existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
                         vigilante.getId(), LocalDate.now())) {
 
             throw new VigilanteConContratoFuturoException();
@@ -109,6 +140,10 @@ public class VigilanteService {
         Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Vigilante", codigo));
+
+        if (vigilante.isActivo()) {
+            throw new PersonaYaActivaException();
+        }
 
         if (vigilante.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();

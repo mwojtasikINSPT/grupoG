@@ -69,7 +69,7 @@ public class VigilanteController {
     @PutMapping("/{codigo}")
     public ResponseEntity<VigilanteDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody VigilanteDTO dto) {
+            @RequestBody VigilanteDTO dto) {
 
         return ResponseEntity.ok(
                 vigilanteService.actualizar(codigo, dto)
