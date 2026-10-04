@@ -27,9 +27,11 @@ public class JuezDTO {
     @PastOrPresent
     private LocalDate juezDesde;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Min(0)
-    private int aniosServicio;
+    private Integer aniosServicio;
     private String codigo;
+    
     private MotivoBajaPersona motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

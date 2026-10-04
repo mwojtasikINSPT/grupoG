@@ -52,7 +52,7 @@ public class JuezController {
     @PutMapping("/{codigo}")
     public ResponseEntity<JuezDTO> actualizar(
             @PathVariable String codigo,
-            @Valid @RequestBody JuezDTO dto) {
+            @RequestBody JuezDTO dto) {
 
         return ResponseEntity.ok(juezService.actualizar(codigo, dto));
     }

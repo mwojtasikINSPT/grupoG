@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.exceptions.JuezConCasosJudicialesException;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
+import prog2.policia_backend.exceptions.PersonaYaActivaException;
+import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Juez;
 import prog2.policia_backend.models.MotivoBajaPersona;
@@ -56,6 +59,10 @@ public class JuezService {
             throw new PersonaNoReactivableException();
         }
 
+        if (juez.isActivo()) {
+            throw new PersonaYaActivaException();
+        }
+
         juez.setActivo(true);
         juez.setMotivoBaja(null);
 
@@ -79,12 +86,19 @@ public class JuezService {
     }
 
     public JuezDTO actualizar(String codigo, JuezDTO dto) {
+
         Juez juez = juezRepository.findByCodigo(codigo)
                 .filter(Juez::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
+                .orElseThrow(()
+                        -> new RecursoNoEncontradoException("Juez", codigo));
 
-        juez.setNombre(dto.getNombre());
-        juez.setJuezDesde(dto.getJuezDesde());
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            juez.setNombre(dto.getNombre());
+        }
+
+        if (dto.getJuezDesde() != null) {
+            juez.setJuezDesde(dto.getJuezDesde());
+        }
 
         return convertirADTO(juezRepository.save(juez));
     }
@@ -94,6 +108,14 @@ public class JuezService {
         Juez juez = juezRepository.findByCodigo(codigo)
                 .orElseThrow(()
                         -> new RecursoNoEncontradoException("Juez", codigo));
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
+
+        if (!juez.isActivo()) {
+            throw new PersonaYaInactivaException();
+        }
 
         if (juez.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
