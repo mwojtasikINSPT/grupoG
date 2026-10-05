@@ -21,18 +21,25 @@ public class CasoJudicialController {
     public ResponseEntity<List<CasoJudicialDTO>> listar(
             @RequestParam(required = false) Boolean activo) {
 
-        return ResponseEntity.ok(
-                casoJudicialService.listar(activo)
-        );
+        return ResponseEntity.ok(casoJudicialService.listar(activo));
+    }
+
+    @GetMapping("/asaltante/{codigo}")
+    public ResponseEntity<List<CasoJudicialDTO>> listarPorAsaltante(@PathVariable String codigo) {
+
+        return ResponseEntity.ok(casoJudicialService.listarPorAsaltante(codigo));
+    }
+
+    @GetMapping("/juez/{codigo}")
+    public ResponseEntity<List<CasoJudicialDTO>> listarPorJuez(@PathVariable String codigo) {
+
+        return ResponseEntity.ok(casoJudicialService.listarPorJuez(codigo));
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<CasoJudicialDTO> buscarPorCodigo(
-            @PathVariable String codigo) {
+    public ResponseEntity<CasoJudicialDTO> buscarPorCodigo(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                casoJudicialService.buscarPorCodigo(codigo)
-        );
+        return ResponseEntity.ok(casoJudicialService.buscarPorCodigo(codigo));
     }
 
     @PostMapping
@@ -42,12 +49,21 @@ public class CasoJudicialController {
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<CasoJudicialDTO> actualizar(
-            @PathVariable String codigo,
-            @Valid @RequestBody CasoJudicialDTO dto) {
+    public ResponseEntity<CasoJudicialDTO> actualizar(@PathVariable String codigo, @Valid @RequestBody CasoJudicialDTO dto) {
 
-        return ResponseEntity.ok(
-                casoJudicialService.actualizar(codigo, dto)
-        );
+        return ResponseEntity.ok(casoJudicialService.actualizar(codigo, dto));
+    }
+
+    @PatchMapping("/{codigo}/eliminar")
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody CasoJudicialDTO dto) {
+        casoJudicialService.eliminar(codigo);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/reactivar")
+    public ResponseEntity<CasoJudicialDTO> reactivar(@PathVariable String codigo) {
+
+        return ResponseEntity.ok(casoJudicialService.reactivar(codigo));
     }
 }
