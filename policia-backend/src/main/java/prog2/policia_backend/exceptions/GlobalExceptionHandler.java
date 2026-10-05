@@ -106,12 +106,19 @@ public class GlobalExceptionHandler {
 
     // Devuelve 500 ante errores inesperados no controlados 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> manejarErrorGeneral(
-            Exception ex) {
+    public ResponseEntity<Map<String, String>> manejarErrorGeneral(Exception ex) {
+
+        ex.printStackTrace();
+
+        // Extraigo  mensaje (o el nombre del error si es nulo)
+        String detalle = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error interno del servidor"));
+                .body(Map.of(
+                        "error", "Error interno del servidor",
+                        "detalle", detalle
+                ));
     }
     
 
