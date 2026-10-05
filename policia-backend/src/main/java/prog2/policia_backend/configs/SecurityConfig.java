@@ -1,6 +1,8 @@
 package prog2.policia_backend.configs;
 
 import java.util.List;
+//import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +26,9 @@ import prog2.policia_backend.models.RolUsuario;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origin:http://localhost:8081}")
+    private String allowedOrigin;
+
     // BCrypt se utiliza para guardar y verificar contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -32,12 +37,9 @@ public class SecurityConfig {
 
     // Conecta UserDetailsService con PasswordEncoder.
     @Bean
-    public AuthenticationProvider authenticationProvider(
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider provider
-                = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 
         provider.setPasswordEncoder(passwordEncoder);
 
@@ -54,24 +56,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 //habilita el flujo cruzado (CORS) para Vaadin
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session
-                        -> session.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // autenticación
                 .authorizeHttpRequests(auth -> auth
                 // Permite consultar los contratos de un vigilante; @PreAuthorize
                 // controla que el vigilante solo pueda consultar los propios.
-                .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/vigilantes/*")
+                .requestMatchers(HttpMethod.GET, "/api/vigilantes/*")
                 .hasAnyRole(
                         RolUsuario.VIGILANTE.name(),
                         RolUsuario.INVESTIGADOR.name(),
                         RolUsuario.ADMINISTRADOR.name())
                 // Permite consultar los contratos de un vigilante.
-                .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/vigilantes/*/contratos")
+                .requestMatchers(HttpMethod.GET, "/api/vigilantes/*/contratos")
                 .hasAnyRole(
                         RolUsuario.VIGILANTE.name(),
                         RolUsuario.INVESTIGADOR.name(),
@@ -96,29 +92,27 @@ public class SecurityConfig {
         return http.build();
     }
 
-    //Para permitir acceder desde otro puerto con el front
+    //Para permitir acceder desde otro puerto con el front 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
         //Para que admita peticiones desde el front
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:8081")
-        );
+        configuration.setAllowedOrigins(List.of(allowedOrigin));
+
         //métodos HTTP permitidos. OPTIONS para peticiones previas de control del navegador        
-        configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-        );
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
         // Habilita los encabezados necesarios
-        configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type")
-        );
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
         // Permite que el navegador incluya credenciales
         configuration.setAllowCredentials(true);
+
         // Crea contenedor que asociará las reglas definidas con las rutas web la app
-        UrlBasedCorsConfigurationSource source
-                = new UrlBasedCorsConfigurationSource();
-        //// Aplica esta config de seguridad a todos los endpoints ("/**")
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        /////// Aplica esta config de seguridad a todos los endpoints ("/**")
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
