@@ -23,29 +23,30 @@ public class AsaltoController {
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<AsaltoDTO> buscarPorCodigo(
-            @PathVariable String codigo) {
+    public ResponseEntity<AsaltoDTO> buscarPorCodigo(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                asaltoService.buscarPorCodigo(codigo)
-        );
-    } 
+        return ResponseEntity.ok(asaltoService.buscarPorCodigo(codigo));
+    }
+
+    @GetMapping("/asaltante/{codigo}")
+    public ResponseEntity<List<AsaltoDTO>> listarPorAsaltante(@PathVariable String codigo) {
+        return ResponseEntity.ok(asaltoService.listarPorAsaltante(codigo));
+    }
+
+    @GetMapping("/sucursal/{codigo}")
+    public ResponseEntity<List<AsaltoDTO>> listarPorSucursal(@PathVariable String codigo) {
+        return ResponseEntity.ok(asaltoService.listarPorSucursal(codigo));
+    }
 
     @PostMapping
-    public ResponseEntity<AsaltoDTO> guardar(
-            @Valid @RequestBody AsaltoDTO dto) {
+    public ResponseEntity<AsaltoDTO> guardar(@Valid @RequestBody AsaltoDTO dto) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(asaltoService.guardar(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(asaltoService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<AsaltoDTO> actualizar(
-            @PathVariable String codigo,
-            @Valid @RequestBody AsaltoDTO dto) {
+    public ResponseEntity<AsaltoDTO> actualizar(@PathVariable String codigo, @RequestBody AsaltoDTO dto) {
 
-        return ResponseEntity.ok(
-                asaltoService.actualizar(codigo, dto)
-        );
+        return ResponseEntity.ok(asaltoService.actualizar(codigo, dto));
     }
 }
