@@ -137,6 +137,7 @@ public class EntidadBancariaService {
         }
 
         entidadBancaria.setActivo(true);
+        entidadBancaria.setMotivoBaja(null);
 
         entidadBancaria = entidadBancariaRepository.save(entidadBancaria);
 
