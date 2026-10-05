@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
 import prog2.policia_backend.exceptions.EntidadBancariaConSucursalesException;
+import prog2.policia_backend.exceptions.EntidadInactivaException;
 import prog2.policia_backend.exceptions.EntidadYaActivaException;
 import prog2.policia_backend.exceptions.EntidadYaInactivaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
@@ -39,50 +40,31 @@ public class EntidadBancariaService {
     }
 
     public EntidadBancariaDTO buscarPorCodigo(String codigo) {
-        return entidadBancariaRepository.findByCodigo(codigo)
-                //.filter(EntidadBancaria::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria", codigo));
+        return convertirADTO(obtenerEntidad(codigo));
     }
 
-    public List<EntidadBancariaDTO> buscarPorDomicilio(
-            String domicilio,
-            Boolean activo) {
+    public List<EntidadBancariaDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
 
-        String domicilioNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(domicilio);
+        String domicilioNormalizado = NormalizadorTexto.normalizarParaBuscar(domicilio);
 
         return entidadBancariaRepository.findAll()
                 .stream()
-                .filter(entidad
-                        -> activo == null
-                || entidad.isActivo() == activo)
-                .filter(entidad
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        entidad.getDomicilioCentral()
-                ).contains(domicilioNormalizado))
+                .filter(entidad -> activo == null || entidad.isActivo() == activo)
+                .filter(entidad -> NormalizadorTexto.normalizarParaBuscar(entidad.getDomicilioCentral())
+                .contains(domicilioNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
 
-    public List<EntidadBancariaDTO> buscarPorNombre(
-            String nombre,
-            Boolean activo) {
+    public List<EntidadBancariaDTO> buscarPorNombre(String nombre, Boolean activo) {
 
-        String nombreNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(nombre);
+        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return entidadBancariaRepository.findAll()
                 .stream()
-                .filter(entidad
-                        -> activo == null
-                || entidad.isActivo() == activo)
-                .filter(entidad
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        entidad.getNombre()
-                ).contains(nombreNormalizado))
+                .filter(entidad -> activo == null || entidad.isActivo() == activo)
+                .filter(entidad -> NormalizadorTexto.normalizarParaBuscar(entidad.getNombre())
+                .contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
@@ -92,34 +74,27 @@ public class EntidadBancariaService {
 
         entidad = entidadBancariaRepository.save(entidad);
 
-        entidad.setCodigo(
-                GeneradorCodigo.generar("EBA", entidad.getId())
-        );
+        entidad.setCodigo(GeneradorCodigo.generar("EBA", entidad.getId()));
+        entidad.setActivo(true);
 
         entidad = entidadBancariaRepository.save(entidad);
 
         return convertirADTO(entidad);
     }
 
-    public EntidadBancariaDTO actualizar(
-            String codigo,
-            EntidadBancariaDTO dto) {
+    public EntidadBancariaDTO actualizar(String codigo, EntidadBancariaDTO dto) {
 
-        EntidadBancaria entidad = entidadBancariaRepository
-                .findByCodigo(codigo)
-                .filter(EntidadBancaria::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria", codigo));
+        EntidadBancaria entidad = obtenerEntidad(codigo);
 
-        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            entidad.setNombre(
-                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-            );
+        if (!entidad.isActivo()) {
+            throw new EntidadInactivaException();
         }
 
-        if (dto.getDomicilioCentral() != null
-                && !dto.getDomicilioCentral().isBlank()) {
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            entidad.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        }
+
+        if (dto.getDomicilioCentral() != null && !dto.getDomicilioCentral().isBlank()) {
             entidad.setDomicilioCentral(dto.getDomicilioCentral());
         }
 
@@ -131,11 +106,7 @@ public class EntidadBancariaService {
     // EB con SUC activa no se puede eliminar
     public void eliminar(String codigo, EntidadBancariaDTO dto) {
 
-        EntidadBancaria entidadBancaria = entidadBancariaRepository
-                .findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria", codigo));
+        EntidadBancaria entidadBancaria = obtenerEntidad(codigo);
 
         if (!entidadBancaria.isActivo()) {
             throw new EntidadYaInactivaException();
@@ -159,11 +130,7 @@ public class EntidadBancariaService {
 
     public EntidadBancariaDTO reactivar(String codigo) {
 
-        EntidadBancaria entidadBancaria = entidadBancariaRepository
-                .findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria", codigo));
+        EntidadBancaria entidadBancaria = obtenerEntidad(codigo);
 
         if (entidadBancaria.isActivo()) {
             throw new EntidadYaActivaException();
@@ -176,20 +143,21 @@ public class EntidadBancariaService {
         return convertirADTO(entidadBancaria);
     }
 
-    private EntidadBancariaDTO convertirADTO(
-            EntidadBancaria entidad) {
+    private EntidadBancariaDTO convertirADTO(EntidadBancaria entidad) {
+        EntidadBancariaDTO dto = new EntidadBancariaDTO();
 
-        return new EntidadBancariaDTO(
-                entidad.getId(),
-                entidad.getDomicilioCentral(),
-                entidad.getCodigo(),
-                entidad.getNombre(),
-                entidad.getMotivoBaja(),
-                entidad.getFechaCreacion(),
-                entidad.getFechaModificacion(),
-                entidad.getCreadoPor(),
-                entidad.getModificadoPor()
-        );
+        dto.setId(entidad.getId());
+        dto.setDomicilioCentral(entidad.getDomicilioCentral());
+        dto.setCodigo(entidad.getCodigo());
+        dto.setNombre(entidad.getNombre());
+        dto.setActivo(entidad.isActivo());
+        dto.setMotivoBaja(entidad.getMotivoBaja());
+        dto.setFechaCreacion(entidad.getFechaCreacion());
+        dto.setFechaModificacion(entidad.getFechaModificacion());
+        dto.setCreadoPor(entidad.getCreadoPor());
+        dto.setModificadoPor(entidad.getModificadoPor());
+
+        return dto;
     }
 
     private EntidadBancaria convertirAEntidad(
@@ -198,10 +166,15 @@ public class EntidadBancariaService {
         EntidadBancaria entidad = new EntidadBancaria();
 
         entidad.setDomicilioCentral(dto.getDomicilioCentral());
-        entidad.setNombre(
-                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-        );
+        entidad.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
 
         return entidad;
+    }
+
+    //--------
+    private EntidadBancaria obtenerEntidad(String codigo) {
+        return entidadBancariaRepository
+                .findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("EntidadBancaria", codigo));
     }
 }

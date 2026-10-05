@@ -23,6 +23,9 @@ public class EntidadBancariaDTO {
     private String nombre;
 
     private MotivoBajaEntidadBancaria motivoBaja;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

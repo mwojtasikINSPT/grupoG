@@ -47,47 +47,32 @@ public class VigilanteService {
     }
 
     public VigilanteDTO buscarPorCodigo(String codigo) {
-        return vigilanteRepository.findByCodigo(codigo)
-                //.filter(Vigilante::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+        return convertirADTO(obtenerVigilante(codigo));
     }
-    
-     public List<VigilanteDTO> buscarPorNombre(
-            String nombre,
-            Boolean activo) {
 
-        String nombreNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(nombre);
+    public List<VigilanteDTO> buscarPorNombre(String nombre, Boolean activo) {
+
+        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return vigilanteRepository.findAll()
                 .stream()
-                .filter(administrador
-                        -> activo == null
-                || administrador.isActivo() == activo)
-                .filter(administrador
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        administrador.getNombre()
-                ).contains(nombreNormalizado))
+                .filter(vigilante -> activo == null || vigilante.isActivo() == activo)
+                .filter(vigilante -> NormalizadorTexto.normalizarParaBuscar(vigilante.getNombre())
+                .contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
 
-
     public VigilanteDTO guardar(VigilanteDTO dto) {
 
-        if (dto.getEdad() > 65) {
-            throw new EdadMaximaExcedidaException();
-        }
+        validarEdad(dto.getEdad());
 
         Vigilante vigilante = convertirAEntidad(dto);
 
         vigilante = vigilanteRepository.save(vigilante);
 
-        vigilante.setCodigo(
-                GeneradorCodigo.generar("VIG", vigilante.getId())
-        );
+        vigilante.setCodigo(GeneradorCodigo.generar("VIG", vigilante.getId()));
+        vigilante.setActivo(true);
 
         vigilante = vigilanteRepository.save(vigilante);
 
@@ -96,33 +81,23 @@ public class VigilanteService {
 
     public VigilanteDTO actualizar(String codigo, VigilanteDTO dto) {
 
-        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+        Vigilante vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
             throw new PersonaInactivaException();
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            vigilante.setNombre(
-                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-            );
+            vigilante.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
 
         if (dto.getEdad() != null) {
-
-            if (dto.getEdad() > 65) {
-                throw new EdadMaximaExcedidaException();
-            }
-
+            validarEdad(dto.getEdad()); 
             vigilante.setEdad(dto.getEdad());
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            vigilante.setPassword(
-                    passwordEncoder.encode(dto.getPassword())
-            );
+            vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
         return convertirADTO(vigilanteRepository.save(vigilante));
@@ -130,9 +105,7 @@ public class VigilanteService {
 
     public void eliminar(String codigo, VigilanteDTO dto) {
 
-        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+        Vigilante vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
             throw new PersonaYaInactivaException();
@@ -142,13 +115,8 @@ public class VigilanteService {
             throw new MotivoBajaObligatorioException();
         }
 
-        if (vigilante.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
-            throw new PersonaNoReactivableException();
-        }
-
         if (contratoVigilanciaRepository
-                .existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
-                        vigilante.getId(), LocalDate.now())) {
+                .existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(), LocalDate.now())) {
 
             throw new VigilanteConContratoFuturoException();
         }
@@ -161,9 +129,7 @@ public class VigilanteService {
 
     public VigilanteDTO reactivar(String codigo) {
 
-        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Vigilante", codigo));
+        Vigilante vigilante = obtenerVigilante(codigo);
 
         if (vigilante.isActivo()) {
             throw new PersonaYaActivaException();
@@ -182,18 +148,21 @@ public class VigilanteService {
     }
 
     private VigilanteDTO convertirADTO(Vigilante vigilante) {
-        return new VigilanteDTO(
-                vigilante.getId(),
-                vigilante.getCodigo(),
-                vigilante.getNombre(),
-                null,
-                vigilante.getEdad(),
-                vigilante.getMotivoBaja(),
-                vigilante.getFechaCreacion(),
-                vigilante.getFechaModificacion(),
-                vigilante.getCreadoPor(),
-                vigilante.getModificadoPor()
-        );
+        VigilanteDTO dto = new VigilanteDTO();
+
+        dto.setId(vigilante.getId());
+        dto.setCodigo(vigilante.getCodigo());
+        dto.setNombre(vigilante.getNombre());
+        dto.setPassword(null); // El password nunca devolvemos
+        dto.setEdad(vigilante.getEdad());
+        dto.setActivo(vigilante.isActivo());
+        dto.setMotivoBaja(vigilante.getMotivoBaja());
+        dto.setFechaCreacion(vigilante.getFechaCreacion());
+        dto.setFechaModificacion(vigilante.getFechaModificacion());
+        dto.setCreadoPor(vigilante.getCreadoPor());
+        dto.setModificadoPor(vigilante.getModificadoPor());
+
+        return dto;
     }
 
     private Vigilante convertirAEntidad(VigilanteDTO dto) {
@@ -210,5 +179,17 @@ public class VigilanteService {
         );
 
         return vigilante;
+    }
+
+//-------Aux---------
+    private Vigilante obtenerVigilante(String codigo) {
+        return vigilanteRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", codigo));
+    }
+
+    private void validarEdad(Integer edad) {
+        if (edad != null && edad > 65) {
+            throw new EdadMaximaExcedidaException();
+        }
     }
 }

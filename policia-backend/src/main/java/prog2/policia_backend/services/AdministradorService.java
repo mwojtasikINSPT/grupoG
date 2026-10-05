@@ -45,29 +45,18 @@ public class AdministradorService {
     }
 
     public AdministradorDTO buscarPorCodigo(String codigo) {
-        return administradorRepository.findByCodigo(codigo)
-                //.filter(Administrador::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Administrador", codigo));
+        return convertirADTO(obtenerAdministrador(codigo));
     }
 
-    public List<AdministradorDTO> buscarPorNombre(
-            String nombre,
-            Boolean activo) {
-
+    public List<AdministradorDTO> buscarPorNombre(String nombre, Boolean activo) {
         String nombreNormalizado
                 = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return administradorRepository.findAll()
                 .stream()
-                .filter(administrador
-                        -> activo == null
-                || administrador.isActivo() == activo)
-                .filter(administrador
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        administrador.getNombre()
-                ).contains(nombreNormalizado))
+                .filter(administrador -> activo == null || administrador.isActivo() == activo)
+                .filter(administrador -> NormalizadorTexto.normalizarParaBuscar(administrador.getNombre())
+                .contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
@@ -77,9 +66,8 @@ public class AdministradorService {
 
         administrador = administradorRepository.save(administrador);
 
-        administrador.setCodigo(
-                GeneradorCodigo.generar("ADM", administrador.getId())
-        );
+        administrador.setCodigo(GeneradorCodigo.generar("ADM", administrador.getId()));
+        administrador.setActivo(true);
 
         administrador = administradorRepository.save(administrador);
 
@@ -88,10 +76,7 @@ public class AdministradorService {
 
     public AdministradorDTO actualizar(String codigo, AdministradorDTO dto) {
 
-        Administrador administrador = administradorRepository.findByCodigo(codigo)
-                //.filter(Administrador::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Administrador", codigo));
+        Administrador administrador = obtenerAdministrador(codigo);
 
         if (!administrador.isActivo()) {
             throw new PersonaInactivaException();
@@ -99,14 +84,12 @@ public class AdministradorService {
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             administrador.setNombre(
-                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-            );
+                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             administrador.setPassword(
-                    passwordEncoder.encode(dto.getPassword())
-            );
+                    passwordEncoder.encode(dto.getPassword()));
         }
 
         return convertirADTO(administradorRepository.save(administrador));
@@ -114,9 +97,7 @@ public class AdministradorService {
 
     public void eliminar(String codigo, AdministradorDTO dto) {
 
-        Administrador administrador = administradorRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Administrador", codigo));
+        Administrador administrador = obtenerAdministrador(codigo);
 
         if (!administrador.isActivo()) {
             throw new PersonaYaInactivaException();
@@ -124,10 +105,6 @@ public class AdministradorService {
 
         if (dto.getMotivoBaja() == null) {
             throw new MotivoBajaObligatorioException();
-        }
-
-        if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
-            throw new PersonaNoReactivableException();
         }
 
         administrador.setActivo(false);
@@ -138,16 +115,14 @@ public class AdministradorService {
 
     public AdministradorDTO reactivar(String codigo) {
 
-        Administrador administrador = administradorRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Administrador", codigo));
-
-        if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
-            throw new PersonaNoReactivableException();
-        }
+        Administrador administrador = obtenerAdministrador(codigo);
 
         if (administrador.isActivo()) {
             throw new PersonaYaActivaException();
+        }
+
+        if (administrador.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
+            throw new PersonaNoReactivableException();
         }
 
         administrador.setActivo(true);
@@ -159,31 +134,40 @@ public class AdministradorService {
     }
 
     private AdministradorDTO convertirADTO(Administrador administrador) {
-        return new AdministradorDTO(
-                administrador.getId(),
-                administrador.getCodigo(),
-                administrador.getNombre(),
-                null,
-                administrador.getMotivoBaja(),
-                administrador.getFechaCreacion(),
-                administrador.getFechaModificacion(),
-                administrador.getCreadoPor(),
-                administrador.getModificadoPor()
-        );
+        AdministradorDTO dto = new AdministradorDTO();
+
+        dto.setId(administrador.getId());
+        dto.setCodigo(administrador.getCodigo());
+        dto.setNombre(administrador.getNombre());
+        // password no seteamos
+        dto.setMotivoBaja(administrador.getMotivoBaja());
+        dto.setActivo(administrador.isActivo());
+        dto.setFechaCreacion(administrador.getFechaCreacion());
+        dto.setFechaModificacion(administrador.getFechaModificacion());
+        dto.setCreadoPor(administrador.getCreadoPor());
+        dto.setModificadoPor(administrador.getModificadoPor());
+
+        return dto;
     }
 
     private Administrador convertirAEntidad(AdministradorDTO dto) {
         Administrador administrador = new Administrador();
 
         administrador.setCodigo(dto.getCodigo());
-        administrador.setNombre(
-                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-        );
-        administrador.setPassword(
-                passwordEncoder.encode(dto.getPassword())
-        );
+        administrador.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
         administrador.setRol(RolUsuario.ADMINISTRADOR);
+        administrador.setActivo(dto.getActivo() != null ? dto.getActivo() : true);
 
         return administrador;
     }
+
+    //------Métodos Aux----
+    private Administrador obtenerAdministrador(String codigo) {
+
+        return administradorRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", codigo));
+
+    }
+
 }

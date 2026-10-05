@@ -45,30 +45,18 @@ public class ContratoVigilanciaService {
     }
 
     public ContratoVigilanciaDTO buscarPorCodigo(String codigo) {
-        return contratoVigilanciaRepository.findByCodigo(codigo)
-                //.filter(ContratoVigilancia::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", codigo));
+        return convertirADTO(obtenerContrato(codigo));
     }
 
-    public List<ContratoVigilanciaDTO> buscarPorNombreVigilante(
-            String nombre,
-            Boolean activo) {
+    public List<ContratoVigilanciaDTO> buscarPorNombreVigilante(String nombre, Boolean activo) {
 
-        String nombreNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(nombre);
+        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return contratoVigilanciaRepository.findAll()
                 .stream()
-                .filter(contrato
-                        -> activo == null
-                || contrato.getActivo() == activo)
-                .filter(contrato
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        contrato.getVigilante().getNombre()
-                ).contains(nombreNormalizado))
+                .filter(contrato -> activo == null || contrato.getActivo() == activo)
+                .filter(contrato -> NormalizadorTexto.normalizarParaBuscar(contrato.getVigilante().getNombre())
+                .contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
@@ -86,6 +74,8 @@ public class ContratoVigilanciaService {
         ContratoVigilancia contrato = convertirAEntidad(dto, vigilante, sucursal);
         contrato = contratoVigilanciaRepository.save(contrato);
         contrato.setCodigo(GeneradorCodigo.generar("CDV", contrato.getId()));
+        contrato.setActivo(true);
+        
         contrato = contratoVigilanciaRepository.save(contrato);
 
         return convertirADTO(contrato);
@@ -94,13 +84,7 @@ public class ContratoVigilanciaService {
 
     public ContratoVigilanciaDTO actualizar(String codigo, ContratoVigilanciaDTO dto) {
 
-        ContratoVigilancia contrato = contratoVigilanciaRepository
-                .findByCodigo(codigo)
-                //.filter(ContratoVigilancia::isActivo)
-                .filter(ContratoVigilancia::getActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", codigo));
+        ContratoVigilancia contrato = obtenerContrato(codigo);
 
         if (!contrato.getActivo()) {
             throw new ContratoVigilanciaCumplidoException();
@@ -132,13 +116,7 @@ public class ContratoVigilanciaService {
 
     public void eliminar(String codigo) {
 
-        ContratoVigilancia contrato = contratoVigilanciaRepository
-                .findByCodigo(codigo)
-                //.filter(ContratoVigilancia::isActivo)
-                .filter(ContratoVigilancia::getActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "ContratoVigilancia", codigo));
+        ContratoVigilancia contrato = obtenerContrato(codigo);
 
         if (!contrato.getFecha().isAfter(LocalDate.now())) {
             throw new ContratoVigilanciaCumplidoException();
@@ -152,10 +130,7 @@ public class ContratoVigilanciaService {
 
     public List<ContratoVigilanciaDTO> listarPorVigilante(String codigo) {
 
-        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "Vigilante", codigo));
+        Vigilante vigilante = obtenerVigilante(codigo);
 
         return contratoVigilanciaRepository
                 .findByVigilante_Id(vigilante.getId())
@@ -167,9 +142,7 @@ public class ContratoVigilanciaService {
     public List<ContratoVigilanciaDTO> listarPorSucursal(String codigo) {
 
         Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "Sucursal", codigo));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
 
         return contratoVigilanciaRepository
                 .findBySucursal_Id(sucursal.getId())
@@ -208,10 +181,19 @@ public class ContratoVigilanciaService {
         return contrato;
     }
 
-    // Valida explícitamente si existe Vigilante y si está activo
-    private Vigilante obtenerVigilanteActivo(String codigo) {
-        Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
+    //------Metodos Aux----
+    private ContratoVigilancia obtenerContrato(String codigo) {
+        return contratoVigilanciaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("ContratoVigilancia", codigo));
+    }
+
+    private Vigilante obtenerVigilante(String codigo) {
+        return vigilanteRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", codigo));
+    }
+
+    private Vigilante obtenerVigilanteActivo(String codigo) {
+        Vigilante vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
             throw new PersonaInactivaException();
@@ -219,7 +201,6 @@ public class ContratoVigilanciaService {
         return vigilante;
     }
 
-    // Valida explícitamente si existe Sucursal y si está activa
     private Sucursal obtenerSucursalActiva(String codigo) {
         Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));

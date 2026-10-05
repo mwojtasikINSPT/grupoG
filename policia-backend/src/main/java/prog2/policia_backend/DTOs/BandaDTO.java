@@ -15,6 +15,7 @@ public class BandaDTO {
     private Long id;
     private int cantMiembros;
     private String codigo;
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

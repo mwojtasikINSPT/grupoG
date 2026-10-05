@@ -5,14 +5,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AsaltoDTO {
@@ -25,10 +27,13 @@ public class AsaltoDTO {
     @NotEmpty
     private List<String> asaltantesCodigos;
 
-    @NotBlank 
+    @NotBlank
     private String sucursalCodigo;
-    
+
     private String codigo;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<AsaltanteDTO> asaltantes;

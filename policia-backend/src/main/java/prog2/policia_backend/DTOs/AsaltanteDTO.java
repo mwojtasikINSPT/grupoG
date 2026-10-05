@@ -5,11 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import prog2.policia_backend.models.MotivoBajaPersona;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AsaltanteDTO {
@@ -24,6 +27,9 @@ public class AsaltanteDTO {
     private MotivoBajaPersona motivoBaja;
 
     private Boolean quitarDeBanda;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

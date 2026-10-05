@@ -1,7 +1,6 @@
 package prog2.policia_backend.exceptions;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -75,7 +74,10 @@ public class GlobalExceptionHandler {
         AsaltanteNoParticipaEnAsaltoException.class,
         BandaConMiembrosException.class,
         BandaInactivaException.class,
+        BandaYaActivaException.class,
+        BandaYaInactivaException.class,
         CasoSentenciadoException.class,
+        CasoJudicialActivoException.class,
         CasoJudicialYaExistenteException.class,
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,

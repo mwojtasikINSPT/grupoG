@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import prog2.policia_backend.models.MotivoBajaPersona;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdministradorDTO {
@@ -27,6 +29,9 @@ public class AdministradorDTO {
     private String password;
 
     private MotivoBajaPersona motivoBaja;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

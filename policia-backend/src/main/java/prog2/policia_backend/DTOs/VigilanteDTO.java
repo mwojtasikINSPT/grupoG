@@ -34,6 +34,9 @@ public class VigilanteDTO {
     private MotivoBajaPersona motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

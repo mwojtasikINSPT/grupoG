@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.BandaDTO;
 import prog2.policia_backend.exceptions.BandaConMiembrosException;
+import prog2.policia_backend.exceptions.BandaYaActivaException;
+import prog2.policia_backend.exceptions.BandaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.repositories.BandaRepository;
@@ -34,19 +36,8 @@ public class BandaService {
                 .toList();
     }
 
-    public BandaDTO buscarPorId(Long id) {
-        return bandaRepository.findById(id)
-                //.filter(Banda::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
-    }
-
     public BandaDTO buscarPorCodigo(String codigo) {
-        return bandaRepository.findByCodigo(codigo)
-                //.filter(Banda::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Banda", codigo));
+        return convertirADTO(obtenerBanda(codigo));
     }
 
     public BandaDTO guardar() {
@@ -54,8 +45,8 @@ public class BandaService {
 
         banda = bandaRepository.save(banda);
 
-        banda.setCodigo(
-                GeneradorCodigo.generar("BAN", banda.getId()));
+        banda.setCodigo(GeneradorCodigo.generar("BAN", banda.getId()));
+        banda.setActivo(true);
 
         banda = bandaRepository.save(banda);
 
@@ -73,10 +64,11 @@ public class BandaService {
 
      */
     public void eliminar(String codigo) {
-        Banda banda = bandaRepository.findByCodigo(codigo)
-                .filter(Banda::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Banda", codigo));
+        Banda banda = obtenerBanda(codigo);
+        
+        if (!banda.isActivo()) {
+            throw new BandaYaInactivaException();
+        }
 
         if (asaltanteRepository.existsByBanda_IdAndActivoTrue(banda.getId())) {
             throw new BandaConMiembrosException();
@@ -87,9 +79,11 @@ public class BandaService {
     }
 
     public BandaDTO reactivar(String codigo) {
-        Banda banda = bandaRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Banda", codigo));
+        Banda banda = obtenerBanda(codigo);
+
+        if (banda.isActivo()) {
+            throw new BandaYaActivaException();
+        }
 
         banda.setActivo(true);
 
@@ -103,6 +97,7 @@ public class BandaService {
                 banda.getId(),
                 banda.getCantMiembros(),
                 banda.getCodigo(),
+                banda.isActivo(),
                 banda.getFechaCreacion(),
                 banda.getFechaModificacion(),
                 banda.getCreadoPor(),
@@ -110,4 +105,9 @@ public class BandaService {
         );
     }
 
+    //-----------Métodos Aux---
+    private Banda obtenerBanda(String codigo) {
+        return bandaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", codigo));
+    }
 }

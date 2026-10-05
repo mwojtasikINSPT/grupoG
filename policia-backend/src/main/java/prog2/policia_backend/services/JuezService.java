@@ -44,39 +44,79 @@ public class JuezService {
     }
 
     public JuezDTO buscarPorCodigo(String codigo) {
-        return juezRepository.findByCodigo(codigo)
-                //.filter(Juez::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Juez", codigo));
+        return convertirADTO(obtenerJuez(codigo));
     }
-    
-     public List<JuezDTO> buscarPorNombre(
-            String nombre,
-            Boolean activo) {
 
-        String nombreNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(nombre);
+    public List<JuezDTO> buscarPorNombre(String nombre, Boolean activo) {
+
+        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return juezRepository.findAll()
                 .stream()
-                .filter(juez
-                        -> activo == null
-                || juez.isActivo() == activo)
-                .filter(juez
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        juez.getNombre()
-                ).contains(nombreNormalizado))
+                .filter(juez -> activo == null || juez.isActivo() == activo)
+                .filter(juez -> NormalizadorTexto.normalizarParaBuscar(juez.getNombre())
+                .contains(nombreNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
 
+    public JuezDTO guardar(JuezDTO dto) {
+        Juez juez = convertirAEntidad(dto);
+
+        juez = juezRepository.save(juez);
+
+        juez.setCodigo(GeneradorCodigo.generar("JUE", juez.getId()));
+        juez.setActivo(true);
+
+        juez = juezRepository.save(juez);
+
+        return convertirADTO(juez);
+    }
+
+    public JuezDTO actualizar(String codigo, JuezDTO dto) {
+
+        Juez juez = obtenerJuez(codigo);
+
+        if (!juez.isActivo()) {
+            throw new PersonaInactivaException();
+        }
+
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            juez.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        }
+
+        if (dto.getJuezDesde() != null) {
+            juez.setJuezDesde(dto.getJuezDesde());
+        }
+
+        return convertirADTO(juezRepository.save(juez));
+    }
+
+    public void eliminar(String codigo, JuezDTO dto) {
+
+        Juez juez = obtenerJuez(codigo);
+
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
+
+        if (!juez.isActivo()) {
+            throw new PersonaYaInactivaException();
+        }
+
+        if (casoJudicialRepository.existsByJuez_Id(juez.getId())) {
+            throw new JuezConCasosJudicialesException();
+        }
+
+        juez.setActivo(false);
+        juez.setMotivoBaja(dto.getMotivoBaja());
+
+        juezRepository.save(juez);
+    }
 
     public JuezDTO reactivar(String codigo) {
 
-        Juez juez = juezRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Juez", codigo));
+        Juez juez = obtenerJuez(codigo);
 
         if (juez.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
             throw new PersonaNoReactivableException();
@@ -94,101 +134,40 @@ public class JuezService {
         return convertirADTO(juez);
     }
 
-    public JuezDTO guardar(JuezDTO dto) {
-        Juez juez = convertirAEntidad(dto);
-
-        juez = juezRepository.save(juez);
-
-        juez.setCodigo(
-                GeneradorCodigo.generar("JUE", juez.getId())
-        );
-
-        juez = juezRepository.save(juez);
-
-        return convertirADTO(juez);
-    }
-
-    public JuezDTO actualizar(String codigo, JuezDTO dto) {
-
-        Juez juez = juezRepository.findByCodigo(codigo)
-                //.filter(Juez::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Juez", codigo));
-
-        if (!juez.isActivo()) {
-            throw new PersonaInactivaException();
-        }
-
-        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            juez.setNombre(
-                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-            );
-        }
-
-        if (dto.getJuezDesde() != null) {
-            juez.setJuezDesde(dto.getJuezDesde());
-        }
-
-        return convertirADTO(juezRepository.save(juez));
-    }
-
-    public void eliminar(String codigo, JuezDTO dto) {
-
-        Juez juez = juezRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Juez", codigo));
-
-        if (dto.getMotivoBaja() == null) {
-            throw new MotivoBajaObligatorioException();
-        }
-
-        if (!juez.isActivo()) {
-            throw new PersonaYaInactivaException();
-        }
-
-        if (juez.getMotivoBaja() == MotivoBajaPersona.FALLECIMIENTO) {
-            throw new PersonaNoReactivableException();
-        }
-
-        if (casoJudicialRepository.existsByJuez_Id(juez.getId())) {
-            throw new JuezConCasosJudicialesException();
-        }
-
-        juez.setActivo(false);
-        juez.setMotivoBaja(dto.getMotivoBaja());
-
-        juezRepository.save(juez);
-    }
-
     //toma la fecha juezDesde y calcula automáticamente los años hasta hoy
     private JuezDTO convertirADTO(Juez juez) {
-        int aniosServicio = Period.between(
-                juez.getJuezDesde(),
-                LocalDate.now()
-        ).getYears();
+        int aniosServicio = Period.between(juez.getJuezDesde(), LocalDate.now()).getYears();
 
-        return new JuezDTO(
-                juez.getId(),
-                juez.getNombre(),
-                juez.getJuezDesde(),
-                aniosServicio,
-                juez.getCodigo(),
-                juez.getMotivoBaja(),
-                juez.getFechaCreacion(),
-                juez.getFechaModificacion(),
-                juez.getCreadoPor(),
-                juez.getModificadoPor()
-        );
+        JuezDTO dto = new JuezDTO();
+
+        dto.setId(juez.getId());
+        dto.setNombre(juez.getNombre());
+        dto.setJuezDesde(juez.getJuezDesde());
+        dto.setAniosServicio(aniosServicio);
+        dto.setCodigo(juez.getCodigo());
+        dto.setActivo(juez.isActivo());
+        dto.setMotivoBaja(juez.getMotivoBaja());
+        dto.setFechaCreacion(juez.getFechaCreacion());
+        dto.setFechaModificacion(juez.getFechaModificacion());
+        dto.setCreadoPor(juez.getCreadoPor());
+        dto.setModificadoPor(juez.getModificadoPor());
+
+        return dto;
     }
 
     private Juez convertirAEntidad(JuezDTO dto) {
         Juez juez = new Juez();
 
-        juez.setNombre(
-                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-        );
+        juez.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         juez.setJuezDesde(dto.getJuezDesde());
 
         return juez;
     }
+
+//-------Aux--------
+    private Juez obtenerJuez(String codigo) {
+        return juezRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
+    }
+
 }

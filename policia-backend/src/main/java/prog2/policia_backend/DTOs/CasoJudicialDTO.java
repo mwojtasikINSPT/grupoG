@@ -15,23 +15,25 @@ import java.time.LocalDateTime;
 public class CasoJudicialDTO {
 
     private Long id;
-    private boolean condenado;
+    
+    private Boolean sentenciado;
+    private Boolean condenado;
 
     @Min(0)
-    private int tiempoCarcel;
-
-    private boolean sentenciado;
+    private Integer tiempoCarcel;
 
     @NotBlank
     private String asaltoCodigo;
-    
+
     @NotBlank
     private String asaltanteCodigo;
-    
+
     @NotBlank
     private String juezCodigo;
 
     private String codigo;
+
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

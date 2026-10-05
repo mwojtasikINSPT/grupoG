@@ -47,47 +47,26 @@ public class SucursalService {
                 .toList();
     }
 
-    public SucursalDTO buscarPorId(Long id) {
-        return sucursalRepository.findById(id)
-                .filter(Sucursal::isActivo)
-                .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", id));
-    }
-
     public SucursalDTO buscarPorCodigo(String codigo) {
-        return sucursalRepository.findByCodigo(codigo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Sucursal", codigo));
+        return convertirADTO(obtenerSucursal(codigo));
     }
 
-    public List<SucursalDTO> buscarPorDomicilio(
-            String domicilio,
-            Boolean activo) {
+    public List<SucursalDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
 
-        String domicilioNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(domicilio);
+        String domicilioNormalizado = NormalizadorTexto.normalizarParaBuscar(domicilio);
 
         return sucursalRepository.findAll()
                 .stream()
-                .filter(sucursal
-                        -> activo == null
-                || sucursal.isActivo() == activo)
-                .filter(sucursal
-                        -> NormalizadorTexto.normalizarParaBuscar(
-                        sucursal.getDomicilio()
-                ).contains(domicilioNormalizado))
+                .filter(sucursal -> activo == null || sucursal.isActivo() == activo)
+                .filter(sucursal -> NormalizadorTexto.normalizarParaBuscar(sucursal.getDomicilio())
+                .contains(domicilioNormalizado))
                 .map(this::convertirADTO)
                 .toList();
     }
 
     public List<SucursalDTO> listarPorEntidadBancaria(String codigo) {
 
-        EntidadBancaria entidad = entidadBancariaRepository
-                .findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "EntidadBancaria", codigo));
+        EntidadBancaria entidad = obtenerEntidad(codigo);
 
         return sucursalRepository
                 .findByEntidadBancaria_Id(entidad.getId())
@@ -102,9 +81,8 @@ public class SucursalService {
 
         sucursal = sucursalRepository.save(sucursal);
 
-        sucursal.setCodigo(
-                GeneradorCodigo.generar("SUC", sucursal.getId())
-        );
+        sucursal.setCodigo(GeneradorCodigo.generar("SUC", sucursal.getId()));
+        sucursal.setActivo(true);
 
         sucursal = sucursalRepository.save(sucursal);
 
@@ -113,10 +91,7 @@ public class SucursalService {
 
     public SucursalDTO actualizar(String codigo, SucursalDTO dto) {
 
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .filter(Sucursal::isActivo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Sucursal", codigo));
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         if (dto.getDomicilio() != null && !dto.getDomicilio().isBlank()) {
             sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
@@ -136,9 +111,7 @@ public class SucursalService {
     @Transactional //Si falla la baja de alguno de los contratos o la suc, se revierte la operación
     public void eliminar(String codigo, SucursalDTO dto) {
 
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Sucursal", codigo));
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         if (!sucursal.isActivo()) {
             throw new SucursalYaCerradaException();
@@ -148,12 +121,8 @@ public class SucursalService {
             throw new MotivoCierreSucursalObligatorioException();
         }
 
-        List<ContratoVigilancia> contratosFuturos
-                = contratoVigilanciaRepository
-                        .findBySucursal_IdAndFechaAfterAndActivoTrue(
-                                sucursal.getId(),
-                                LocalDate.now());
-
+        List<ContratoVigilancia> contratosFuturos = contratoVigilanciaRepository
+                .findBySucursal_IdAndFechaAfterAndActivoTrue(sucursal.getId(), LocalDate.now());
         contratosFuturos.forEach(contrato -> {
             contrato.setActivo(false);
             contrato.setMotivoBaja(MotivoBajaContrato.CIERRE_SUCURSAL);
@@ -169,16 +138,13 @@ public class SucursalService {
 
     public SucursalDTO reactivar(String codigo) {
 
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                "Sucursal", codigo));
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         if (sucursal.isActivo()) {
             throw new SucursalYaActivaException();
         }
 
-        if (sucursal.getMotivoCierre()
-                == MotivoCierreSucursal.CIERRE_DEFINITIVO) {
+        if (sucursal.getMotivoCierre() == MotivoCierreSucursal.CIERRE_DEFINITIVO) {
 
             throw new SucursalNoReactivableException();
         }
@@ -190,21 +156,24 @@ public class SucursalService {
     }
 
     private SucursalDTO convertirADTO(Sucursal sucursal) {
-        return new SucursalDTO(
-                sucursal.getId(),
-                sucursal.getDomicilio(),
-                sucursal.getCantEmpleados(),
-                sucursal.getEntidadBancaria().getCodigo(),
-                sucursal.getCodigo(),
-                sucursal.getMotivoCierre(),
-                sucursal.getFechaCreacion(),
-                sucursal.getFechaModificacion(),
-                sucursal.getCreadoPor(),
-                sucursal.getModificadoPor()
-        );
+        SucursalDTO dto = new SucursalDTO();
+
+        dto.setId(sucursal.getId());
+        dto.setDomicilio(sucursal.getDomicilio());
+        dto.setCantEmpleados(sucursal.getCantEmpleados());
+        dto.setEntidadBancariaCodigo(sucursal.getEntidadBancaria().getCodigo());
+        dto.setCodigo(sucursal.getCodigo());
+        dto.setActivo(sucursal.isActivo());
+        dto.setMotivoCierre(sucursal.getMotivoCierre());
+        dto.setFechaCreacion(sucursal.getFechaCreacion());
+        dto.setFechaModificacion(sucursal.getFechaModificacion());
+        dto.setCreadoPor(sucursal.getCreadoPor());
+        dto.setModificadoPor(sucursal.getModificadoPor());
+
+        return dto;
     }
 
-   private Sucursal convertirAEntidad(SucursalDTO dto) {
+    private Sucursal convertirAEntidad(SucursalDTO dto) {
         Sucursal sucursal = new Sucursal();
 
         sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
@@ -216,14 +185,23 @@ public class SucursalService {
     }
 
     //-----Metodos Aux----
-    private EntidadBancaria obtenerEntidadBancariaActiva(String codigo) {
-        EntidadBancaria entidad = entidadBancariaRepository.findByCodigo(codigo)
+    private EntidadBancaria obtenerEntidad(String codigo) {
+        return entidadBancariaRepository
+                .findByCodigo(codigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("EntidadBancaria", codigo));
+    }
 
+    private EntidadBancaria obtenerEntidadBancariaActiva(String codigo) {
+        EntidadBancaria entidad = obtenerEntidad(codigo);
         if (!entidad.isActivo()) {
             throw new EntidadInactivaException();
         }
         return entidad;
+    }
+
+    private Sucursal obtenerSucursal(String codigo) {
+        return sucursalRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
     }
 
 }

@@ -11,7 +11,6 @@ import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.repositories.AsaltoRepository;
 import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
-import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.Asaltante;
@@ -33,26 +32,13 @@ public class AsaltoService {
                 .toList();
     }
 
-    /*
-    public AsaltoDTO buscarPorId(Long id) {
-        return asaltoRepository.findById(id)
-                .map(this::convertirADTO)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", id));
-    }
-     */
     public AsaltoDTO buscarPorCodigo(String codigo) {
-        return asaltoRepository.findByCodigo(codigo)
-                .map(this::convertirADTO)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException("Asalto", codigo));
+        return convertirADTO(obtenerAsalto(codigo));
     }
 
     public List<AsaltoDTO> listarPorAsaltante(String codigo) {
 
-        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "Asaltante", codigo));
+        Asaltante asaltante = obtenerAsaltante(codigo);
 
         return asaltoRepository
                 .findByAsaltantes_Id(asaltante.getId())
@@ -63,10 +49,7 @@ public class AsaltoService {
 
     public List<AsaltoDTO> listarPorSucursal(String codigo) {
 
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(()
-                        -> new RecursoNoEncontradoException(
-                        "Sucursal", codigo));
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         return asaltoRepository
                 .findBySucursal_Id(sucursal.getId())
@@ -80,17 +63,14 @@ public class AsaltoService {
 
         asalto = asaltoRepository.save(asalto);
 
-        asalto.setCodigo(
-                GeneradorCodigo.generar("AST", asalto.getId())
-        );
+        asalto.setCodigo(GeneradorCodigo.generar("AST", asalto.getId()));
 
         return convertirADTO(asaltoRepository.save(asalto));
     }
 
     public AsaltoDTO actualizar(String codigo, AsaltoDTO dto) {
 
-        Asalto asalto = asaltoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", codigo));
+        Asalto asalto = obtenerAsalto(codigo);
 
         if (dto.getFecha() != null) {
             asalto.setFecha(dto.getFecha());
@@ -115,34 +95,24 @@ public class AsaltoService {
     // Convierte una Entity en un DTO para devolver datos al Controller.
     private AsaltoDTO convertirADTO(Asalto asalto) {
         AsaltoDTO dto = new AsaltoDTO();
+
         dto.setId(asalto.getId());
-        dto.setFecha(asalto.getFecha());
-        dto.setAsaltantesCodigos(
-                asalto.getAsaltantes().stream()
-                        .map(Asaltante::getCodigo) // <-- Devuelves los códigos
-                        .toList()
-        );
-        dto.setSucursalCodigo(asalto.getSucursal().getCodigo());
-        dto.setAsaltantes(
-                asalto.getAsaltantes().stream()
-                        .map(asaltante -> new AsaltanteDTO(
-                        asaltante.getId(),
-                        asaltante.getNombre(),
-                        asaltante.getBanda() != null
-                        ? asaltante.getBanda().getCodigo()
-                        : null,
-                        asaltante.getCodigo(),
-                        asaltante.getMotivoBaja(),
-                        null, //quitar de banda
-                        asaltante.getFechaCreacion(),
-                        asaltante.getFechaModificacion(),
-                        asaltante.getCreadoPor(),
-                        asaltante.getModificadoPor()
-                ))
-                        .toList()
-        );
-        dto.setSucursalCodigo(asalto.getSucursal().getCodigo());
         dto.setCodigo(asalto.getCodigo());
+        dto.setFecha(asalto.getFecha());
+
+        if (asalto.getSucursal() != null) {
+            dto.setSucursalCodigo(asalto.getSucursal().getCodigo());
+        }
+
+        if (asalto.getAsaltantes() != null) {
+            dto.setAsaltantesCodigos(asalto
+                    .getAsaltantes()
+                    .stream()
+                    .map(Asaltante::getCodigo)
+                    .toList());
+        }
+
+        dto.setActivo(true); 
         dto.setFechaCreacion(asalto.getFechaCreacion());
         dto.setFechaModificacion(asalto.getFechaModificacion());
         dto.setCreadoPor(asalto.getCreadoPor());
@@ -167,13 +137,27 @@ public class AsaltoService {
     }
 
     //-------Metodos Auxiliares---------
-    private Asaltante obtenerAsaltanteActivo(String codigo) {
-        Asaltante asaltante = asaltanteRepository.findByCodigo(codigo)
+    private Asalto obtenerAsalto(String codigo) {
+        return asaltoRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", codigo));
+    }
+
+    private Asaltante obtenerAsaltante(String codigo) {
+        return asaltanteRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", codigo));
+    }
+
+    private Asaltante obtenerAsaltanteActivo(String codigo) {
+        Asaltante asaltante = obtenerAsaltante(codigo);
         if (!asaltante.isActivo()) {
             throw new PersonaInactivaException();
         }
         return asaltante;
+    }
+
+    private Sucursal obtenerSucursal(String codigo) {
+        return sucursalRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
     }
 
     private Sucursal obtenerSucursalActiva(String codigo) {

@@ -31,8 +31,11 @@ public class JuezDTO {
     @Min(0)
     private Integer aniosServicio;
     private String codigo;
-    
+
     private MotivoBajaPersona motivoBaja;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;
