@@ -24,47 +24,45 @@ public class ContratoVigilanciaController {
             @RequestParam(required = false) String vigilante) {
 
         if (vigilante != null && !vigilante.isBlank()) {
-            return ResponseEntity.ok(
-                    contratoVigilanciaService.buscarPorNombreVigilante(
-                            vigilante, activo)
-            );
+            return ResponseEntity.ok(contratoVigilanciaService.buscarPorNombreVigilante(vigilante, activo));
         }
 
-        return ResponseEntity.ok(
-                contratoVigilanciaService.listar(activo)
-        );
+        return ResponseEntity.ok(contratoVigilanciaService.listar(activo));
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ContratoVigilanciaDTO> buscarPorCodigo(
-            @PathVariable String codigo) {
+    public ResponseEntity<ContratoVigilanciaDTO> buscarPorCodigo(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                contratoVigilanciaService.buscarPorCodigo(codigo)
-        );
+        return ResponseEntity.ok(contratoVigilanciaService.buscarPorCodigo(codigo));
+    }
+
+    @GetMapping("/vigilante/{codigo}")
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorVigilante(@PathVariable String codigo) {
+
+        return ResponseEntity.ok(contratoVigilanciaService.listarPorVigilante(codigo));
+    }
+
+    @GetMapping("/sucursal/{codigo}")
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorSucursal(@PathVariable String codigo) {
+
+        return ResponseEntity.ok(contratoVigilanciaService.listarPorSucursal(codigo));
     }
 
     @PostMapping
-    public ResponseEntity<ContratoVigilanciaDTO> guardar(
-            @Valid @RequestBody ContratoVigilanciaDTO dto) {
+    public ResponseEntity<ContratoVigilanciaDTO> guardar(@Valid @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(contratoVigilanciaService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<ContratoVigilanciaDTO> actualizar(
-            @PathVariable String codigo,
-            @Valid @RequestBody ContratoVigilanciaDTO dto) {
+    public ResponseEntity<ContratoVigilanciaDTO> actualizar(@PathVariable String codigo, @RequestBody ContratoVigilanciaDTO dto) {
 
-        return ResponseEntity.ok(
-                contratoVigilanciaService.actualizar(codigo, dto)
-        );
+        return ResponseEntity.ok(contratoVigilanciaService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo) {
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
 
         contratoVigilanciaService.eliminar(codigo);
 

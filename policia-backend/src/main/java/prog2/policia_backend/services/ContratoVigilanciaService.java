@@ -75,7 +75,7 @@ public class ContratoVigilanciaService {
         contrato = contratoVigilanciaRepository.save(contrato);
         contrato.setCodigo(GeneradorCodigo.generar("CDV", contrato.getId()));
         contrato.setActivo(true);
-        
+
         contrato = contratoVigilanciaRepository.save(contrato);
 
         return convertirADTO(contrato);
@@ -90,35 +90,45 @@ public class ContratoVigilanciaService {
             throw new ContratoVigilanciaCumplidoException();
         }
 
-        Vigilante vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
+        LocalDate fecha = dto.getFecha() != null ? dto.getFecha() : contrato.getFecha();
+
+        Vigilante vigilante = contrato.getVigilante();
+        if (dto.getVigilanteCodigo() != null && !dto.getVigilanteCodigo().isBlank()) {
+            vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
+        }
 
         boolean existeOtroContrato = contratoVigilanciaRepository
                 .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
                         vigilante.getId(),
-                        dto.getFecha(),
+                        fecha,
                         contrato.getId());
 
         if (existeOtroContrato) {
             throw new ContratoVigilanciaDuplicadoException();
         }
 
-        Sucursal sucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
+        if (dto.getFecha() != null) {
+            contrato.setFecha(dto.getFecha());
+        }
 
-        contrato.setFecha(dto.getFecha());
-        contrato.setConArma(dto.getConArma());
+        if (dto.getConArma() != null) {
+            contrato.setConArma(dto.getConArma());
+        }
         contrato.setVigilante(vigilante);
-        contrato.setSucursal(sucursal);
 
-        return convertirADTO(
-                contratoVigilanciaRepository.save(contrato)
-        );
+        if (dto.getSucursalCodigo() != null && !dto.getSucursalCodigo().isBlank()) {
+            Sucursal sucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
+            contrato.setSucursal(sucursal);
+        }
+
+        return convertirADTO(contratoVigilanciaRepository.save(contrato));
     }
 
     public void eliminar(String codigo) {
 
         ContratoVigilancia contrato = obtenerContrato(codigo);
 
-        if (!contrato.getFecha().isAfter(LocalDate.now())) {
+        if (contrato.getFecha().isBefore(LocalDate.now())) {
             throw new ContratoVigilanciaCumplidoException();
         }
 
