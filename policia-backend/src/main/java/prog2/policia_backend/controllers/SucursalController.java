@@ -24,51 +24,35 @@ public class SucursalController {
     private final AsaltoService asaltoService;
 
     @GetMapping
-    public ResponseEntity<List<SucursalDTO>> listar(
-            @RequestParam(required = false) Boolean activo,
-            @RequestParam(required = false) String nombre) {
+    public ResponseEntity<List<SucursalDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String domicilio) {
 
-        if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(
-                    sucursalService.buscarPorDomicilio(nombre, activo)
-            );
+        if (domicilio != null && !domicilio.isBlank()) {
+            return ResponseEntity.ok(sucursalService.buscarPorDomicilio(domicilio, activo));
         }
 
-        return ResponseEntity.ok(
-                sucursalService.listar(activo)
-        );
+        return ResponseEntity.ok(sucursalService.listar(activo));
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<SucursalDTO> buscarPorCodigo(
-            @PathVariable String codigo) {
+    public ResponseEntity<SucursalDTO> buscarPorCodigo(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                sucursalService.buscarPorCodigo(codigo)
-        );
+        return ResponseEntity.ok(sucursalService.buscarPorCodigo(codigo));
     }
 
     @GetMapping("/{codigo}/contratos")
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(
-            @PathVariable String codigo) {
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                contratoVigilanciaService.listarPorSucursal(codigo)
-        );
+        return ResponseEntity.ok(contratoVigilanciaService.listarPorSucursal(codigo));
     }
 
     @GetMapping("/{codigo}/asaltos")
-    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(
-            @PathVariable String codigo) {
+    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                asaltoService.listarPorSucursal(codigo)
-        );
+        return ResponseEntity.ok(asaltoService.listarPorSucursal(codigo));
     }
 
     @PostMapping
-    public ResponseEntity<SucursalDTO> guardar(
-            @Valid @RequestBody SucursalDTO dto) {
+    public ResponseEntity<SucursalDTO> guardar(@Valid @RequestBody SucursalDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(sucursalService.guardar(dto));
@@ -79,27 +63,19 @@ public class SucursalController {
             @PathVariable String codigo,
             @RequestBody SucursalDTO dto) {
 
-        return ResponseEntity.ok(
-                sucursalService.actualizar(codigo, dto)
-        );
+        return ResponseEntity.ok(sucursalService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo,
-            @RequestBody SucursalDTO dto) {
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody SucursalDTO dto) {
 
         sucursalService.eliminar(codigo, dto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{codigo}/reactivar")
-    public ResponseEntity<SucursalDTO> reactivar(
-            @PathVariable String codigo) {
-
-        return ResponseEntity.ok(
-                sucursalService.reactivar(codigo)
-        );
+    public ResponseEntity<SucursalDTO> reactivar(@PathVariable String codigo) {
+        return ResponseEntity.ok(sucursalService.reactivar(codigo));
     }
 
 }
