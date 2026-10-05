@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Data
@@ -21,14 +22,14 @@ public class CasoJudicialDTO {
 
     private boolean sentenciado;
 
-    @NotNull
-    private Long asaltoId;
-
-    @NotNull
-    private Long asaltanteId;
-
-    @NotNull
-    private Long juezId;
+    @NotBlank
+    private String asaltoCodigo;
+    
+    @NotBlank
+    private String asaltanteCodigo;
+    
+    @NotBlank
+    private String juezCodigo;
 
     private String codigo;
 

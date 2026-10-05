@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.SucursalDTO;
+import prog2.policia_backend.exceptions.EntidadInactivaException;
 import prog2.policia_backend.exceptions.MotivoCierreSucursalObligatorioException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalNoReactivableException;
@@ -125,16 +126,8 @@ public class SucursalService {
             sucursal.setCantEmpleados(dto.getCantEmpleados());
         }
 
-        if (dto.getEntidadBancariaId() != null) {
-            EntidadBancaria entidad = entidadBancariaRepository
-                    .findById(dto.getEntidadBancariaId())
-                    .filter(EntidadBancaria::isActivo)
-                    .orElseThrow(()
-                            -> new RecursoNoEncontradoException(
-                            "EntidadBancaria",
-                            dto.getEntidadBancariaId()));
-
-            sucursal.setEntidadBancaria(entidad);
+        if (dto.getEntidadBancariaCodigo() != null) {
+            sucursal.setEntidadBancaria(obtenerEntidadBancariaActiva(dto.getEntidadBancariaCodigo()));
         }
 
         return convertirADTO(sucursalRepository.save(sucursal));
@@ -201,7 +194,7 @@ public class SucursalService {
                 sucursal.getId(),
                 sucursal.getDomicilio(),
                 sucursal.getCantEmpleados(),
-                sucursal.getEntidadBancaria().getId(),
+                sucursal.getEntidadBancaria().getCodigo(),
                 sucursal.getCodigo(),
                 sucursal.getMotivoCierre(),
                 sucursal.getFechaCreacion(),
@@ -211,21 +204,26 @@ public class SucursalService {
         );
     }
 
-    private Sucursal convertirAEntidad(SucursalDTO dto) {
+   private Sucursal convertirAEntidad(SucursalDTO dto) {
         Sucursal sucursal = new Sucursal();
 
         sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
         sucursal.setCantEmpleados(dto.getCantEmpleados());
 
-        sucursal.setEntidadBancaria(
-                entidadBancariaRepository.findById(dto.getEntidadBancariaId())
-                        .filter(EntidadBancaria::isActivo)
-                        .orElseThrow(()
-                                -> new RecursoNoEncontradoException(
-                                "EntidadBancaria",
-                                dto.getEntidadBancariaId()))
-        );
+        sucursal.setEntidadBancaria(obtenerEntidadBancariaActiva(dto.getEntidadBancariaCodigo()));
 
         return sucursal;
     }
+
+    //-----Metodos Aux----
+    private EntidadBancaria obtenerEntidadBancariaActiva(String codigo) {
+        EntidadBancaria entidad = entidadBancariaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("EntidadBancaria", codigo));
+
+        if (!entidad.isActivo()) {
+            throw new EntidadInactivaException();
+        }
+        return entidad;
+    }
+
 }

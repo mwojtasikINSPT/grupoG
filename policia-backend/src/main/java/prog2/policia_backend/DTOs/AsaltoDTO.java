@@ -1,6 +1,7 @@
 package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,10 +23,11 @@ public class AsaltoDTO {
     private LocalDate fecha;
 
     @NotEmpty
-    private List<Long> asaltantesIds;
+    private List<String> asaltantesCodigos;
 
-    @NotNull
-    private Long sucursalId;
+    @NotBlank 
+    private String sucursalCodigo;
+    
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

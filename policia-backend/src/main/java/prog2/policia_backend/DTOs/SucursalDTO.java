@@ -25,8 +25,8 @@ public class SucursalDTO {
     @Min(0)
     private Integer cantEmpleados;
 
-    @NotNull
-    private Long entidadBancariaId;
+    @NotBlank
+    private String entidadBancariaCodigo;
     private String codigo;
     private MotivoCierreSucursal motivoCierre;
 

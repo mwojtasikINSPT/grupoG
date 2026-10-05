@@ -3,6 +3,7 @@ package prog2.policia_backend.DTOs;
 import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -23,11 +24,11 @@ public class ContratoVigilanciaDTO {
     private LocalDate fecha;
     private Boolean conArma;
 
-    @NotNull
-    private Long vigilanteId;
+    @NotBlank
+    private String vigilanteCodigo;
 
-    @NotNull
-    private Long sucursalId;
+    @NotBlank
+    private String sucursalCodigo;
     private String codigo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
