@@ -63,10 +63,10 @@ public class GlobalExceptionHandler {
     }
 
     // Devuelve 403 cuando el usuario autenticado no tiene permiso
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handleAccessDenied(AccessDeniedException ex) {
+   @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("Acceso denegado - Revise sus credenciales");
+                .body(Map.of("error", "Acceso denegado - Revise sus credenciales"));
     }
 
     // Devuelve 409 Conflict ante conflictos de reglas de negocio
