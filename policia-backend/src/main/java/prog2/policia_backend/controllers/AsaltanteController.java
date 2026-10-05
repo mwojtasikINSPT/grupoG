@@ -29,14 +29,10 @@ public class AsaltanteController {
             @RequestParam(required = false) String nombre) {
 
         if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(
-                    asaltanteService.buscarPorNombre(nombre, activo)
-            );
+            return ResponseEntity.ok(asaltanteService.buscarPorNombre(nombre, activo));
         }
 
-        return ResponseEntity.ok(
-                asaltanteService.listar(activo)
-        );
+        return ResponseEntity.ok(asaltanteService.listar(activo));
     }
 
     /*
@@ -57,17 +53,13 @@ public class AsaltanteController {
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<AsaltanteDTO> actualizar(
-            @PathVariable String codigo,
-            @RequestBody AsaltanteDTO dto) {
+    public ResponseEntity<AsaltanteDTO> actualizar(@PathVariable String codigo, @RequestBody AsaltanteDTO dto) {
 
         return ResponseEntity.ok(asaltanteService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo,
-            @RequestBody AsaltanteDTO dto) {
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody AsaltanteDTO dto) {
 
         asaltanteService.eliminar(codigo, dto);
 
@@ -75,20 +67,15 @@ public class AsaltanteController {
     }
 
     @GetMapping("/{codigo}/casos-judiciales")
-    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(
-            @PathVariable String codigo) {
+    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                casoJudicialService.listarPorAsaltante(codigo)
-        );
+        return ResponseEntity.ok(casoJudicialService.listarPorAsaltante(codigo));
     }
 
     @GetMapping("/{codigo}/asaltos")
     public ResponseEntity<List<AsaltoDTO>> listarAsaltos(
             @PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                asaltoService.listarPorAsaltante(codigo)
-        );
+        return ResponseEntity.ok(asaltoService.listarPorAsaltante(codigo));
     }
 }
