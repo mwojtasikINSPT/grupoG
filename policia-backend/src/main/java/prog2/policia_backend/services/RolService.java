@@ -118,6 +118,7 @@ public class RolService {
     private Rol convertirAEntidad(RolDTO dto) {
         Rol rol = new Rol();
 
+        rol.setCodigo(NormalizadorTexto.normalizarConstante(dto.getCodigo()));
         rol.setNombre(NormalizadorTexto.normalizarConstante(dto.getNombre()));
         rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
 
