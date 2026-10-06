@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @Data
 @NoArgsConstructor
@@ -20,15 +22,14 @@ public class JuezDTO {
 
     private Long id;
 
-    @NotBlank
+    @NotBlank(groups = OnCreate.class)
     private String nombre;
 
-    @NotNull
-    @PastOrPresent
+    @NotNull(groups = OnCreate.class)
+    @PastOrPresent(groups = {OnCreate.class, OnUpdate.class})
     private LocalDate juezDesde;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Min(0)
     private Integer aniosServicio;
     private String codigo;
 

@@ -19,8 +19,7 @@ public class GlobalExceptionHandler {
 
     //Devuelve 404 para Recurso inexistente
     @ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(
-            RecursoNoEncontradoException ex) {
+    public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -29,8 +28,7 @@ public class GlobalExceptionHandler {
 
     // Devuelve 400 cuando fallan las validaciones de los datos 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(
-            MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
 
         Map<String, String> errores = ex.getBindingResult()
                 .getFieldErrors()
@@ -38,8 +36,7 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(
                         error -> error.getField(),
                         error -> error.getDefaultMessage(),
-                        (mensaje1, mensaje2) -> mensaje1
-                ));
+                        (mensaje1, mensaje2) -> mensaje1));
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -51,19 +48,15 @@ public class GlobalExceptionHandler {
         CasoSinCondenaConCarcelException.class,
         CasoCondenadoSinCarcelException.class
     })
-    public ResponseEntity<Map<String, String>> manejarError400(
-            RuntimeException ex) {
+    public ResponseEntity<Map<String, String>> manejarError400(RuntimeException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                        "error", "Petición incorrecta",
-                        "mensaje", ex.getMessage()
-                ));
+                .body(Map.of("error", "Petición incorrecta", "mensaje", ex.getMessage()));
     }
 
     // Devuelve 403 cuando el usuario autenticado no tiene permiso
-   @ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", "Acceso denegado - Revise sus credenciales"));
@@ -76,33 +69,35 @@ public class GlobalExceptionHandler {
         BandaInactivaException.class,
         BandaYaActivaException.class,
         BandaYaInactivaException.class,
-        CasoSentenciadoException.class,
         CasoJudicialActivoException.class,
         CasoJudicialYaExistenteException.class,
+        CasoSentenciadoException.class,
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
+        DatosCondenaInvalidosException.class,
         EdadInvalidaException.class,
         EntidadBancariaConSucursalesException.class,
         EntidadInactivaException.class,
         EntidadYaActivaException.class,
         EntidadYaInactivaException.class,
+        FechaFuturaException.class,
+        FechaPasadaException.class,
         JuezConCasosJudicialesException.class,
         MotivoBajaObligatorioException.class,
-        MotivoBajaAsaltanteInvalidoException.class,        
+        MotivoBajaAsaltanteInvalidoException.class,
         MotivoCierreSucursalObligatorioException.class,
         PersonaInactivaException.class,
-        PersonaYaActivaException.class, 
-        PersonaYaInactivaException.class, 
+        PersonaYaActivaException.class,
+        PersonaYaInactivaException.class,
         PersonaNoReactivableException.class,
         RolExistenteException.class,
         RolYaActivoException.class,
         RolYaInactivoException.class,
         SucursalYaCerradaException.class,
         SucursalNoReactivableException.class,
-        SucursalYaActivaException.class,    
+        SucursalYaActivaException.class,
         VigilanteConContratoFuturoException.class})
-    public ResponseEntity<Map<String, String>> manejarConflicto(
-            RuntimeException ex) {
+    public ResponseEntity<Map<String, String>> manejarConflicto(RuntimeException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -120,23 +115,17 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "error", "Error interno del servidor",
-                        "detalle", detalle
-                ));
+                .body(Map.of("error", "Error interno del servidor", "detalle", detalle));
     }
-    
 
     // Maneja errores de formato en el JSON como valores inválidos en enums,
     // indicando el campo afectado, el valor recibido y los valores permitidos.
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> manejarJsonInvalido(
-            HttpMessageNotReadableException ex) {
+    public ResponseEntity<Map<String, String>> manejarJsonInvalido(HttpMessageNotReadableException ex) {
 
         Throwable causa = ex.getCause();
 
-        if (causa instanceof InvalidFormatException invalidFormat
-                && invalidFormat.getTargetType() != null
+        if (causa instanceof InvalidFormatException invalidFormat && invalidFormat.getTargetType() != null
                 && invalidFormat.getTargetType().isEnum()) {
 
             Class<?> tipoEnum = invalidFormat.getTargetType();
@@ -162,21 +151,11 @@ public class GlobalExceptionHandler {
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                            "error", "Valor no válido",
-                            "campo", campo,
-                            "valorRecibido",
-                            String.valueOf(invalidFormat.getValue()),
-                            "valoresPermitidos", valoresPermitidos
-                    ));
+                    .body(Map.of("error", "Valor no válido", "campo", campo, "valorRecibido", String.valueOf(invalidFormat.getValue()), "valoresPermitidos", valoresPermitidos));
         }
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                        "error",
-                        "El JSON enviado no es válido",
-                         "detalle", ex.getMessage()
-                ));
+                .body(Map.of("error", "El JSON enviado no es válido", "detalle", ex.getMessage()));
     }
 }

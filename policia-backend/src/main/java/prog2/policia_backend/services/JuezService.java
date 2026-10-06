@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.JuezDTO;
+import prog2.policia_backend.exceptions.FechaFuturaException;
 import prog2.policia_backend.exceptions.JuezConCasosJudicialesException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
@@ -85,9 +86,7 @@ public class JuezService {
             juez.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
 
-        if (dto.getJuezDesde() != null) {
-            juez.setJuezDesde(dto.getJuezDesde());
-        }
+        validarYAsignarFecha(dto, juez);
 
         return convertirADTO(juezRepository.save(juez));
     }
@@ -128,7 +127,6 @@ public class JuezService {
 
         juez.setActivo(true);
         juez.setMotivoBaja(null);
-
         juez = juezRepository.save(juez);
 
         return convertirADTO(juez);
@@ -136,7 +134,9 @@ public class JuezService {
 
     //toma la fecha juezDesde y calcula automáticamente los años hasta hoy
     private JuezDTO convertirADTO(Juez juez) {
-        int aniosServicio = Period.between(juez.getJuezDesde(), LocalDate.now()).getYears();
+        int aniosServicio = juez.getJuezDesde() != null
+                ? Period.between(juez.getJuezDesde(), LocalDate.now()).getYears()
+                : 0;
 
         JuezDTO dto = new JuezDTO();
 
@@ -159,7 +159,7 @@ public class JuezService {
         Juez juez = new Juez();
 
         juez.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
-        juez.setJuezDesde(dto.getJuezDesde());
+        validarYAsignarFecha(dto, juez);
 
         return juez;
     }
@@ -170,4 +170,12 @@ public class JuezService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
     }
 
+    private void validarYAsignarFecha(JuezDTO dto, Juez juez) {
+        if (dto.getJuezDesde() != null) {
+            if (dto.getJuezDesde().isAfter(LocalDate.now())) {
+                throw new FechaFuturaException();
+            }
+            juez.setJuezDesde(dto.getJuezDesde());
+        }
+    }
 }
