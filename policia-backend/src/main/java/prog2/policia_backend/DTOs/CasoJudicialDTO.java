@@ -1,13 +1,17 @@
 package prog2.policia_backend.DTOs;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import prog2.policia_backend.validations.OnCreate;
 
 @Data
 @NoArgsConstructor
@@ -15,21 +19,21 @@ import java.time.LocalDateTime;
 public class CasoJudicialDTO {
 
     private Long id;
-    
+
     private Boolean sentenciado;
     private Boolean condenado;
 
     @Min(0)
     private Integer tiempoCarcel;
 
-    @NotBlank
+    @NotBlank(groups = {OnCreate.class})
     private String asaltoCodigo;
 
-    @NotBlank
-    private String asaltanteCodigo;
+    @NotEmpty(groups = {OnCreate.class})
+    private List<String> asaltanteCodigos = new ArrayList<>();
 
-    @NotBlank
-    private String juezCodigo;
+    @NotEmpty(groups = {OnCreate.class})
+    private List<String> juezCodigos = new ArrayList<>();
 
     private String codigo;
 

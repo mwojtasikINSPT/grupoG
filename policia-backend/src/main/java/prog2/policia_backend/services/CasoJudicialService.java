@@ -55,23 +55,25 @@ public class CasoJudicialService {
     public CasoJudicialDTO guardar(CasoJudicialDTO dto) {
 
         Asalto asalto = obtenerAsalto(dto.getAsaltoCodigo());
-        Asaltante asaltante = obtenerAsaltanteActivo(dto.getAsaltanteCodigo());
-        Juez juez = obtenerJuezActivo(dto.getJuezCodigo());
 
-        if (casoJudicialRepository.existsByAsalto_IdAndAsaltante_Id(asalto.getId(), asaltante.getId())) {
-            throw new CasoJudicialYaExistenteException();
+        List<Asaltante> asaltantes = dto.getAsaltanteCodigos().stream()
+                .map(this::obtenerAsaltanteActivo)
+                .toList();
+        for (Asaltante asaltante : asaltantes) {
+            if (!asaltoRepository.existsByIdAndAsaltantes_Id(asalto.getId(), asaltante.getId())) {
+                throw new AsaltanteNoParticipaEnAsaltoException();
+            }
+            if (casoJudicialRepository.existsByAsalto_IdAndAsaltantes_Id(asalto.getId(), asaltante.getId())) {
+                throw new CasoJudicialYaExistenteException();
+            }
         }
 
-        if (!asaltoRepository.existsByIdAndAsaltantes_Id(asalto.getId(), asaltante.getId())) {
-            throw new AsaltanteNoParticipaEnAsaltoException();
-        }
+        List<Juez> jueces = dto.getJuezCodigos().stream()
+                .map(this::obtenerJuezActivo)
+                .toList();
 
-        CasoJudicial caso = convertirAEntidad(asalto, asaltante, juez);
+        CasoJudicial caso = convertirAEntidad(dto, asalto, asaltantes, jueces);
 
-        caso.setSentenciado(false);
-        caso.setCondenado(false);
-        caso.setTiempoCarcel(0);
-        caso.setActivo(true);
         caso = casoJudicialRepository.save(caso);
         caso.setCodigo(GeneradorCodigo.generar("CJU", caso.getId()));
         caso = casoJudicialRepository.save(caso);
@@ -86,11 +88,31 @@ public class CasoJudicialService {
             throw new CasoSentenciadoException();
         }
 
+        //Agregar asaltantes
+        if (dto.getAsaltanteCodigos() != null && !dto.getAsaltanteCodigos().isEmpty()) {
+            for (String asaltanteCodigo : dto.getAsaltanteCodigos()) {
+                Asaltante asaltante = obtenerAsaltanteActivo(asaltanteCodigo);
+
+                if (!asaltoRepository.existsByIdAndAsaltantes_Id(caso.getAsalto().getId(), asaltante.getId())) {
+                    throw new AsaltanteNoParticipaEnAsaltoException();
+                }
+                if (!caso.getAsaltantes().contains(asaltante)) {
+                    caso.getAsaltantes().add(asaltante);                }
+            }
+        }
+
+        // Agregar jueces 
+        if (dto.getJuezCodigos() != null && !dto.getJuezCodigos().isEmpty()) {
+            List<Juez> nuevosJueces = dto.getJuezCodigos().stream()
+                    .map(this::obtenerJuezActivo)
+                    .toList();
+            caso.setJueces(nuevosJueces);
+        }
+
+        //Sentencia
         boolean condenado = dto.getCondenado() != null ? dto.getCondenado() : caso.isCondenado();
         int tiempoCarcel = dto.getTiempoCarcel() != null ? dto.getTiempoCarcel() : caso.getTiempoCarcel();
-
         validarCondena(condenado, tiempoCarcel);
-
         caso.setCondenado(condenado);
         caso.setTiempoCarcel(tiempoCarcel);
 
@@ -99,11 +121,6 @@ public class CasoJudicialService {
             if (dto.getSentenciado()) {
                 caso.setActivo(false); // Si hay sentencia, el caso queda cerrado
             }
-        }
-
-        if (dto.getJuezCodigo() != null) {
-            Juez juez = obtenerJuezActivo(dto.getJuezCodigo());
-            caso.setJuez(juez);
         }
 
         return convertirADTO(casoJudicialRepository.save(caso));
@@ -115,7 +132,7 @@ public class CasoJudicialService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", codigo));
 
         return casoJudicialRepository
-                .findByAsaltante_Id(asaltante.getId())
+                .findByAsaltantes_Id(asaltante.getId())
                 .stream()
                 .map(this::convertirADTO)
                 .toList();
@@ -127,7 +144,7 @@ public class CasoJudicialService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
 
         return casoJudicialRepository
-                .findByJuez_Id(juez.getId())
+                .findByJueces_Id(juez.getId())
                 .stream()
                 .map(this::convertirADTO)
                 .toList();
@@ -169,13 +186,15 @@ public class CasoJudicialService {
         if (caso.getAsalto() != null) {
             dto.setAsaltoCodigo(caso.getAsalto().getCodigo());
         }
-
-        if (caso.getAsaltante() != null) {
-            dto.setAsaltanteCodigo(caso.getAsaltante().getCodigo());
+        if (caso.getAsaltantes() != null) {
+            dto.setAsaltanteCodigos(caso.getAsaltantes().stream()
+                    .map(Asaltante::getCodigo)
+                    .toList());
         }
-
-        if (caso.getJuez() != null) {
-            dto.setJuezCodigo(caso.getJuez().getCodigo());
+        if (caso.getJueces() != null) {
+            dto.setJuezCodigos(caso.getJueces().stream()
+                    .map(Juez::getCodigo)
+                    .toList());
         }
 
         dto.setFechaCreacion(caso.getFechaCreacion());
@@ -186,11 +205,17 @@ public class CasoJudicialService {
         return dto;
     }
 
-    private CasoJudicial convertirAEntidad(Asalto asalto, Asaltante asaltante, Juez juez) {
+    private CasoJudicial convertirAEntidad(CasoJudicialDTO dto, Asalto asalto, List<Asaltante> asaltantes, List<Juez> jueces) {
         CasoJudicial caso = new CasoJudicial();
+
         caso.setAsalto(asalto);
-        caso.setAsaltante(asaltante);
-        caso.setJuez(juez);
+        caso.setAsaltantes(asaltantes);
+        caso.setJueces(jueces);
+
+        caso.setSentenciado(false);
+        caso.setCondenado(false);
+        caso.setTiempoCarcel(dto.getTiempoCarcel() != null ? dto.getTiempoCarcel() : 0);
+        caso.setActivo(true);
 
         return caso;
     }

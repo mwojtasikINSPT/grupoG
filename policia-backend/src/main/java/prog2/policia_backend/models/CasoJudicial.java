@@ -4,9 +4,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,10 +40,10 @@ public class CasoJudicial extends EntidadAuditable {
     @ManyToOne
     private Asalto asalto;
 
-    @ManyToOne
-    private Asaltante asaltante;
+    @ManyToMany
+    private List<Asaltante> asaltantes = new ArrayList<>();
 
-    @ManyToOne
-    private Juez juez;
+    @ManyToMany
+    private List<Juez> jueces = new ArrayList<>();
 
 }

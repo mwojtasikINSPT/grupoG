@@ -103,7 +103,7 @@ public class JuezService {
             throw new PersonaYaInactivaException();
         }
 
-        if (casoJudicialRepository.existsByJuez_Id(juez.getId())) {
+        if (casoJudicialRepository.existsByJueces_IdAndActivoTrue(juez.getId())) {
             throw new JuezConCasosJudicialesException();
         }
 

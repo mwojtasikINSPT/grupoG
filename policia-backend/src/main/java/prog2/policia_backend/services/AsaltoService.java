@@ -191,7 +191,7 @@ public class AsaltoService {
     }
 
     private void validarAsaltanteSinCasoJudicial(Asalto asalto, Asaltante asaltante) {
-        boolean tieneCaso = casoJudicialRepository.existsByAsaltoAndAsaltante(asalto, asaltante);
+        boolean tieneCaso = casoJudicialRepository.existsByAsalto_IdAndAsaltantes_Id(asalto.getId(), asaltante.getId());
 
         if (tieneCaso) {
             throw new AsaltanteConCasoJudicialException();
