@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import prog2.policia_backend.validations.OnCreate;
@@ -27,7 +28,7 @@ public class AsaltoDTO {
     @PastOrPresent(groups = {OnCreate.class})
     private LocalDate fecha;
 
-    private List<String> asaltantesCodigos;
+    private List<String> asaltantesCodigos = new ArrayList<>();
 
     @NotBlank(groups = OnCreate.class)
     private String sucursalCodigo;

@@ -71,19 +71,22 @@ public class AsaltoService {
     }
 
     public AsaltoDTO actualizar(String codigo, AsaltoDTO dto) {
-
         Asalto asalto = obtenerAsalto(codigo);
 
-        if (dto.getAsaltantesCodigos() != null && !dto.getAsaltantesCodigos().isEmpty()) {
-            
-            List<Asaltante> nuevosAsaltantes = dto.getAsaltantesCodigos().stream()
-                    .map(this::obtenerAsaltanteActivo)
-                    .collect(Collectors.toList());
+        if (dto.getAsaltantesCodigos() != null) {
+            if (dto.getAsaltantesCodigos().isEmpty()) {                
+                asalto.getAsaltantes().clear();
+            } else {
+                // Asaltantes existentes y activos
+                List<Asaltante> nuevosAsaltantes = dto.getAsaltantesCodigos().stream()
+                        .map(this::obtenerAsaltanteActivo)
+                        .collect(Collectors.toList());
 
-            validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
-            
-            asalto.getAsaltantes().clear();
-            asalto.getAsaltantes().addAll(nuevosAsaltantes);
+                validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
+
+                asalto.getAsaltantes().clear();
+                asalto.getAsaltantes().addAll(nuevosAsaltantes);
+            }
         }
 
         if (dto.getSucursalCodigo() != null && !dto.getSucursalCodigo().isBlank()) {
@@ -133,7 +136,7 @@ public class AsaltoService {
                     .collect(Collectors.toList());
 
             validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
-            
+
             asalto.setAsaltantes(asaltantes);
         } else {
             asalto.setAsaltantes(new ArrayList<>());
