@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AsaltoDTO;
+import prog2.policia_backend.exceptions.AsaltanteConCasoJudicialException;
 import prog2.policia_backend.exceptions.AsaltanteDuplicadoException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asalto;
@@ -17,6 +18,7 @@ import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Sucursal;
+import prog2.policia_backend.repositories.CasoJudicialRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
@@ -26,6 +28,7 @@ public class AsaltoService {
     private final AsaltoRepository asaltoRepository;
     private final AsaltanteRepository asaltanteRepository;
     private final SucursalRepository sucursalRepository;
+    private final CasoJudicialRepository casoJudicialRepository;
 
     public List<AsaltoDTO> listar() {
         return asaltoRepository.findAll()
@@ -74,7 +77,11 @@ public class AsaltoService {
         Asalto asalto = obtenerAsalto(codigo);
 
         if (dto.getAsaltantesCodigos() != null) {
-            if (dto.getAsaltantesCodigos().isEmpty()) {                
+            if (dto.getAsaltantesCodigos().isEmpty()) {
+                //Valido que no tengan CJU antes de eliminar
+                for (Asaltante asaltanteActual : asalto.getAsaltantes()) {
+                    validarAsaltanteSinCasoJudicial(asalto, asaltanteActual);
+                }
                 asalto.getAsaltantes().clear();
             } else {
                 // Asaltantes existentes y activos
@@ -83,6 +90,14 @@ public class AsaltoService {
                         .collect(Collectors.toList());
 
                 validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
+
+                List<Asaltante> asaltantesAQuitar = asalto.getAsaltantes().stream()
+                        .filter(existente -> !nuevosAsaltantes.contains(existente))
+                        .toList();
+
+                for (Asaltante asaltanteAQuitar : asaltantesAQuitar) {
+                    validarAsaltanteSinCasoJudicial(asalto, asaltanteAQuitar);
+                }
 
                 asalto.getAsaltantes().clear();
                 asalto.getAsaltantes().addAll(nuevosAsaltantes);
@@ -172,6 +187,14 @@ public class AsaltoService {
             if (codigosUnicos < asaltantesCodigos.size()) {
                 throw new AsaltanteDuplicadoException();
             }
+        }
+    }
+
+    private void validarAsaltanteSinCasoJudicial(Asalto asalto, Asaltante asaltante) {
+        boolean tieneCaso = casoJudicialRepository.existsByAsaltoAndAsaltante(asalto, asaltante);
+
+        if (tieneCaso) {
+            throw new AsaltanteConCasoJudicialException();
         }
     }
 
