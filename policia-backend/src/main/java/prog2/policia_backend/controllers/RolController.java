@@ -32,7 +32,7 @@ public class RolController {
         return ResponseEntity.status(HttpStatus.CREATED).body(rolService.guardar(rolDTO));
     }
 
-    @PatchMapping("/{codigo}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<RolDTO> actualizar(@PathVariable String codigo, @RequestBody RolDTO rolDTO) {
         return ResponseEntity.ok(rolService.actualizar(codigo, rolDTO));
     }
