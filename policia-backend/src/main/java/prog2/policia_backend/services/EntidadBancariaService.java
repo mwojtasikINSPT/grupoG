@@ -89,18 +89,14 @@ public class EntidadBancariaService {
         if (!entidad.isActivo()) {
             throw new EntidadInactivaException();
         }
-
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             entidad.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
-
         if (dto.getDomicilioCentral() != null && !dto.getDomicilioCentral().isBlank()) {
-            entidad.setDomicilioCentral(dto.getDomicilioCentral());
+            entidad.setDomicilioCentral(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilioCentral()));
         }
 
-        return convertirADTO(
-                entidadBancariaRepository.save(entidad)
-        );
+        return convertirADTO(entidadBancariaRepository.save(entidad));
     }
 
     // EB con SUC activa no se puede eliminar
@@ -111,20 +107,15 @@ public class EntidadBancariaService {
         if (!entidadBancaria.isActivo()) {
             throw new EntidadYaInactivaException();
         }
-
         if (dto.getMotivoBaja() == null) {
             throw new MotivoBajaObligatorioException();
         }
-
-        if (sucursalRepository.existsByEntidadBancaria_IdAndActivoTrue(
-                entidadBancaria.getId())) {
-
+        if (sucursalRepository.existsByEntidadBancaria_IdAndActivoTrue(entidadBancaria.getId())) {
             throw new EntidadBancariaConSucursalesException();
         }
 
         entidadBancaria.setActivo(false);
         entidadBancaria.setMotivoBaja(dto.getMotivoBaja());
-
         entidadBancariaRepository.save(entidadBancaria);
     }
 
@@ -138,7 +129,7 @@ public class EntidadBancariaService {
 
         entidadBancaria.setActivo(true);
         entidadBancaria.setMotivoBaja(null);
-
+        
         entidadBancaria = entidadBancariaRepository.save(entidadBancaria);
 
         return convertirADTO(entidadBancaria);

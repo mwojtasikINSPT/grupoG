@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import prog2.policia_backend.models.MotivoBajaEntidadBancaria;
+import prog2.policia_backend.validations.OnCreate;
 
 @Data
 @NoArgsConstructor
@@ -15,11 +16,11 @@ public class EntidadBancariaDTO {
 
     private Long id;
 
-    @NotBlank
+    @NotBlank(groups = {OnCreate.class})
     private String domicilioCentral;
     private String codigo;
 
-    @NotBlank
+    @NotBlank(groups = {OnCreate.class})
     private String nombre;
 
     private MotivoBajaEntidadBancaria motivoBaja;
