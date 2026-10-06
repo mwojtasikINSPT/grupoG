@@ -6,6 +6,10 @@ import prog2.policia_backend.models.ContratoVigilancia;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigilancia, Long> {
 
@@ -24,8 +28,8 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
 
     // Comprueba si el vigilante tiene algún contrato activo con fecha hoy o futura.
     boolean existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
-        Long vigilanteId,
-        LocalDate fecha);
+            Long vigilanteId,
+            LocalDate fecha);
 
     // Obtiene todos los contratos asociados a un vigilante, incluidos los inactivos.
     List<ContratoVigilancia> findByVigilante_Id(Long vigilanteId);
@@ -35,10 +39,15 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
             Long sucursalId,
             LocalDate fecha
     );
-    
+
     //Búsqueda por cód
     Optional<ContratoVigilancia> findByCodigo(String codigo);
-    
+
     List<ContratoVigilancia> findBySucursal_Id(Long sucursalId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ContratoVigilancia c SET c.activo = false WHERE c.fecha < :hoy AND c.activo = true")
+    int desactivarContratosVencidos(@Param("hoy") LocalDate hoy);
 
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.exceptions.ContratoVigilanciaCumplidoException;
 import prog2.policia_backend.exceptions.ContratoVigilanciaDuplicadoException;
+import prog2.policia_backend.exceptions.FechaPasadaException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
@@ -65,16 +66,9 @@ public class ContratoVigilanciaService {
 
         Vigilante vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
         Sucursal sucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
-
-        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrue(
-                vigilante.getId(), dto.getFecha())) {
-            throw new ContratoVigilanciaDuplicadoException();
-        }
-
         ContratoVigilancia contrato = convertirAEntidad(dto, vigilante, sucursal);
         contrato = contratoVigilanciaRepository.save(contrato);
         contrato.setCodigo(GeneradorCodigo.generar("CDV", contrato.getId()));
-        contrato.setConArma(Boolean.FALSE);
         contrato.setActivo(true);
 
         contrato = contratoVigilanciaRepository.save(contrato);
@@ -91,6 +85,9 @@ public class ContratoVigilanciaService {
             throw new ContratoVigilanciaCumplidoException();
         }
 
+        if (dto.getFecha() != null && dto.getFecha().isBefore(LocalDate.now())) {
+            throw new FechaPasadaException();
+        }
         LocalDate fecha = dto.getFecha() != null ? dto.getFecha() : contrato.getFecha();
 
         Vigilante vigilante = contrato.getVigilante();
@@ -129,7 +126,8 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = obtenerContrato(codigo);
 
-        if (contrato.getFecha().isBefore(LocalDate.now())) {
+        
+        if (!contrato.getActivo() ||contrato.getFecha().isBefore(LocalDate.now())) {
             throw new ContratoVigilanciaCumplidoException();
         }
 
@@ -183,6 +181,7 @@ public class ContratoVigilanciaService {
 
     private ContratoVigilancia convertirAEntidad(ContratoVigilanciaDTO dto, Vigilante vigilante, Sucursal sucursal) {
 
+        validarContratoDuplicado(vigilante, dto.getFecha());
         ContratoVigilancia contrato = new ContratoVigilancia();
         contrato.setFecha(dto.getFecha());
         contrato.setConArma(dto.getConArma());
@@ -210,6 +209,12 @@ public class ContratoVigilanciaService {
             throw new PersonaInactivaException();
         }
         return vigilante;
+    }
+
+    private void validarContratoDuplicado(Vigilante vigilante, LocalDate fecha) {
+        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrue(vigilante.getId(), fecha)) {
+            throw new ContratoVigilanciaDuplicadoException();
+        }
     }
 
     private Sucursal obtenerSucursalActiva(String codigo) {

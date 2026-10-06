@@ -11,6 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import prog2.policia_backend.models.MotivoBajaContrato;
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @Data
 @NoArgsConstructor
@@ -19,15 +21,18 @@ public class ContratoVigilanciaDTO {
 
     private Long id;
 
-    @FutureOrPresent
-    @NotNull
+    @FutureOrPresent (groups = {OnCreate.class, OnUpdate.class})
+    @NotNull(groups = OnCreate.class)
     private LocalDate fecha;
+    
+    @NotNull(groups = OnCreate.class)
     private Boolean conArma;
 
-    @NotBlank
+    @NotBlank(groups = OnCreate.class)
     private String vigilanteCodigo;
 
-    @NotBlank
+    
+    @NotBlank(groups = OnCreate.class)
     private String sucursalCodigo;
     private String codigo;
 
