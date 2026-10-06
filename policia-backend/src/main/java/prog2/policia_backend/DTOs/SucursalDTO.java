@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import prog2.policia_backend.models.MotivoCierreSucursal;
+import prog2.policia_backend.validations.OnCreate;
 
 @Data
 @NoArgsConstructor
@@ -18,10 +19,10 @@ public class SucursalDTO {
 
     private Long id;
 
-    @NotBlank
+    @NotBlank(groups = {OnCreate.class})
     private String domicilio;
 
-    @NotNull
+    @NotNull(groups = {OnCreate.class})
     @Min(0)
     private Integer cantEmpleados;
 

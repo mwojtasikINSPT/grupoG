@@ -52,14 +52,16 @@ public class SucursalService {
     }
 
     public List<SucursalDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
-
         String domicilioNormalizado = NormalizadorTexto.normalizarParaBuscar(domicilio);
+        List<Sucursal> sucursales;
 
-        return sucursalRepository.findAll()
-                .stream()
-                .filter(sucursal -> activo == null || sucursal.isActivo() == activo)
-                .filter(sucursal -> NormalizadorTexto.normalizarParaBuscar(sucursal.getDomicilio())
-                .contains(domicilioNormalizado))
+        if (activo == null) {
+            sucursales = sucursalRepository.findByDomicilioContainingIgnoreCase(domicilioNormalizado);
+        } else {
+            sucursales = sucursalRepository.findByDomicilioContainingIgnoreCaseAndActivo(domicilioNormalizado, activo);
+        }
+
+        return sucursales.stream()
                 .map(this::convertirADTO)
                 .toList();
     }
@@ -78,12 +80,10 @@ public class SucursalService {
     public SucursalDTO guardar(SucursalDTO dto) {
 
         Sucursal sucursal = convertirAEntidad(dto);
-
         sucursal = sucursalRepository.save(sucursal);
 
         sucursal.setCodigo(GeneradorCodigo.generar("SUC", sucursal.getId()));
         sucursal.setActivo(true);
-
         sucursal = sucursalRepository.save(sucursal);
 
         return convertirADTO(sucursal);
@@ -92,19 +92,16 @@ public class SucursalService {
     public SucursalDTO actualizar(String codigo, SucursalDTO dto) {
 
         Sucursal sucursal = obtenerSucursal(codigo);
-        
+
         if (!sucursal.isActivo()) {
             throw new SucursalYaCerradaException();
         }
-
         if (dto.getDomicilio() != null && !dto.getDomicilio().isBlank()) {
             sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));
         }
-
         if (dto.getCantEmpleados() != null) {
             sucursal.setCantEmpleados(dto.getCantEmpleados());
         }
-
         if (dto.getEntidadBancariaCodigo() != null) {
             sucursal.setEntidadBancaria(obtenerEntidadBancariaActiva(dto.getEntidadBancariaCodigo()));
         }
@@ -120,7 +117,6 @@ public class SucursalService {
         if (!sucursal.isActivo()) {
             throw new SucursalYaCerradaException();
         }
-
         if (dto.getMotivoCierre() == null) {
             throw new MotivoCierreSucursalObligatorioException();
         }
@@ -135,7 +131,6 @@ public class SucursalService {
         contratoVigilanciaRepository.saveAll(contratosFuturos);
 
         sucursal.setActivo(false);
-
         sucursal.setMotivoCierre(dto.getMotivoCierre());
         sucursalRepository.save(sucursal);
     }
@@ -147,12 +142,9 @@ public class SucursalService {
         if (sucursal.isActivo()) {
             throw new SucursalYaActivaException();
         }
-
         if (sucursal.getMotivoCierre() == MotivoCierreSucursal.CIERRE_DEFINITIVO) {
-
             throw new SucursalNoReactivableException();
         }
-
         sucursal.setActivo(true);
         sucursal.setMotivoCierre(null);
 
