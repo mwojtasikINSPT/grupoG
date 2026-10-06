@@ -1,15 +1,16 @@
 package prog2.policia_backend.controllers;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.services.ContratoVigilanciaService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/contratos-vigilancia")
@@ -49,14 +50,14 @@ public class ContratoVigilanciaController {
     }
 
     @PostMapping
-    public ResponseEntity<ContratoVigilanciaDTO> guardar(@Valid @RequestBody ContratoVigilanciaDTO dto) {
+    public ResponseEntity<ContratoVigilanciaDTO> guardar(@Validated(OnCreate.class) @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(contratoVigilanciaService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<ContratoVigilanciaDTO> actualizar(@PathVariable String codigo, @RequestBody ContratoVigilanciaDTO dto) {
+    public ResponseEntity<ContratoVigilanciaDTO> actualizar(@PathVariable String codigo, @Validated(OnUpdate.class) @RequestBody ContratoVigilanciaDTO dto) {
 
         return ResponseEntity.ok(contratoVigilanciaService.actualizar(codigo, dto));
     }

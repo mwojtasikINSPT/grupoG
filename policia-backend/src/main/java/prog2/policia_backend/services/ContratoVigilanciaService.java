@@ -126,8 +126,7 @@ public class ContratoVigilanciaService {
 
         ContratoVigilancia contrato = obtenerContrato(codigo);
 
-        
-        if (!contrato.getActivo() ||contrato.getFecha().isBefore(LocalDate.now())) {
+        if (!contrato.getActivo() || contrato.getFecha().isBefore(LocalDate.now())) {
             throw new ContratoVigilanciaCumplidoException();
         }
 
@@ -150,8 +149,7 @@ public class ContratoVigilanciaService {
 
     public List<ContratoVigilanciaDTO> listarPorSucursal(String codigo) {
 
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         return contratoVigilanciaRepository
                 .findBySucursal_Id(sucursal.getId())
@@ -217,9 +215,15 @@ public class ContratoVigilanciaService {
         }
     }
 
-    private Sucursal obtenerSucursalActiva(String codigo) {
+    private Sucursal obtenerSucursal(String codigo) {
         Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
+
+        return sucursal;
+    }
+
+    private Sucursal obtenerSucursalActiva(String codigo) {
+        Sucursal sucursal = obtenerSucursal(codigo);
 
         if (!sucursal.isActivo()) {
             throw new SucursalYaCerradaException();
