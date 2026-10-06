@@ -49,7 +49,7 @@ public class CasoJudicialController {
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<CasoJudicialDTO> actualizar(@PathVariable String codigo, @Valid @RequestBody CasoJudicialDTO dto) {
+    public ResponseEntity<CasoJudicialDTO> actualizar(@PathVariable String codigo, @RequestBody CasoJudicialDTO dto) {
 
         return ResponseEntity.ok(casoJudicialService.actualizar(codigo, dto));
     }

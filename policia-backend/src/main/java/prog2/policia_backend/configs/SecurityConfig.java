@@ -19,7 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import prog2.policia_backend.models.RolUsuario;
 
 // Configuración principal de Spring Security
 @Configuration
@@ -63,23 +62,23 @@ public class SecurityConfig {
                 // controla que el vigilante solo pueda consultar los propios.
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*")
                 .hasAnyRole(
-                        RolUsuario.VIGILANTE.name(),
-                        RolUsuario.INVESTIGADOR.name(),
-                        RolUsuario.ADMINISTRADOR.name())
+                        "VIGILANTE",
+                        "INVESTIGADOR",
+                        "ADMINISTRADOR")
                 // Permite consultar los contratos de un vigilante.
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*/contratos")
                 .hasAnyRole(
-                        RolUsuario.VIGILANTE.name(),
-                        RolUsuario.INVESTIGADOR.name(),
-                        RolUsuario.ADMINISTRADOR.name())
+                        "VIGILANTE",
+                        "INVESTIGADOR",
+                        "ADMINISTRADOR")
                 // investigadores y administradores pueden consultar todo.
                 .requestMatchers(HttpMethod.GET, "/api/**")
                 .hasAnyRole(
-                        RolUsuario.INVESTIGADOR.name(),
-                        RolUsuario.ADMINISTRADOR.name())
+                        "INVESTIGADOR",
+                        "ADMINISTRADOR")
                 // Solo administradores pueden crear, modificar o eliminar.
                 .requestMatchers("/api/**")
-                .hasRole(RolUsuario.ADMINISTRADOR.name())
+                .hasRole("ADMINISTRADOR")
                 .requestMatchers("/error")
                 .permitAll()
                 .anyRequest()

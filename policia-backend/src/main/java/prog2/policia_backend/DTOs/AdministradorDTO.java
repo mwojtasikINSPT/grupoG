@@ -29,7 +29,10 @@ public class AdministradorDTO {
     private String password;
 
     private MotivoBajaPersona motivoBaja;
-    
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String rol;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean activo;
 

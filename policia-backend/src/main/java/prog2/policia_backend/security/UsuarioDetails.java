@@ -10,8 +10,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import prog2.policia_backend.models.RolUsuario;
-
 // Adapta nuestro usuario al modelo de Spring Security.
 @Getter
 @RequiredArgsConstructor
@@ -20,15 +18,13 @@ public class UsuarioDetails implements UserDetails {
     private final Long id;
     private final String codigo;
     private final String password;
-    private final RolUsuario rol;
+    private final String rol;
     private final boolean activo;
 
     // Rol que Spring utilizará para autorizar.
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(
-                new SimpleGrantedAuthority("ROLE_" + rol.name())
-        );
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol));
     }
 
     // Contraseña almacenada

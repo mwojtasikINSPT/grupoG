@@ -74,6 +74,7 @@ public class ContratoVigilanciaService {
         ContratoVigilancia contrato = convertirAEntidad(dto, vigilante, sucursal);
         contrato = contratoVigilanciaRepository.save(contrato);
         contrato.setCodigo(GeneradorCodigo.generar("CDV", contrato.getId()));
+        contrato.setConArma(Boolean.FALSE);
         contrato.setActivo(true);
 
         contrato = contratoVigilanciaRepository.save(contrato);

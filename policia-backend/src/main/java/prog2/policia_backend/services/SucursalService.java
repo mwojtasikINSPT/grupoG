@@ -92,6 +92,10 @@ public class SucursalService {
     public SucursalDTO actualizar(String codigo, SucursalDTO dto) {
 
         Sucursal sucursal = obtenerSucursal(codigo);
+        
+        if (!sucursal.isActivo()) {
+            throw new SucursalYaCerradaException();
+        }
 
         if (dto.getDomicilio() != null && !dto.getDomicilio().isBlank()) {
             sucursal.setDomicilio(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilio()));

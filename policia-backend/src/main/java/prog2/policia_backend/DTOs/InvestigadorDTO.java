@@ -28,6 +28,9 @@ public class InvestigadorDTO {
     private MotivoBajaPersona motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String rol;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean activo;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

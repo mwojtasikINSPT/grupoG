@@ -31,15 +31,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Busca primero entre los vigilantes.
         if (codigo.startsWith("VIG")) {
             Vigilante vigilante = vigilanteRepository.findByCodigo(codigo)
-                    .orElseThrow(() ->
-                            new UsernameNotFoundException(
-                                    "Usuario no encontrado"));
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
             return new UsuarioDetails(
                     vigilante.getId(),
                     vigilante.getCodigo(),
                     vigilante.getPassword(),
-                    vigilante.getRol(),
+                    vigilante.getRol().getNombre(),
                     vigilante.isActivo()
             );
         }
@@ -47,37 +45,31 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Busca entre los investigadores.
         if (codigo.startsWith("INV")) {
             Investigador investigador = investigadorRepository.findByCodigo(codigo)
-                    .orElseThrow(() ->
-                            new UsernameNotFoundException(
-                                    "Usuario no encontrado"));
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
             return new UsuarioDetails(
                     investigador.getId(),
                     investigador.getCodigo(),
                     investigador.getPassword(),
-                    investigador.getRol(),
+                    investigador.getRol().getNombre(),
                     investigador.isActivo()
             );
         }
 
         // Busca entre los administradores.
         if (codigo.startsWith("ADM")) {
-            Administrador administrador =
-                    administradorRepository.findByCodigo(codigo)
-                            .orElseThrow(() ->
-                                    new UsernameNotFoundException(
-                                            "Usuario no encontrado"));
+            Administrador administrador = administradorRepository.findByCodigo(codigo)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
             return new UsuarioDetails(
                     administrador.getId(),
                     administrador.getCodigo(),
                     administrador.getPassword(),
-                    administrador.getRol(),
+                    administrador.getRol().getNombre(),
                     administrador.isActivo()
             );
         }
 
-        throw new UsernameNotFoundException(
-                "Código de usuario inválido");
+        throw new UsernameNotFoundException("Código de usuario inválido");
     }
 }

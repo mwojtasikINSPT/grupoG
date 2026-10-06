@@ -18,7 +18,8 @@ public final class NormalizadorTexto {
         StringBuilder resultado = new StringBuilder();
 
         for (String palabra : palabras) {
-            resultado.append(Character.toUpperCase(palabra.charAt(0)))
+            resultado
+                    .append(Character.toUpperCase(palabra.charAt(0)))
                     .append(palabra.substring(1))
                     .append(" ");
         }
@@ -35,5 +36,12 @@ public final class NormalizadorTexto {
                 .replaceAll("\\p{M}", "")
                 .toLowerCase()
                 .trim();
+    }
+
+    public static String normalizarConstante(String texto) {
+        if (texto == null) {
+            return null;
+        }
+        return texto.trim().toUpperCase();
     }
 }

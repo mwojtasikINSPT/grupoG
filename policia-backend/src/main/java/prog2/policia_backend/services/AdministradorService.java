@@ -15,8 +15,9 @@ import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Administrador;
 import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.repositories.AdministradorRepository;
-import prog2.policia_backend.models.RolUsuario;
+import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
@@ -25,9 +26,8 @@ import prog2.policia_backend.utils.NormalizadorTexto;
 public class AdministradorService {
 
     private final AdministradorRepository administradorRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<AdministradorDTO> listar(Boolean activo) {
 
@@ -49,8 +49,7 @@ public class AdministradorService {
     }
 
     public List<AdministradorDTO> buscarPorNombre(String nombre, Boolean activo) {
-        String nombreNormalizado
-                = NormalizadorTexto.normalizarParaBuscar(nombre);
+        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
         return administradorRepository.findAll()
                 .stream()
@@ -83,13 +82,11 @@ public class AdministradorService {
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            administrador.setNombre(
-                    NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+            administrador.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            administrador.setPassword(
-                    passwordEncoder.encode(dto.getPassword()));
+            administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
         return convertirADTO(administradorRepository.save(administrador));
@@ -140,6 +137,7 @@ public class AdministradorService {
         dto.setCodigo(administrador.getCodigo());
         dto.setNombre(administrador.getNombre());
         // password no seteamos
+        dto.setRol(administrador.getRol().getNombre());
         dto.setMotivoBaja(administrador.getMotivoBaja());
         dto.setActivo(administrador.isActivo());
         dto.setFechaCreacion(administrador.getFechaCreacion());
@@ -156,7 +154,10 @@ public class AdministradorService {
         administrador.setCodigo(dto.getCodigo());
         administrador.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         administrador.setPassword(passwordEncoder.encode(dto.getPassword()));
-        administrador.setRol(RolUsuario.ADMINISTRADOR);
+        Rol rol = rolRepository.findByNombre("ADMINISTRADOR")
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", "ADMINISTRADOR"));
+        administrador.setRol(rol);
+
         administrador.setActivo(dto.getActivo() != null ? dto.getActivo() : true);
 
         return administrador;
@@ -164,9 +165,11 @@ public class AdministradorService {
 
     //------Métodos Aux----
     private Administrador obtenerAdministrador(String codigo) {
+        
+        String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
-        return administradorRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", codigo));
+        return administradorRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador", codigoNormalizado));
 
     }
 

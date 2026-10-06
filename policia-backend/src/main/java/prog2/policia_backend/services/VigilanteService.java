@@ -7,7 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
-import prog2.policia_backend.exceptions.EdadMaximaExcedidaException;
+import prog2.policia_backend.exceptions.EdadInvalidaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
@@ -16,9 +16,10 @@ import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
 import prog2.policia_backend.models.MotivoBajaPersona;
-import prog2.policia_backend.models.RolUsuario;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Vigilante;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
+import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.VigilanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
@@ -30,6 +31,7 @@ public class VigilanteService {
     private final VigilanteRepository vigilanteRepository;
     private final PasswordEncoder passwordEncoder;
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
+    private final RolRepository rolRepository;
 
     public List<VigilanteDTO> listar(Boolean activo) {
 
@@ -65,12 +67,9 @@ public class VigilanteService {
 
     public VigilanteDTO guardar(VigilanteDTO dto) {
 
-        validarEdad(dto.getEdad());
-
         Vigilante vigilante = convertirAEntidad(dto);
 
         vigilante = vigilanteRepository.save(vigilante);
-
         vigilante.setCodigo(GeneradorCodigo.generar("VIG", vigilante.getId()));
         vigilante.setActivo(true);
 
@@ -92,7 +91,7 @@ public class VigilanteService {
         }
 
         if (dto.getEdad() != null) {
-            validarEdad(dto.getEdad()); 
+            validarEdad(dto.getEdad());
             vigilante.setEdad(dto.getEdad());
         }
 
@@ -115,8 +114,7 @@ public class VigilanteService {
             throw new MotivoBajaObligatorioException();
         }
 
-        if (contratoVigilanciaRepository
-                .existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(), LocalDate.now())) {
+        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(), LocalDate.now())) {
 
             throw new VigilanteConContratoFuturoException();
         }
@@ -155,6 +153,7 @@ public class VigilanteService {
         dto.setNombre(vigilante.getNombre());
         dto.setPassword(null); // El password nunca devolvemos
         dto.setEdad(vigilante.getEdad());
+        dto.setRol(vigilante.getRol().getNombre());
         dto.setActivo(vigilante.isActivo());
         dto.setMotivoBaja(vigilante.getMotivoBaja());
         dto.setFechaCreacion(vigilante.getFechaCreacion());
@@ -169,27 +168,29 @@ public class VigilanteService {
         Vigilante vigilante = new Vigilante();
 
         vigilante.setCodigo(dto.getCodigo());
-        vigilante.setNombre(
-                NormalizadorTexto.normalizarParaGuardar(dto.getNombre())
-        );
+        vigilante.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        validarEdad(dto.getEdad());
         vigilante.setEdad(dto.getEdad());
-        vigilante.setRol(RolUsuario.VIGILANTE);
-        vigilante.setPassword(
-                passwordEncoder.encode(dto.getPassword())
-        );
+        Rol rol = rolRepository.findByNombre("VIGILANTE")
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", "VIGILANTE"));
+        vigilante.setRol(rol);
+        vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         return vigilante;
     }
 
 //-------Aux---------
     private Vigilante obtenerVigilante(String codigo) {
-        return vigilanteRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", codigo));
+
+        String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
+
+        return vigilanteRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", codigoNormalizado));
     }
 
     private void validarEdad(Integer edad) {
-        if (edad != null && edad > 65) {
-            throw new EdadMaximaExcedidaException();
+        if (edad != null && (edad > 65 || edad < 18)) {
+            throw new EdadInvalidaException();
         }
     }
 }

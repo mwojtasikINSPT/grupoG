@@ -14,9 +14,10 @@ import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Investigador;
 import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.repositories.InvestigadorRepository;
+import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
-import prog2.policia_backend.models.RolUsuario;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
@@ -25,6 +26,7 @@ public class InvestigadorService {
 
     private final InvestigadorRepository investigadorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
 
     public List<InvestigadorDTO> listar(Boolean activo) {
 
@@ -136,6 +138,7 @@ public class InvestigadorService {
         dto.setNombre(investigador.getNombre());
         dto.setPassword(null); // password
         dto.setActivo(investigador.isActivo());
+        dto.setRol(investigador.getRol().getNombre());
         dto.setMotivoBaja(investigador.getMotivoBaja());
         dto.setFechaCreacion(investigador.getFechaCreacion());
         dto.setFechaModificacion(investigador.getFechaModificacion());
@@ -150,7 +153,9 @@ public class InvestigadorService {
 
         investigador.setCodigo(dto.getCodigo());
         investigador.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
-        investigador.setRol(RolUsuario.INVESTIGADOR);
+        Rol rol = rolRepository.findByNombre("INVESTIGADOR")
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", "INVESTIGADOR"));
+        investigador.setRol(rol);
         investigador.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         return investigador;
