@@ -64,10 +64,8 @@ public class InvestigadorService {
         Investigador investigador = convertirAEntidad(dto);
 
         investigador = investigadorRepository.save(investigador);
-
         investigador.setCodigo(GeneradorCodigo.generar("INV", investigador.getId()));
         investigador.setActivo(true);
-
         investigador = investigadorRepository.save(investigador);
 
         return convertirADTO(investigador);
@@ -163,8 +161,11 @@ public class InvestigadorService {
 
     //-----Métodos Aux-------
     private Investigador obtenerInvestigador(String codigo) {
-        return investigadorRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", codigo));
+
+        String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
+
+        return investigadorRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Investigador", codigoNormalizado));
     }
 
 }

@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @Getter
 @Setter
@@ -20,12 +22,12 @@ public class AdministradorDTO {
     private Long id;
     private String codigo;
 
-    @NotBlank
+    @NotBlank(groups = {OnCreate.class})
     private String nombre;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank
-    @Size(min = 4, max = 20)
+    @NotBlank(groups = OnCreate.class)
+    @Size(min = 4, max = 20, groups = {OnCreate.class, OnUpdate.class})
     private String password;
 
     private MotivoBajaPersona motivoBaja;

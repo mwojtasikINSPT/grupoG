@@ -10,6 +10,9 @@ import prog2.policia_backend.DTOs.InvestigadorDTO;
 import prog2.policia_backend.services.InvestigadorService;
 
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @RestController
 @RequestMapping("/api/investigadores")
@@ -24,47 +27,33 @@ public class InvestigadorController {
             @RequestParam(required = false) String nombre) {
 
         if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(
-                    investigadorService.buscarPorNombre(nombre, activo)
-            );
+            return ResponseEntity.ok(investigadorService.buscarPorNombre(nombre, activo));
         }
 
-        return ResponseEntity.ok(
-                investigadorService.listar(activo)
-        );
+        return ResponseEntity.ok(investigadorService.listar(activo));
     }
 
     @GetMapping("/{codigo}")
     public ResponseEntity<InvestigadorDTO> buscarPorCodigo(
             @PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                investigadorService.buscarPorCodigo(codigo)
-        );
+        return ResponseEntity.ok(investigadorService.buscarPorCodigo(codigo));
     }
 
     @PostMapping
-    public ResponseEntity<InvestigadorDTO> guardar(
-            @Valid @RequestBody InvestigadorDTO dto) {
+    public ResponseEntity<InvestigadorDTO> guardar(@Validated(OnCreate.class) @RequestBody InvestigadorDTO dto) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(investigadorService.guardar(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(investigadorService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
-    public ResponseEntity<InvestigadorDTO> actualizar(
-            @PathVariable String codigo,
-            @RequestBody InvestigadorDTO dto) {
+    public ResponseEntity<InvestigadorDTO> actualizar(@PathVariable String codigo, @Validated(OnUpdate.class) @RequestBody InvestigadorDTO dto) {
 
-        return ResponseEntity.ok(
-                investigadorService.actualizar(codigo, dto)
-        );
+        return ResponseEntity.ok(investigadorService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable String codigo,
-            @RequestBody InvestigadorDTO dto) {
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody InvestigadorDTO dto) {
 
         investigadorService.eliminar(codigo, dto);
 
@@ -72,11 +61,8 @@ public class InvestigadorController {
     }
 
     @PatchMapping("/{codigo}/reactivar")
-    public ResponseEntity<InvestigadorDTO> reactivar(
-            @PathVariable String codigo) {
+    public ResponseEntity<InvestigadorDTO> reactivar(@PathVariable String codigo) {
 
-        return ResponseEntity.ok(
-                investigadorService.reactivar(codigo)
-        );
+        return ResponseEntity.ok(investigadorService.reactivar(codigo));
     }
 }
