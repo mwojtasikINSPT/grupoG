@@ -4,14 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+
+import prog2.policia_backend.validations.OnCreate;
 
 @Getter
 @Setter
@@ -21,13 +23,13 @@ public class AsaltoDTO {
 
     private Long id;
 
-    @NotNull
+    @NotNull(groups = OnCreate.class)
+    @PastOrPresent(groups = {OnCreate.class})
     private LocalDate fecha;
 
-    @NotEmpty
     private List<String> asaltantesCodigos;
 
-    @NotBlank
+    @NotBlank(groups = OnCreate.class)
     private String sucursalCodigo;
 
     private String codigo;

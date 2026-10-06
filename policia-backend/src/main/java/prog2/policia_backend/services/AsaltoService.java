@@ -1,11 +1,13 @@
 package prog2.policia_backend.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AsaltoDTO;
+import prog2.policia_backend.exceptions.AsaltanteDuplicadoException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.repositories.AsaltoRepository;
@@ -72,15 +74,14 @@ public class AsaltoService {
 
         Asalto asalto = obtenerAsalto(codigo);
 
-        if (dto.getFecha() != null) {
-            asalto.setFecha(dto.getFecha());
-        }
-
         if (dto.getAsaltantesCodigos() != null && !dto.getAsaltantesCodigos().isEmpty()) {
+            
             List<Asaltante> nuevosAsaltantes = dto.getAsaltantesCodigos().stream()
                     .map(this::obtenerAsaltanteActivo)
                     .collect(Collectors.toList());
 
+            validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
+            
             asalto.getAsaltantes().clear();
             asalto.getAsaltantes().addAll(nuevosAsaltantes);
         }
@@ -99,20 +100,19 @@ public class AsaltoService {
         dto.setId(asalto.getId());
         dto.setCodigo(asalto.getCodigo());
         dto.setFecha(asalto.getFecha());
+        dto.setActivo(true);
 
         if (asalto.getSucursal() != null) {
             dto.setSucursalCodigo(asalto.getSucursal().getCodigo());
         }
 
         if (asalto.getAsaltantes() != null) {
-            dto.setAsaltantesCodigos(asalto
-                    .getAsaltantes()
+            dto.setAsaltantesCodigos(asalto.getAsaltantes()
                     .stream()
                     .map(Asaltante::getCodigo)
                     .toList());
         }
 
-        dto.setActivo(true); 
         dto.setFechaCreacion(asalto.getFechaCreacion());
         dto.setFechaModificacion(asalto.getFechaModificacion());
         dto.setCreadoPor(asalto.getCreadoPor());
@@ -126,10 +126,18 @@ public class AsaltoService {
         Asalto asalto = new Asalto();
         asalto.setFecha(dto.getFecha());
 
-        List<Asaltante> asaltantes = dto.getAsaltantesCodigos().stream()
-                .map(this::obtenerAsaltanteActivo)
-                .collect(Collectors.toList());
-        asalto.setAsaltantes(asaltantes);
+        if (dto.getAsaltantesCodigos() != null && !dto.getAsaltantesCodigos().isEmpty()) {
+
+            List<Asaltante> asaltantes = dto.getAsaltantesCodigos().stream()
+                    .map(this::obtenerAsaltanteActivo)
+                    .collect(Collectors.toList());
+
+            validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
+            
+            asalto.setAsaltantes(asaltantes);
+        } else {
+            asalto.setAsaltantes(new ArrayList<>());
+        }
 
         asalto.setSucursal(obtenerSucursalActiva(dto.getSucursalCodigo()));
 
@@ -153,6 +161,15 @@ public class AsaltoService {
             throw new PersonaInactivaException();
         }
         return asaltante;
+    }
+
+    private void validarAsaltantesDuplicados(List<String> asaltantesCodigos) {
+        if (asaltantesCodigos != null && !asaltantesCodigos.isEmpty()) {
+            long codigosUnicos = asaltantesCodigos.stream().distinct().count();
+            if (codigosUnicos < asaltantesCodigos.size()) {
+                throw new AsaltanteDuplicadoException();
+            }
+        }
     }
 
     private Sucursal obtenerSucursal(String codigo) {
