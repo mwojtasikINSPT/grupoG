@@ -2,11 +2,13 @@ package prog2.policia_backend.services;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import prog2.policia_backend.DTOs.AdministradorDTO;
+import prog2.policia_backend.exceptions.AdministradorNoPuedeDarseDeBajaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
@@ -100,6 +102,12 @@ public class AdministradorService {
             throw new PersonaYaInactivaException();
         }
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (administrador.getCodigo().equals(auth.getName())) {
+            throw new AdministradorNoPuedeDarseDeBajaException();
+        }
+
         if (dto.getMotivoBaja() == null) {
             throw new MotivoBajaObligatorioException();
         }
@@ -165,7 +173,7 @@ public class AdministradorService {
 
     //------Métodos Aux----
     private Administrador obtenerAdministrador(String codigo) {
-        
+
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
         return administradorRepository.findByCodigo(codigoNormalizado)
