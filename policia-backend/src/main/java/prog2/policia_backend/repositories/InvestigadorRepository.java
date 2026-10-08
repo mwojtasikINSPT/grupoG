@@ -8,8 +8,11 @@ import java.util.Optional;
 
 public interface InvestigadorRepository extends JpaRepository<Investigador, Long> {
 
-    List<Investigador> findByActivo(boolean activo);
+    List<Investigador> findByActivo(Boolean activo);
+
     Optional<Investigador> findByCodigo(String codigo);
-    
+
     List<Investigador> findByNombreContainingIgnoreCase(String nombre);
+
+    List<Investigador> findByNombreContainingIgnoreCaseAndActivo(String nombre, Boolean activo);
 }

@@ -13,15 +13,15 @@ public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long
     List<CasoJudicial> findByActivo(boolean activo);
 
     boolean existsByAsalto_IdAndAsaltantes_Id(Long asaltoId, Long asaltanteId);
-    
+
     boolean existsByAsaltoAndAsaltantesContains(Asalto asalto, Asaltante asaltante);
 
     // Comprueba si el juez tiene algun caso judicial asociado
-    boolean existsByJueces_IdAndActivoTrue(Long juezId);
+    boolean existsByJuez_IdAndActivoTrue(Long juezId);
 
     Optional<CasoJudicial> findByCodigo(String codigo);
 
     List<CasoJudicial> findByAsaltantes_Id(Long asaltanteId);
 
-    List<CasoJudicial> findByJueces_Id(Long juezId);
+    List<CasoJudicial> findByJuez_Id(Long juezId);
 }

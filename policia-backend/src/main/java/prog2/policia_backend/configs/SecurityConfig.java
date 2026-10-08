@@ -1,7 +1,6 @@
 package prog2.policia_backend.configs;
 
 import java.util.List;
-//import lombok.Value;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 
 // Configuración principal de Spring Security
 @Configuration
@@ -56,29 +54,20 @@ public class SecurityConfig {
                 //habilita el flujo cruzado (CORS) para Vaadin
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // autenticación
+                // Autenticación basada en permisos
                 .authorizeHttpRequests(auth -> auth
-                // Permite consultar los contratos de un vigilante; @PreAuthorize
-                // controla que el vigilante solo pueda consultar los propios.
+                // Permite consultar vigilantes con lectura general o de datos propios
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*")
-                .hasAnyRole(
-                        "VIGILANTE",
-                        "INVESTIGADOR",
-                        "ADMINISTRADOR")
-                // Permite consultar los contratos de un vigilante.
+                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
+                // Permite consultar contratos de un vigilante
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*/contratos")
-                .hasAnyRole(
-                        "VIGILANTE",
-                        "INVESTIGADOR",
-                        "ADMINISTRADOR")
-                // investigadores y administradores pueden consultar todo.
+                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
+                // Consultas generales de lectura sobre la API
                 .requestMatchers(HttpMethod.GET, "/api/**")
-                .hasAnyRole(
-                        "INVESTIGADOR",
-                        "ADMINISTRADOR")
-                // Solo administradores pueden crear, modificar o eliminar.
+                .hasAuthority("LECTURA")
+                // Creación, modificación o eliminación requieren escritura
                 .requestMatchers("/api/**")
-                .hasRole("ADMINISTRADOR")
+                .hasAuthority("ESCRITURA")
                 .requestMatchers("/error")
                 .permitAll()
                 .anyRequest()

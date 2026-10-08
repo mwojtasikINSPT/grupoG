@@ -1,7 +1,6 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +36,9 @@ public class VigilanteController {
     }
 
     @PreAuthorize(
-            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
-            + "or (hasRole('VIGILANTE') and "
-            + "#codigo == authentication.principal.codigo)"
+            "hasAuthority('LECTURA') "
+            + "or (hasAuthority('LECTURA_DATOS_PROPIOS') "
+            + "and #codigo == authentication.principal.codigo)"
     )
     @GetMapping("/{codigo}")
     public ResponseEntity<VigilanteDTO> buscarPorCodigo(@PathVariable String codigo) {
@@ -49,9 +48,9 @@ public class VigilanteController {
 
     @GetMapping("/{codigo}/contratos")
     @PreAuthorize(
-            "hasAnyRole('INVESTIGADOR','ADMINISTRADOR') "
-            + "or (hasRole('VIGILANTE') and "
-            + "#codigo == authentication.principal.codigo)"
+            "hasAuthority('LECTURA') "
+            + "or (hasAuthority('LECTURA_DATOS_PROPIOS') "
+            + "and #codigo == authentication.principal.codigo)"
     )
     public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(@PathVariable String codigo) {
 

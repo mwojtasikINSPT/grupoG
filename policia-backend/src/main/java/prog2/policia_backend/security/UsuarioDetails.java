@@ -1,7 +1,8 @@
 package prog2.policia_backend.security;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import prog2.policia_backend.models.Permiso;
 
 // Adapta nuestro usuario al modelo de Spring Security.
 @Getter
@@ -18,13 +21,15 @@ public class UsuarioDetails implements UserDetails {
     private final Long id;
     private final String codigo;
     private final String password;
-    private final String rol;
+    private final Set<Permiso> permisos;
     private final boolean activo;
 
-    // Rol que Spring utilizará para autorizar.
+    // Conierto  los permisos del rol en GrantedAuthority para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + rol));
+        return permisos.stream()
+                .map(permiso -> new SimpleGrantedAuthority(permiso.name()))
+                .collect(Collectors.toList());
     }
 
     // Contraseña almacenada

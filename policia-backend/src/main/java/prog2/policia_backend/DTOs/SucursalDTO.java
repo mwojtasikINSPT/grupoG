@@ -26,14 +26,14 @@ public class SucursalDTO {
     @Min(0)
     private Integer cantEmpleados;
 
-    @NotBlank
+    @NotBlank(groups = OnCreate.class)
     private String entidadBancariaCodigo;
     private String codigo;
     private MotivoCierreSucursal motivoCierre;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean activo;
-    
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;
 

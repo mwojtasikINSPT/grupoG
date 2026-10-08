@@ -48,6 +48,11 @@ public class RolService {
 
         Rol rol = convertirAEntidad(dto);
         rol.setActivo(true);
+
+        if (rol.getCodigo() == null || rol.getCodigo().isBlank()) {
+            rol.setCodigo("ROL_TEMP_" + System.currentTimeMillis());
+        }
+
         rol = rolRepository.save(rol);
         rol.setCodigo(GeneradorCodigo.generar("ROL", rol.getId()));
         rol = rolRepository.save(rol);
@@ -58,7 +63,7 @@ public class RolService {
     public RolDTO actualizar(String codigo, RolDTO dto) {
         Rol rol = obtenerRol(codigo);
 
-        if (dto.getNombre() != null) {
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());
 
             if (!rol.getNombre().equals(nombreNormalizado)) {
@@ -68,9 +73,14 @@ public class RolService {
                 rol.setNombre(nombreNormalizado);
             }
         }
-
         if (dto.getDescripcion() != null) {
             rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
+        }
+        if (dto.getPrefijo() != null) {
+            rol.setPrefijo(NormalizadorTexto.normalizarConstante(dto.getPrefijo()));
+        }
+        if (dto.getPermisos() != null) {
+            rol.setPermisos(dto.getPermisos());
         }
 
         return convertirADTO(rolRepository.save(rol));
@@ -106,6 +116,8 @@ public class RolService {
         dto.setCodigo(rol.getCodigo());
         dto.setNombre(rol.getNombre());
         dto.setDescripcion(rol.getDescripcion());
+        dto.setPrefijo(rol.getPrefijo());
+        dto.setPermisos(rol.getPermisos());
         dto.setActivo(rol.getActivo());
         dto.setFechaCreacion(rol.getFechaCreacion());
         dto.setFechaModificacion(rol.getFechaModificacion());
@@ -118,16 +130,18 @@ public class RolService {
     private Rol convertirAEntidad(RolDTO dto) {
         Rol rol = new Rol();
 
+        rol.setPrefijo(NormalizadorTexto.normalizarConstante(dto.getPrefijo()));
         rol.setCodigo(NormalizadorTexto.normalizarConstante(dto.getCodigo()));
         rol.setNombre(NormalizadorTexto.normalizarConstante(dto.getNombre()));
         rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
+        rol.setPermisos(dto.getPermisos());
 
         return rol;
     }
 
     // --- Métodos Auxiliares ---
     private Rol obtenerRol(String codigo) {
-        
+
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
         return rolRepository.findByCodigo(codigoNormalizado)

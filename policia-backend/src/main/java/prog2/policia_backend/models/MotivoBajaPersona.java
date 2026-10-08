@@ -4,5 +4,8 @@ public enum MotivoBajaPersona {
     FALLECIMIENTO,
     JUBILACION,
     LICENCIA,
-    RENUNCIA
+    RENUNCIA,
+    DESPIDO,
+    ABANDONO_TRABAJO,
+    INCAPACIDAD
 }
