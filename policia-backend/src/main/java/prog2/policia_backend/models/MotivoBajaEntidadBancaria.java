@@ -4,5 +4,7 @@ public enum MotivoBajaEntidadBancaria {
     CIERRE_DEFINITIVO,
     FUSION,
     QUIEBRA,
-    OTRO
+    INSOLVENCIA,
+    REVOCACION_DE_LICENCIA,
+    DELITOS_FINANCIEROS
 }

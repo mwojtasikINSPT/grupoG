@@ -64,6 +64,9 @@ public class GlobalExceptionHandler {
 
     // Devuelve 409 Conflict ante conflictos de reglas de negocio
     @ExceptionHandler({
+        AdministradorNoPuedeDarseDeBajaException.class,
+        AsaltanteConCasoJudicialException.class,
+        AsaltanteDuplicadoException.class,
         AsaltanteNoParticipaEnAsaltoException.class,
         BandaConMiembrosException.class,
         BandaInactivaException.class,

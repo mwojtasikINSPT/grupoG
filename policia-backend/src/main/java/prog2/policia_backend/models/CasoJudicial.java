@@ -43,7 +43,7 @@ public class CasoJudicial extends EntidadAuditable {
     @ManyToMany
     private List<Asaltante> asaltantes = new ArrayList<>();
 
-    @ManyToMany
-    private List<Juez> jueces = new ArrayList<>();
+    @ManyToOne
+    private Juez juez;
 
 }

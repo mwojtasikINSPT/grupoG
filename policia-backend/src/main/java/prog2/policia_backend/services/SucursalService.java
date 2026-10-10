@@ -102,7 +102,7 @@ public class SucursalService {
         if (dto.getCantEmpleados() != null) {
             sucursal.setCantEmpleados(dto.getCantEmpleados());
         }
-        if (dto.getEntidadBancariaCodigo() != null) {
+        if (dto.getEntidadBancariaCodigo() != null && !dto.getEntidadBancariaCodigo().isBlank()) {
             sucursal.setEntidadBancaria(obtenerEntidadBancariaActiva(dto.getEntidadBancariaCodigo()));
         }
 

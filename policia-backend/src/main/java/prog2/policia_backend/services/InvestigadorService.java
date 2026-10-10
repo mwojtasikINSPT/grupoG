@@ -48,14 +48,16 @@ public class InvestigadorService {
     }
 
     public List<InvestigadorDTO> buscarPorNombre(String nombre, Boolean activo) {
-
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
+        List<Investigador> investigadores;
 
-        return investigadorRepository.findAll()
-                .stream()
-                .filter(investigador -> activo == null || investigador.isActivo() == activo)
-                .filter(investigador -> NormalizadorTexto.normalizarParaBuscar(investigador.getNombre())
-                .contains(nombreNormalizado))
+        if (activo == null) {
+            investigadores = investigadorRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            investigadores = investigadorRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
+        return investigadores.stream()
                 .map(this::convertirADTO)
                 .toList();
     }

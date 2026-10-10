@@ -32,8 +32,8 @@ public class CasoJudicialDTO {
     @NotEmpty(groups = {OnCreate.class})
     private List<String> asaltanteCodigos = new ArrayList<>();
 
-    @NotEmpty(groups = {OnCreate.class})
-    private List<String> juezCodigos = new ArrayList<>();
+    @NotBlank(groups = {OnCreate.class})
+    private String juezCodigo;
 
     private String codigo;
 
