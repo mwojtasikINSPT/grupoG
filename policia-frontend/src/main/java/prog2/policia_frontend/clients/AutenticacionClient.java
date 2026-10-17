@@ -1,53 +1,168 @@
-
 package prog2.policia_frontend.clients;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 
-
- //interactua con el back  para comprobar el cód de usuario y la contraseña.
-
-@Service//crea autm un obj de esto 
+/*
+ * Comprueba las credenciales contra el backend y obtiene
+ * los datos necesarios para iniciar la sesión de Vaadin.
+ */
+@Service
 public class AutenticacionClient {
 
     private final RestClient restClient;
 
-    //mensajero entre VAADIN y BACK
     public AutenticacionClient(
-            @Value("${backend.url}") String backendUrl) {//busca el valor dentro propierties
+            @Value("${backend.url}") String backendUrl) {
 
         this.restClient = RestClient.builder()
                 .baseUrl(backendUrl)
                 .build();
     }
 
-  //Recibe el cod y pass y devuelve usuariodto
     public UsuarioDTO autenticar(
-            //basic auth
             String codigo,
             String password) {
+
+        if (codigo == null || codigo.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe ingresar su código."
+            );
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe ingresar su contraseña."
+            );
+        }
 
         String codigoNormalizado
                 = codigo.trim().toUpperCase();
 
-        String endpoint
-                = obtenerEndpoint(codigoNormalizado);
+        UsuarioDTO usuario;
 
-        return restClient.get()
-                .uri(endpoint, codigoNormalizado)
-                .headers(headers
-                        -> headers.setBasicAuth(
+        try {
+
+            /*
+             * Es la ruta principal. No depende del prefijo,
+             * por lo que admite usuarios de roles nuevos.
+             */
+            usuario = consultarUsuario(
+                    "/usuarios/{codigo}",
+                    codigoNormalizado,
+                    password
+            );
+
+        } catch (RestClientResponseException excepcion) {
+
+            /*
+             * Los vigilantes actuales solo tienen permiso para
+             * consultar sus propios datos por su ruta específica.
+             * Se conserva compatibilidad con los tres tipos viejos.
+             */
+            int estado = excepcion.getStatusCode().value();
+
+            if ((estado == 403 || estado == 404)
+                    && esPrefijoAnterior(codigoNormalizado)) {
+
+                usuario = consultarUsuario(
+                        obtenerEndpointAnterior(codigoNormalizado),
                         codigoNormalizado,
                         password
-                ))
+                );
+
+            } else {
+                throw excepcion;
+            }
+        }
+
+        cargarPermisosDelRol(
+                usuario,
+                codigoNormalizado,
+                password
+        );
+
+        return usuario;
+    }
+
+    private UsuarioDTO consultarUsuario(
+            String endpoint,
+            String codigo,
+            String password) {
+
+        return restClient.get()
+                .uri(endpoint, codigo)
+                .headers(headers
+                        -> headers.setBasicAuth(codigo, password))
                 .retrieve()
                 .body(UsuarioDTO.class);
     }
 
-   //lo busca!!! si esta bien le da un dto si no noo
-    private String obtenerEndpoint(String codigo) {
+    /*
+     * Si el usuario tiene lectura general, el backend permite
+     * consultar los roles y completar sus permisos en la sesión.
+     * Si no puede hacerlo, el login igualmente se conserva.
+     */
+    private void cargarPermisosDelRol(
+            UsuarioDTO usuario,
+            String codigo,
+            String password) {
+
+        if (usuario == null
+                || usuario.getRol() == null
+                || usuario.getRol().isBlank()) {
+            return;
+        }
+
+        try {
+
+            List<RolDTO> roles = restClient.get()
+                    .uri("/roles")
+                    .headers(headers
+                            -> headers.setBasicAuth(codigo, password))
+                    .retrieve()
+                    .body(
+                            new ParameterizedTypeReference
+                                    <List<RolDTO>>() {
+                            }
+                    );
+
+            if (roles == null) {
+                return;
+            }
+
+            roles.stream()
+                    .filter(rol
+                            -> rol.getNombre() != null
+                            && rol.getNombre().equalsIgnoreCase(
+                                    usuario.getRol()
+                            ))
+                    .findFirst()
+                    .ifPresent(rol
+                            -> usuario.setPermisos(rol.getPermisos()));
+
+        } catch (RestClientResponseException excepcion) {
+
+            /*
+             * No se interrumpe un login válido solamente porque
+             * ese usuario no tenga permiso para listar roles.
+             */
+        }
+    }
+
+    private boolean esPrefijoAnterior(String codigo) {
+        return codigo.startsWith("ADM")
+                || codigo.startsWith("INV")
+                || codigo.startsWith("VIG");
+    }
+
+    private String obtenerEndpointAnterior(String codigo) {
 
         if (codigo.startsWith("ADM")) {
             return "/administradores/{codigo}";
@@ -57,12 +172,6 @@ public class AutenticacionClient {
             return "/investigadores/{codigo}";
         }
 
-        if (codigo.startsWith("VIG")) {
-            return "/vigilantes/{codigo}";
-        }
-
-        throw new IllegalArgumentException(
-                "El código de usuario no tiene un formato válido."
-        );
+        return "/vigilantes/{codigo}";
     }
 }

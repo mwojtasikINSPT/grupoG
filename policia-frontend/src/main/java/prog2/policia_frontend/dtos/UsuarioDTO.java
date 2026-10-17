@@ -1,7 +1,8 @@
 package prog2.policia_frontend.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import java.util.HashSet;
+import java.util.Set;
 //datos básicos del usuario que el frontend recibe desde el backend.
 
 
@@ -13,12 +14,19 @@ public class UsuarioDTO {
     private String codigo;
     private String nombre;
     private String rol;
+    /*
+ * Permisos asignados al rol del usuario.
+ *
+ * Se inicializa vacío porque el backend actual
+ * todavía podría no enviar este dato.
+ */
+    private Set<String> permisos = new HashSet<>();
     private Boolean activo;
 
      // el contructor vacio convierte autaticmnt el JSON en un objeto Java.
     public UsuarioDTO() {
     }
-
+    
     public Long getId() {
         return id;
     }
@@ -57,5 +65,19 @@ public class UsuarioDTO {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+    public Set<String> getPermisos() {
+    return permisos;
+}
+
+    public void setPermisos(Set<String> permisos) {
+
+        /*
+         * Evita errores si el backend devuelve
+         * el campo permisos como null.
+         */
+        this.permisos = permisos != null
+                ? permisos
+                : new HashSet<>();
     }
 }

@@ -1,7 +1,10 @@
 package prog2.policia_frontend.views;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -24,6 +27,7 @@ import prog2.policia_frontend.dtos.UsuarioDTO;
  */
 @Route("login")
 @PageTitle("Ingreso | Sistema Policial")
+@StyleSheet("context://styles/login.css")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver{
 
     private final AutenticacionClient autenticacionClient;
@@ -62,11 +66,44 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
                 "Sistema de Gestión Policial"
         );
 
+        titulo.addClassName("login-titulo");
+
+        Span subtitulo = new Span(
+                "Acceso seguro al sistema"
+        );
+        subtitulo.addClassName("login-subtitulo");
+
+        /*
+         * Los gatos son elementos decorativos. El texto alternativo
+         * permite comprender la imagen si esta no puede mostrarse.
+         */
+        Image imagenAsisa = new Image(
+                "images/asisa-policia.png",
+                "Asisa con chaleco policial"
+        );
+        imagenAsisa.addClassNames(
+                "login-gato",
+                "login-gato-asisa"
+        );
+
+        Image imagenCopo = new Image(
+                "images/copo-policia.png",
+                "Copo con chaleco policial"
+        );
+        imagenCopo.addClassNames(
+                "login-gato",
+                "login-gato-copo"
+        );
+
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(
                 JustifyContentMode.CENTER
         );
+
+        setPadding(false);
+        setSpacing(false);
+        addClassName("login-view");
 
         
 
@@ -80,12 +117,29 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
            campoCodigo.setWidth("320px");
            campoContrasena.setWidth("320px");
            botonIngresar.setWidth("320px");
-        
-        add(
+
+           campoCodigo.addClassName("login-campo");
+           campoContrasena.addClassName("login-campo");
+           botonIngresar.addClassName("login-boton");
+
+        VerticalLayout tarjeta = new VerticalLayout(
                 titulo,
+                subtitulo,
                 campoCodigo,
                 campoContrasena,
                 botonIngresar
+        );
+
+        tarjeta.setAlignItems(Alignment.CENTER);
+        tarjeta.setPadding(true);
+        tarjeta.setWidth("410px");
+        tarjeta.setMaxWidth("88vw");
+        tarjeta.addClassName("login-tarjeta");
+        
+        add(
+                imagenAsisa,
+                tarjeta,
+                imagenCopo
         );
     }
     /*
