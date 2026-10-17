@@ -5,12 +5,15 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.RouterLink;
 import java.util.Set;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
@@ -122,89 +125,135 @@ public class MainLayout extends AppLayout
      */
     private void crearMenuLateral() {
 
-        // Estas dos opciones pertenecen a cualquier usuario autenticado.
-        RouterLink opcionInicio = new RouterLink(
-                "Inicio",
-                InicioView.class
-        );
-        RouterLink opcionMiPerfil = new RouterLink(
-        "Mi perfil",
-        MiPerfilView.class
+        /*
+         * SideNav es el menú lateral oficial de Vaadin. Resalta
+         * automáticamente la opción correspondiente a la vista actual.
+         */
+        SideNav menuGeneral = new SideNav("General");
+
+        menuGeneral.addItem(
+                new SideNavItem(
+                        "Inicio",
+                        InicioView.class,
+                        VaadinIcon.HOME.create()
+                ),
+                new SideNavItem(
+                        "Mi perfil",
+                        MiPerfilView.class,
+                        VaadinIcon.USER.create()
+                )
         );
 
-        VerticalLayout menu = new VerticalLayout(
-                opcionInicio,
-                opcionMiPerfil
-        );
+        VerticalLayout menu = new VerticalLayout(menuGeneral);
+        menu.setPadding(false);
+        menu.setSpacing(false);
+        menu.setWidthFull();
 
         /*
-         * Las opciones administrativas se muestran cuando el usuario
-         * posee LECTURA. Tener ESCRITURA agregará los botones de cambio
-         * dentro de cada vista, pero no reemplaza el permiso de lectura.
+         * Las secciones administrativas solo se agregan cuando existe
+         * permiso de lectura. Los nuevos roles funcionan igual porque
+         * la decisión depende del permiso, no del nombre del rol.
          */
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Usuarios", UsuariosView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Roles", RolesView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Vigilantes", VigilantesView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Investigadores", InvestigadoresView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Jueces", JuecesView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Entidades bancarias", EntidadesBancariasView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Sucursales", SucursalesView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Contratos", ContratosVigilanciaView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Bandas", BandasView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Asaltantes", AsaltantesView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Asaltos", AsaltosView.class),
-                PermisosApp.LECTURA
-        );
-        agregarOpcionConPermiso(
-                menu,
-                new RouterLink("Casos judiciales", CasosJudicialesView.class),
-                PermisosApp.LECTURA
-        );
+        if (sesionUsuario.tienePermiso(PermisosApp.LECTURA)) {
 
-        //lo pone en lado izquierdo
-        addToDrawer(menu);
+            SideNav menuAdministracion
+                    = new SideNav("Administración");
+
+            menuAdministracion.addItem(
+                    new SideNavItem(
+                            "Usuarios",
+                            UsuariosView.class,
+                            VaadinIcon.USERS.create()
+                    ),
+                    new SideNavItem(
+                            "Roles",
+                            RolesView.class,
+                            VaadinIcon.KEY.create()
+                    )
+            );
+
+            SideNav menuPersonal = new SideNav("Personal");
+
+            menuPersonal.addItem(
+                    new SideNavItem(
+                            "Vigilantes",
+                            VigilantesView.class,
+                            VaadinIcon.SHIELD.create()
+                    ),
+                    new SideNavItem(
+                            "Investigadores",
+                            InvestigadoresView.class,
+                            VaadinIcon.SEARCH.create()
+                    ),
+                    new SideNavItem(
+                            "Jueces",
+                            JuecesView.class,
+                            VaadinIcon.GAVEL.create()
+                    )
+            );
+
+            SideNav menuBancos = new SideNav("Actividad bancaria");
+
+            menuBancos.addItem(
+                    new SideNavItem(
+                            "Entidades bancarias",
+                            EntidadesBancariasView.class,
+                            VaadinIcon.BUILDING.create()
+                    ),
+                    new SideNavItem(
+                            "Sucursales",
+                            SucursalesView.class,
+                            VaadinIcon.BRIEFCASE.create()
+                    ),
+                    new SideNavItem(
+                            "Contratos",
+                            ContratosVigilanciaView.class,
+                            VaadinIcon.FILE_TEXT.create()
+                    )
+            );
+
+            SideNav menuInvestigacion
+                    = new SideNav("Investigación policial");
+
+            menuInvestigacion.addItem(
+                    new SideNavItem(
+                            "Bandas",
+                            BandasView.class,
+                            VaadinIcon.GROUP.create()
+                    ),
+                    new SideNavItem(
+                            "Asaltantes",
+                            AsaltantesView.class,
+                            VaadinIcon.WARNING.create()
+                    ),
+                    new SideNavItem(
+                            "Asaltos",
+                            AsaltosView.class,
+                            VaadinIcon.CAR.create()
+                    ),
+                    new SideNavItem(
+                            "Casos judiciales",
+                            CasosJudicialesView.class,
+                            VaadinIcon.SCALE.create()
+                    )
+            );
+
+            menu.add(
+                    menuAdministracion,
+                    menuPersonal,
+                    menuBancos,
+                    menuInvestigacion
+            );
+        }
+
+        /*
+         * Scroller también es un componente oficial de Vaadin y permite
+         * recorrer el menú cuando la pantalla no tiene suficiente altura.
+         */
+        Scroller desplazamiento = new Scroller(menu);
+        desplazamiento.setSizeFull();
+
+        addToDrawer(desplazamiento);
     }
 
     /*
@@ -249,28 +298,6 @@ public class MainLayout extends AppLayout
         );
     }
     
-    /*
- * Agrega una opción al menú solamente cuando
- * el usuario posee el permiso requerido.
- *
- * Lo utilizaremos cuando el backend entregue
- * los permisos del usuario autenticado.
- */
-    private void agregarOpcionConPermiso(
-        VerticalLayout menu,
-        RouterLink opcion,
-        String permisoRequerido) {
-
-                if (sesionUsuario.tienePermiso(
-                     permisoRequerido)) {
-        menu.add(opcion);
-    }
-}
-    
-    
-    
-    
-
     /*
      * Borra los datos de la sesión
      * y regresa al login.

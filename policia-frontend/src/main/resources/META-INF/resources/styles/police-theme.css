@@ -1,0 +1,35 @@
+/*
+ * Personalización del tema oficial Aura de Vaadin.
+ * Se cambian variables y partes públicas del componente,
+ * sin reemplazar el formato ni la estructura de Vaadin.
+
+COLORES DE BOTONES,SELECCIONES, RESALTADO, FONDOS ,REDONDEADO DEL TEMA aura
+ */
+
+html {         
+    --aura-accent-color-dark: #168cff;
+    --aura-background-color-dark: #071421;
+    --aura-base-radius: 5;
+    --aura-contrast-level: 1.2;
+}
+/*BARRA SUPERIOR COLORESS*/
+vaadin-app-layout::part(navbar) {
+    background: linear-gradient(90deg, #071421, #0a2742);
+    border-bottom: 1px solid rgba(64, 157, 235, 0.3);
+}
+/*MENU LATERAL con applayout*/
+
+vaadin-app-layout::part(drawer) {
+    background: linear-gradient(180deg, #081725, #0b2033);
+    border-right: 1px solid rgba(64, 157, 235, 0.24);
+}
+
+vaadin-app-layout::part(content) {
+    background:
+        radial-gradient(circle at top right, rgba(18, 105, 170, 0.13), transparent 34%),
+        var(--aura-background-color);
+}
+
+vaadin-side-nav {
+    margin-inline: var(--vaadin-padding-s);
+}
