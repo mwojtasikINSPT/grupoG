@@ -54,23 +54,19 @@
     letter-spacing: 0.04em;
 }
 
-.login-campo {
+.login-formulario {
+    width: 100%;
+    max-width: 340px;
     --vaadin-input-field-background: rgba(244, 249, 255, 0.96);
     --vaadin-input-field-value-color: #0a1726;
     --vaadin-input-field-label-color: #c9e6ff;
     --vaadin-input-field-border-color: rgba(84, 176, 255, 0.55);
 }
 
-.login-boton {
-    margin-top: 0.55rem;
-    color: #ffffff;
-    font-weight: 700;
-    background: linear-gradient(90deg, #075da8, #008cff);
-    box-shadow: 0 10px 24px rgba(0, 105, 210, 0.35);
-}
-
-.login-boton:hover {
-    background: linear-gradient(90deg, #0870c8, #24a0ff);
+.login-formulario::part(form) {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .login-gato {

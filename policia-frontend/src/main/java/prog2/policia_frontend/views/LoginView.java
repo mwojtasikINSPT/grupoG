@@ -1,20 +1,19 @@
 package prog2.policia_frontend.views;
 
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.login.AbstractLogin;
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.PasswordField;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import prog2.policia_frontend.clients.AutenticacionClient;
 import prog2.policia_frontend.security.SesionUsuario;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.textfield.Autocomplete;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import org.springframework.web.client.ResourceAccessException;
@@ -33,14 +32,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
     private final AutenticacionClient autenticacionClient;
     private final SesionUsuario sesionUsuario;
 
-    private final TextField campoCodigo
-            = new TextField("Código de usuario");
-
-    private final PasswordField campoContrasena
-            = new PasswordField("Contraseña");
-
-    private final Button botonIngresar
-            = new Button("Ingresar");
+    /*
+     * Componente oficial de Vaadin que contiene
+     * el usuario, la contraseña y el botón de ingreso.
+     */
+    private final LoginForm formularioLogin
+            = new LoginForm();
 
     /*
      * Spring entrega automáticamente el cliente
@@ -54,7 +51,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
         this.sesionUsuario = sesionUsuario;
 
         configurarVista();
-        configurarEventos();
+        configurarFormularioLogin();
     }
 
     /*
@@ -107,27 +104,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
 
         
 
-         // HACE QUE no me sugiera datos q ya ingrese antes 
-           campoCodigo.setAutocomplete(Autocomplete.OFF);
-           campoContrasena.setAutocomplete(Autocomplete.OFF);
-           //Y QUE SON OBLIGATORIOS
-           campoCodigo.setRequiredIndicatorVisible(true);
-           campoContrasena.setRequiredIndicatorVisible(true);
-        
-           campoCodigo.setWidth("320px");
-           campoContrasena.setWidth("320px");
-           botonIngresar.setWidth("320px");
-
-           campoCodigo.addClassName("login-campo");
-           campoContrasena.addClassName("login-campo");
-           botonIngresar.addClassName("login-boton");
+        formularioLogin.addClassName("login-formulario");
 
         VerticalLayout tarjeta = new VerticalLayout(
                 titulo,
                 subtitulo,
-                campoCodigo,
-                campoContrasena,
-                botonIngresar
+                formularioLogin
         );
 
         tarjeta.setAlignItems(Alignment.CENTER);
@@ -143,47 +125,43 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver{
         );
     }
     /*
- * Define qué debe ocurrir cuando
- * el usuario presiona el botón Ingresar.
+ * Configura los textos en español y conecta el formulario
+ * oficial de Vaadin con la autenticación existente.
  */
-private void configurarEventos() {
+private void configurarFormularioLogin() {
 
-    botonIngresar.addClickListener(//when alguien haga clic
-            evento -> intentarIngresar()// inteneta ingresar 
+    LoginI18n textos = new LoginI18n();
+
+    LoginI18n.Form formulario = new LoginI18n.Form();
+    formulario.setTitle("Ingresar");
+    formulario.setUsername("Código de usuario");
+    formulario.setPassword("Contraseña");
+    formulario.setSubmit("Ingresar");
+    formulario.setForgotPassword("Olvidé mi contraseña");
+    textos.setForm(formulario);
+
+    LoginI18n.ErrorMessage mensajeError
+            = new LoginI18n.ErrorMessage();
+    mensajeError.setTitle("No se pudo ingresar");
+    mensajeError.setMessage(
+            "Código o contraseña incorrectos."
     );
+    mensajeError.setUsername("El código es obligatorio.");
+    mensajeError.setPassword("La contraseña es obligatoria.");
+    textos.setErrorMessage(mensajeError);
+
+    formularioLogin.setI18n(textos);
+    formularioLogin.setForgotPasswordButtonVisible(false);
+    formularioLogin.addLoginListener(this::intentarIngresar);
 }
 
-//INGRESO DE CAMPOS
-private void intentarIngresar() {
+private void intentarIngresar(AbstractLogin.LoginEvent evento) {
 
-    boolean codigoVacio // si tiene vacio o espacios 
-            = campoCodigo.getValue().isBlank();
+    String codigoIngresado = evento.getUsername();
+    String contrasenaIngresada = evento.getPassword();
 
-    boolean contrasenaVacia
-            = campoContrasena.getValue().isBlank();
-
-    campoCodigo.setErrorMessage(
-            "Debe ingresar su código."
-    );
-
-    campoContrasena.setErrorMessage(
-            "Debe ingresar su contraseña."
-    );
-
-    campoCodigo.setInvalid(codigoVacio);//es incorrecto si esta vacio
-    campoContrasena.setInvalid(contrasenaVacia);//lo mismo 
-
-    if (codigoVacio || contrasenaVacia) {
-        return; //si es blanco cualquiera vuelve
-    }
-
-        String codigoIngresado
-        = campoCodigo.getValue();
-
-String contrasenaIngresada
-        = campoContrasena.getValue();
-
-botonIngresar.setEnabled(false);
+    formularioLogin.setError(false);
+    formularioLogin.setEnabled(false);
 
 try {
 
@@ -207,13 +185,6 @@ try {
     );
 
     /*
-     * Limpia los campos para que las
-     * credenciales no queden visibles.
-     */
-    campoCodigo.clear();
-    campoContrasena.clear();
-
-    /*
      * Abre la pantalla principal.
      */
     UI.getCurrent().navigate(
@@ -222,16 +193,13 @@ try {
 
 } catch (RestClientResponseException excepcion) {
 
-    campoContrasena.clear();
-    campoContrasena.focus();
+    limpiarContrasena();
 
     int estado
             = excepcion.getStatusCode().value();
 
     if (estado == 401) {
-        Notification.show(
-                "Código o contraseña incorrectos."
-        );
+        formularioLogin.setError(true);
     } else if (estado == 403) {
         Notification.show(
                 "El usuario no tiene permiso para ingresar."
@@ -264,9 +232,24 @@ try {
 
    } finally {
 
-       botonIngresar.setEnabled(true);
+       formularioLogin.setEnabled(true);
    }
    }
+
+    /*
+     * Vacía solamente la contraseña cuando el backend
+     * rechaza el ingreso y conserva el código escrito.
+     */
+    private void limpiarContrasena() {
+
+        formularioLogin.getElement().executeJs("""
+            const campo = this.querySelector('vaadin-password-field');
+            if (campo) {
+                campo.value = '';
+                campo.focus();
+            }
+        """);
+    }
     
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
@@ -277,9 +260,8 @@ try {
         sesionUsuario.cerrarSesion();
     }
 
-    // Siempre mostramos vacíos los campos del login.
-    campoCodigo.clear();
-    campoContrasena.clear();
+    // Oculta cualquier error anterior al volver al login.
+    formularioLogin.setError(false);
 }
     
 
