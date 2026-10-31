@@ -1,11 +1,13 @@
 package prog2.policia_backend.models;
 
+
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,7 +25,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContratoVigilancia extends EntidadAuditable{
+public class ContratoVigilancia extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +33,7 @@ public class ContratoVigilancia extends EntidadAuditable{
 
     private LocalDate fecha;
     private Boolean conArma;
+    @Column(unique = true)
     private String codigo;
 
     @ManyToOne

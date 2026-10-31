@@ -34,7 +34,8 @@ public class SecurityConfig {
 
     // Conecta UserDetailsService con PasswordEncoder.
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
 
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 
@@ -49,20 +50,24 @@ public class SecurityConfig {
             throws Exception {
 
         http
-                //apaga la protección CSRF (en APIs REST sin estado)
+                // apaga la protección CSRF (en APIs REST sin estado)
                 .csrf(csrf -> csrf.disable())
-                //habilita el flujo cruzado (CORS) para Vaadin
+                // habilita el flujo cruzado (CORS) para Vaadin
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Autenticación basada en permisos
                 .authorizeHttpRequests(auth -> auth
                 // Permite consultar vigilantes con lectura general o de datos propios
+                .requestMatchers(HttpMethod.GET, "/api/vigilantes")
+                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*")
                 .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
                 // Permite consultar contratos de un vigilante
                 .requestMatchers(HttpMethod.GET, "/api/vigilantes/*/contratos")
                 .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
                 // Consultas generales de lectura sobre la API
+                .requestMatchers(HttpMethod.GET, "/api/usuarios").hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
                 .requestMatchers(HttpMethod.GET, "/api/**")
                 .hasAuthority("LECTURA")
                 // Creación, modificación o eliminación requieren escritura
@@ -71,8 +76,7 @@ public class SecurityConfig {
                 .requestMatchers("/error")
                 .permitAll()
                 .anyRequest()
-                .authenticated()
-                )
+                .authenticated())
                 // Login mediante usuario/código + contraseña
                 .httpBasic(httpBasic -> {
                 });
@@ -80,15 +84,16 @@ public class SecurityConfig {
         return http.build();
     }
 
-    //Para permitir acceder desde otro puerto con el front 
+    // Para permitir acceder desde otro puerto con el front
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
-        //Para que admita peticiones desde el front
+        // Para que admita peticiones desde el front
         configuration.setAllowedOrigins(List.of(allowedOrigin));
 
-        //métodos HTTP permitidos. OPTIONS para peticiones previas de control del navegador        
+        // métodos HTTP permitidos. OPTIONS para peticiones previas de control del
+        // navegador
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // Habilita los encabezados necesarios

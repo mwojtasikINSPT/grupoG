@@ -39,7 +39,7 @@ public class Rol extends EntidadAuditable {
 
     private Boolean activo = true;
 
-    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "rol")
     private List<Usuario> usuarios = new ArrayList<>();
 
     @ElementCollection(targetClass = Permiso.class, fetch = FetchType.EAGER)

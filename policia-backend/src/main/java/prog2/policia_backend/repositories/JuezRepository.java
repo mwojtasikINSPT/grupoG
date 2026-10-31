@@ -9,9 +9,10 @@ import java.util.Optional;
 public interface JuezRepository extends JpaRepository<Juez, Long> {
 
     List<Juez> findByActivo(boolean activo);
-    
+
     Optional<Juez> findByCodigo(String codigo);
-    
-    
+
     List<Juez> findByNombreContainingIgnoreCase(String nombre);
+
+    List<Juez> findByNombreContainingIgnoreCaseAndActivo(String nombre, boolean activo);
 }

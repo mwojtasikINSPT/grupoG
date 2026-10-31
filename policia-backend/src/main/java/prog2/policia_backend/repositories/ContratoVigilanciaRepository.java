@@ -50,4 +50,13 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
     @Query("UPDATE ContratoVigilancia c SET c.activo = false WHERE c.fecha < :hoy AND c.activo = true")
     int desactivarContratosVencidos(@Param("hoy") LocalDate hoy);
 
+    @Query("""
+    SELECT c FROM ContratoVigilancia c
+    WHERE LOWER(c.vigilante.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))
+    AND (:activo IS NULL OR c.activo = :activo)
+    """)
+    List<ContratoVigilancia> buscarPorNombreVigilante(
+            @Param("nombre") String nombre,
+            @Param("activo") Boolean activo
+    );
 }

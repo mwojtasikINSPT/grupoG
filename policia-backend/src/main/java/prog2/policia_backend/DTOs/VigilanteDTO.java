@@ -1,6 +1,8 @@
 package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +31,9 @@ public class VigilanteDTO {
     @Size(min = 4, max = 20, groups = {OnCreate.class, OnUpdate.class})
     private String password;
 
-    @NotNull
-    @Min(18)
+    @NotNull(groups = {OnCreate.class})
+    @Min(value = 18, groups = {OnCreate.class, OnUpdate.class})
+    @Max(value = 65, groups = {OnCreate.class, OnUpdate.class})
     private Integer edad;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

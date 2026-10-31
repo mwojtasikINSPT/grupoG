@@ -1,8 +1,13 @@
 package prog2.policia_backend.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
 import prog2.policia_backend.exceptions.EntidadBancariaConSucursalesException;
@@ -34,41 +39,47 @@ public class EntidadBancariaService {
             entidades = entidadBancariaRepository.findByActivo(activo);
         }
 
-        return entidades.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<EntidadBancariaDTO> resultado = new ArrayList<>();
+
+        for (EntidadBancaria entidad : entidades) {
+            resultado.add(convertirADTO(entidad));
+        }
+
+        return resultado;
     }
 
     public EntidadBancariaDTO buscarPorCodigo(String codigo) {
         return convertirADTO(obtenerEntidad(codigo));
     }
 
-    public List<EntidadBancariaDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
-
-        String domicilioNormalizado = NormalizadorTexto.normalizarParaBuscar(domicilio);
-
-        return entidadBancariaRepository.findAll()
-                .stream()
-                .filter(entidad -> activo == null || entidad.isActivo() == activo)
-                .filter(entidad -> NormalizadorTexto.normalizarParaBuscar(entidad.getDomicilioCentral())
-                .contains(domicilioNormalizado))
-                .map(this::convertirADTO)
-                .toList();
-    }
-
     public List<EntidadBancariaDTO> buscarPorNombre(String nombre, Boolean activo) {
-
-        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-
-        return entidadBancariaRepository.findAll()
-                .stream()
-                .filter(entidad -> activo == null || entidad.isActivo() == activo)
-                .filter(entidad -> NormalizadorTexto.normalizarParaBuscar(entidad.getNombre())
-                .contains(nombreNormalizado))
-                .map(this::convertirADTO)
-                .toList();
+        return buscarConFiltros(nombre, null, activo);
     }
 
+    public List<EntidadBancariaDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
+        return buscarConFiltros(null, domicilio, activo);
+    }
+
+    public List<EntidadBancariaDTO> buscarConFiltros(String nombre, String domicilio, Boolean activo) {
+        String nombreNormalizado = nombre != null && !nombre.isBlank()
+                ? NormalizadorTexto.normalizarParaBuscar(nombre) : null;
+
+        String domicilioNormalizado = domicilio != null && !domicilio.isBlank()
+                ? NormalizadorTexto.normalizarParaBuscar(domicilio) : null;
+
+        List<EntidadBancaria> entidades = entidadBancariaRepository.buscarConFiltros(
+                nombreNormalizado, domicilioNormalizado, activo);
+
+        List<EntidadBancariaDTO> resultado = new ArrayList<>();
+
+        for (EntidadBancaria entidad : entidades) {
+            resultado.add(convertirADTO(entidad));
+        }
+
+        return resultado;
+    }
+
+    @Transactional
     public EntidadBancariaDTO guardar(EntidadBancariaDTO dto) {
         EntidadBancaria entidad = convertirAEntidad(dto);
 
@@ -129,7 +140,7 @@ public class EntidadBancariaService {
 
         entidadBancaria.setActivo(true);
         entidadBancaria.setMotivoBaja(null);
-        
+
         entidadBancaria = entidadBancariaRepository.save(entidadBancaria);
 
         return convertirADTO(entidadBancaria);
@@ -163,10 +174,15 @@ public class EntidadBancariaService {
         return entidad;
     }
 
-    //--------
+    // --------
     private EntidadBancaria obtenerEntidad(String codigo) {
-        return entidadBancariaRepository
-                .findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("EntidadBancaria", codigo));
+        Optional<EntidadBancaria> resultado = entidadBancariaRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("EntidadBancaria", codigo);
+        }
+
+        return resultado.get();
     }
+
 }
