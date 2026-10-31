@@ -2,23 +2,28 @@ package prog2.policia_backend.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.exceptions.AsaltanteConCasoJudicialException;
 import prog2.policia_backend.exceptions.AsaltanteDuplicadoException;
-import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
-import prog2.policia_backend.models.Asalto;
-import prog2.policia_backend.repositories.AsaltoRepository;
-import prog2.policia_backend.repositories.AsaltanteRepository;
-import prog2.policia_backend.repositories.SucursalRepository;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
+import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.Asaltante;
+import prog2.policia_backend.models.Asalto;
+import prog2.policia_backend.models.CasoJudicial;
+import prog2.policia_backend.models.SentenciaAsaltante;
 import prog2.policia_backend.models.Sucursal;
+import prog2.policia_backend.repositories.AsaltanteRepository;
+import prog2.policia_backend.repositories.AsaltoRepository;
 import prog2.policia_backend.repositories.CasoJudicialRepository;
+import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
+import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
 @Service
@@ -29,83 +34,124 @@ public class AsaltoService {
     private final AsaltanteRepository asaltanteRepository;
     private final SucursalRepository sucursalRepository;
     private final CasoJudicialRepository casoJudicialRepository;
+    private final SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
 
+    @Transactional(readOnly = true)
     public List<AsaltoDTO> listar() {
-        return asaltoRepository.findAll()
-                .stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<AsaltoDTO> resultado = new ArrayList<>();
+
+        for (Asalto asalto : asaltoRepository.findAll()) {
+            resultado.add(convertirADTO(asalto));
+        }
+
+        return resultado;
     }
 
+    @Transactional(readOnly = true)
     public AsaltoDTO buscarPorCodigo(String codigo) {
         return convertirADTO(obtenerAsalto(codigo));
     }
 
+    @Transactional(readOnly = true)
     public List<AsaltoDTO> listarPorAsaltante(String codigo) {
-
         Asaltante asaltante = obtenerAsaltante(codigo);
+        List<AsaltoDTO> resultado = new ArrayList<>();
 
-        return asaltoRepository
-                .findByAsaltantes_Id(asaltante.getId())
-                .stream()
-                .map(this::convertirADTO)
-                .toList();
+        for (Asalto asalto : asaltoRepository.findByAsaltantes_Id(asaltante.getId())) {
+            resultado.add(convertirADTO(asalto));
+        }
+
+        return resultado;
     }
 
+    @Transactional(readOnly = true)
     public List<AsaltoDTO> listarPorSucursal(String codigo) {
-
         Sucursal sucursal = obtenerSucursal(codigo);
+        List<AsaltoDTO> resultado = new ArrayList<>();
 
-        return asaltoRepository
-                .findBySucursal_Id(sucursal.getId())
-                .stream()
-                .map(this::convertirADTO)
-                .toList();
+        for (Asalto asalto : asaltoRepository.findBySucursal_Id(sucursal.getId())) {
+            resultado.add(convertirADTO(asalto));
+        }
+
+        return resultado;
     }
 
+    @Transactional
     public AsaltoDTO guardar(AsaltoDTO dto) {
-        Asalto asalto = convertirAEntidad(dto);
+        List<Asaltante> asaltantes = obtenerAsaltantesActivos(dto.getAsaltantesCodigos());
+        Sucursal sucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
 
+        Asalto asalto = new Asalto(dto.getFecha(), sucursal, asaltantes);
         asalto = asaltoRepository.save(asalto);
 
-        asalto.setCodigo(GeneradorCodigo.generar("AST", asalto.getId()));
+        asalto.asignarCodigo(GeneradorCodigo.generar("AST", asalto.getId()));
 
         return convertirADTO(asaltoRepository.save(asalto));
     }
 
+    @Transactional
     public AsaltoDTO actualizar(String codigo, AsaltoDTO dto) {
         Asalto asalto = obtenerAsalto(codigo);
+        CasoJudicial caso = obtenerCasoJudicial(asalto);
 
-        if (dto.getAsaltantesCodigos() != null) {
-            if (dto.getAsaltantesCodigos().isEmpty()) {
-                //Valido que no tengan CJU antes de eliminar
-                for (Asaltante asaltanteActual : asalto.getAsaltantes()) {
-                    validarAsaltanteSinCasoJudicial(asalto, asaltanteActual);
-                }
-                asalto.getAsaltantes().clear();
-            } else {
-                // Asaltantes existentes y activos
-                List<Asaltante> nuevosAsaltantes = dto.getAsaltantesCodigos().stream()
-                        .map(this::obtenerAsaltanteActivo)
-                        .collect(Collectors.toList());
+        if (dto.getSucursalCodigo() != null && !dto.getSucursalCodigo().isBlank()) {
+            Sucursal nuevaSucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
 
-                validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
-
-                List<Asaltante> asaltantesAQuitar = asalto.getAsaltantes().stream()
-                        .filter(existente -> !nuevosAsaltantes.contains(existente))
-                        .toList();
-
-                for (Asaltante asaltanteAQuitar : asaltantesAQuitar) {
-                    validarAsaltanteSinCasoJudicial(asalto, asaltanteAQuitar);
+            if (!asalto.getSucursal().getId().equals(nuevaSucursal.getId())) {
+                if (caso != null) {
+                    throw new OperacionNoPermitidaException("No se puede cambiar la sucursal de un asalto con caso judicial");
                 }
 
-                asalto.getAsaltantes().clear();
-                asalto.getAsaltantes().addAll(nuevosAsaltantes);
+                asalto.cambiarSucursal(nuevaSucursal);
             }
         }
 
-        if (dto.getSucursalCodigo() != null && !dto.getSucursalCodigo().isBlank()) {
-            asalto.setSucursal(obtenerSucursalActiva(dto.getSucursalCodigo()));
+        if (dto.getAsaltantesCodigos() != null) {
+            List<Asaltante> nuevosAsaltantes = obtenerAsaltantesActivos(dto.getAsaltantesCodigos());
+
+            for (Asaltante existente : asalto.getAsaltantes()) {
+                if (!contieneAsaltante(nuevosAsaltantes, existente.getId())) {
+                    if (caso != null) {
+                        throw new AsaltanteConCasoJudicialException();
+                    }
+
+                    asalto.quitarAsaltante(existente);
+                    break;
+                }
+            }
+
+            if (caso == null) {
+                List<Asaltante> asaltantesAQuitar = new ArrayList<>();
+
+                for (Asaltante existente : asalto.getAsaltantes()) {
+                    if (!contieneAsaltante(nuevosAsaltantes, existente.getId())) {
+                        asaltantesAQuitar.add(existente);
+                    }
+                }
+
+                for (Asaltante asaltante : asaltantesAQuitar) {
+                    asalto.quitarAsaltante(asaltante);
+                }
+            }
+
+            boolean participantesAgregados = false;
+
+            for (Asaltante nuevo : nuevosAsaltantes) {
+                if (!contieneAsaltante(asalto.getAsaltantes(), nuevo.getId())) {
+                    asalto.agregarAsaltante(nuevo);
+                    participantesAgregados = true;
+
+                    if (caso != null) {
+                        SentenciaAsaltante sentencia = new SentenciaAsaltante(caso, nuevo);
+                        sentenciaAsaltanteRepository.save(sentencia);
+                    }
+                }
+            }
+
+            if (caso != null && participantesAgregados) {
+                caso.actualizarEstadoSentenciado(false);
+                casoJudicialRepository.save(caso);
+            }
         }
 
         return convertirADTO(asaltoRepository.save(asalto));
@@ -124,13 +170,15 @@ public class AsaltoService {
             dto.setSucursalCodigo(asalto.getSucursal().getCodigo());
         }
 
+        List<String> codigos = new ArrayList<>();
+
         if (asalto.getAsaltantes() != null) {
-            dto.setAsaltantesCodigos(asalto.getAsaltantes()
-                    .stream()
-                    .map(Asaltante::getCodigo)
-                    .toList());
+            for (Asaltante asaltante : asalto.getAsaltantes()) {
+                codigos.add(asaltante.getCodigo());
+            }
         }
 
+        dto.setAsaltantesCodigos(codigos);
         dto.setFechaCreacion(asalto.getFechaCreacion());
         dto.setFechaModificacion(asalto.getFechaModificacion());
         dto.setCreadoPor(asalto.getCreadoPor());
@@ -139,77 +187,94 @@ public class AsaltoService {
         return dto;
     }
 
-    // Convierte un DTO en una Entity para guardar o actualizar datos en la BBDD.
-    private Asalto convertirAEntidad(AsaltoDTO dto) {
-        Asalto asalto = new Asalto();
-        asalto.setFecha(dto.getFecha());
+    // ------- Metodos Auxiliares ---------
+    private Asalto obtenerAsalto(String codigo) {
+        Optional<Asalto> resultado = asaltoRepository.findByCodigo(codigo);
 
-        if (dto.getAsaltantesCodigos() != null && !dto.getAsaltantesCodigos().isEmpty()) {
-
-            List<Asaltante> asaltantes = dto.getAsaltantesCodigos().stream()
-                    .map(this::obtenerAsaltanteActivo)
-                    .collect(Collectors.toList());
-
-            validarAsaltantesDuplicados(dto.getAsaltantesCodigos());
-
-            asalto.setAsaltantes(asaltantes);
-        } else {
-            asalto.setAsaltantes(new ArrayList<>());
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Asalto", codigo);
         }
 
-        asalto.setSucursal(obtenerSucursalActiva(dto.getSucursalCodigo()));
-
-        return asalto;
-    }
-
-    //-------Metodos Auxiliares---------
-    private Asalto obtenerAsalto(String codigo) {
-        return asaltoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asalto", codigo));
+        return resultado.get();
     }
 
     private Asaltante obtenerAsaltante(String codigo) {
-        return asaltanteRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", codigo));
+        Optional<Asaltante> resultado = asaltanteRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Asaltante", codigo);
+        }
+
+        return resultado.get();
     }
 
     private Asaltante obtenerAsaltanteActivo(String codigo) {
         Asaltante asaltante = obtenerAsaltante(codigo);
+
         if (!asaltante.isActivo()) {
             throw new PersonaInactivaException();
         }
+
         return asaltante;
     }
 
-    private void validarAsaltantesDuplicados(List<String> asaltantesCodigos) {
-        if (asaltantesCodigos != null && !asaltantesCodigos.isEmpty()) {
-            long codigosUnicos = asaltantesCodigos.stream().distinct().count();
-            if (codigosUnicos < asaltantesCodigos.size()) {
-                throw new AsaltanteDuplicadoException();
+    private Sucursal obtenerSucursal(String codigo) {
+        Optional<Sucursal> resultado = sucursalRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Sucursal", codigo);
+        }
+
+        return resultado.get();
+    }
+
+    private Sucursal obtenerSucursalActiva(String codigo) {
+        Sucursal sucursal = obtenerSucursal(codigo);
+
+        if (!sucursal.isActivo()) {
+            throw new SucursalYaCerradaException();
+        }
+
+        return sucursal;
+    }
+
+    private List<Asaltante> obtenerAsaltantesActivos(List<String> codigos) {
+        List<Asaltante> resultado = new ArrayList<>();
+
+        if (codigos == null) {
+            return resultado;
+        }
+
+        validarAsaltantesDuplicados(codigos);
+
+        for (String codigo : codigos) {
+            resultado.add(obtenerAsaltanteActivo(codigo));
+        }
+
+        return resultado;
+    }
+
+    private void validarAsaltantesDuplicados(List<String> codigos) {
+        for (int i = 0; i < codigos.size(); i++) {
+            for (int j = i + 1; j < codigos.size(); j++) {
+                if (codigos.get(i).equals(codigos.get(j))) {
+                    throw new AsaltanteDuplicadoException();
+                }
             }
         }
     }
 
-    private void validarAsaltanteSinCasoJudicial(Asalto asalto, Asaltante asaltante) {
-        boolean tieneCaso = casoJudicialRepository.existsByAsalto_IdAndAsaltantes_Id(asalto.getId(), asaltante.getId());
-
-        if (tieneCaso) {
-            throw new AsaltanteConCasoJudicialException();
+    private boolean contieneAsaltante(List<Asaltante> asaltantes, Long id) {
+        for (Asaltante asaltante : asaltantes) {
+            if (asaltante.getId().equals(id)) {
+                return true;
+            }
         }
+
+        return false;
     }
 
-    private Sucursal obtenerSucursal(String codigo) {
-        return sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
+    private CasoJudicial obtenerCasoJudicial(Asalto asalto) {
+        return asalto.getCasoJudicial();
     }
-
-    private Sucursal obtenerSucursalActiva(String codigo) {
-        Sucursal sucursal = sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
-        if (!sucursal.isActivo()) {
-            throw new SucursalYaCerradaException();
-        }
-        return sucursal;
-    }
-
 }

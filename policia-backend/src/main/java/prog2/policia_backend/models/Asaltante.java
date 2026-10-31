@@ -1,5 +1,6 @@
 package prog2.policia_backend.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,15 +20,16 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Asaltante extends EntidadAuditable{
+public class Asaltante extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nombre;
-    
+
     @ManyToOne
     private Banda banda;
+    @Column(unique = true)
     private String codigo;
     private boolean activo = true;
 

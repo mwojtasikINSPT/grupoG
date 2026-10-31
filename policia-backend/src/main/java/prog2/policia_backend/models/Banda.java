@@ -1,5 +1,6 @@
 package prog2.policia_backend.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +21,7 @@ import org.hibernate.annotations.Formula;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Banda extends EntidadAuditable{
+public class Banda extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +32,8 @@ public class Banda extends EntidadAuditable{
 
     @OneToMany(mappedBy = "banda")
     private List<Asaltante> asaltantes;
+
+    @Column(unique = true)
     private String codigo;
 
     private boolean activo = true;

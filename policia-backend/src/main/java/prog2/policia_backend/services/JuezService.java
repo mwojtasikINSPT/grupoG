@@ -2,9 +2,14 @@ package prog2.policia_backend.services;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.exceptions.FechaFuturaException;
@@ -39,9 +44,13 @@ public class JuezService {
             jueces = juezRepository.findByActivo(activo);
         }
 
-        return jueces.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<JuezDTO> resultado = new ArrayList<>();
+
+        for (Juez juez : jueces) {
+            resultado.add(convertirADTO(juez));
+        }
+
+        return resultado;
     }
 
     public JuezDTO buscarPorCodigo(String codigo) {
@@ -49,18 +58,25 @@ public class JuezService {
     }
 
     public List<JuezDTO> buscarPorNombre(String nombre, Boolean activo) {
-
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
+        List<Juez> jueces;
 
-        return juezRepository.findAll()
-                .stream()
-                .filter(juez -> activo == null || juez.isActivo() == activo)
-                .filter(juez -> NormalizadorTexto.normalizarParaBuscar(juez.getNombre())
-                .contains(nombreNormalizado))
-                .map(this::convertirADTO)
-                .toList();
+        if (activo == null) {
+            jueces = juezRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            jueces = juezRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
+        List<JuezDTO> resultado = new ArrayList<>();
+
+        for (Juez juez : jueces) {
+            resultado.add(convertirADTO(juez));
+        }
+
+        return resultado;
     }
 
+    @Transactional
     public JuezDTO guardar(JuezDTO dto) {
         Juez juez = convertirAEntidad(dto);
 
@@ -103,7 +119,7 @@ public class JuezService {
             throw new PersonaYaInactivaException();
         }
 
-        if (casoJudicialRepository.existsByJuez_IdAndActivoTrue(juez.getId())) {
+        if (casoJudicialRepository.existsByJuez_Id(juez.getId())) {
             throw new JuezConCasosJudicialesException();
         }
 
@@ -132,7 +148,7 @@ public class JuezService {
         return convertirADTO(juez);
     }
 
-    //toma la fecha juezDesde y calcula automáticamente los años hasta hoy
+    // toma la fecha juezDesde y calcula automáticamente los años hasta hoy
     private JuezDTO convertirADTO(Juez juez) {
         int aniosServicio = juez.getJuezDesde() != null
                 ? Period.between(juez.getJuezDesde(), LocalDate.now()).getYears()
@@ -164,10 +180,15 @@ public class JuezService {
         return juez;
     }
 
-//-------Aux--------
+    // -------Aux--------
     private Juez obtenerJuez(String codigo) {
-        return juezRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Juez", codigo));
+        Optional<Juez> resultado = juezRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Juez", codigo);
+        }
+
+        return resultado.get();
     }
 
     private void validarYAsignarFecha(JuezDTO dto, Juez juez) {

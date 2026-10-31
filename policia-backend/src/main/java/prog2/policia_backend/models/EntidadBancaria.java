@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +33,7 @@ public class EntidadBancaria extends EntidadAuditable {
     @OneToMany(mappedBy = "entidadBancaria")
     private List<Sucursal> sucursales;
     private boolean activo = true;
+    @Column(unique = true)
     private String codigo;
 
     @Enumerated(EnumType.STRING)

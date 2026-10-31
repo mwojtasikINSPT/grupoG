@@ -1,30 +1,17 @@
 package prog2.policia_backend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-
+import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 // Un Asalto puede tener varios Asaltantes y tiene una Sucursal
 @Entity
 @Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-public class Asalto extends EntidadAuditable{
+public class Asalto extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +31,29 @@ public class Asalto extends EntidadAuditable{
 
     @ManyToOne
     private Sucursal sucursal;
+
+    @OneToOne(mappedBy = "asalto")
+    private CasoJudicial casoJudicial;
+
+    public Asalto(LocalDate fecha, Sucursal sucursal, List<Asaltante> asaltantes) {
+        this.fecha = fecha;
+        this.sucursal = sucursal;
+        this.asaltantes = new ArrayList<>(asaltantes);
+    }
+
+    public void asignarCodigo(String codigo) {
+        this.codigo = codigo;
+    }
+
+    public void cambiarSucursal(Sucursal sucursal) {
+        this.sucursal = sucursal;
+    }
+
+    public void agregarAsaltante(Asaltante asaltante) {
+        this.asaltantes.add(asaltante);
+    }
+
+    public void quitarAsaltante(Asaltante asaltante) {
+        this.asaltantes.remove(asaltante);
+    }
 }

@@ -2,6 +2,8 @@ package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @Getter
 @Setter
@@ -24,6 +27,7 @@ public class UsuarioDTO {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(groups = OnCreate.class)
+    @Size(min = 4, max = 20, groups = { OnCreate.class, OnUpdate.class })
     private String password;
 
     @NotBlank(groups = OnCreate.class)

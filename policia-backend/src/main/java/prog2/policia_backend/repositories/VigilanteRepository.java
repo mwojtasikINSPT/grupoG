@@ -11,7 +11,11 @@ public interface VigilanteRepository extends JpaRepository<Vigilante, Long> {
     List<Vigilante> findByActivo(boolean activo);
 
     Optional<Vigilante> findByCodigo(String codigo);
-    
+
     List<Vigilante> findByNombreContainingIgnoreCase(String nombre);
+
+    boolean existsByCodigo(String codigo);
+
+    List<Vigilante> findByNombreContainingIgnoreCaseAndActivo(String nombre, boolean activo);
 
 }

@@ -1,5 +1,6 @@
 package prog2.policia_backend.security;
 
+import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,18 +20,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     // Spring llama a este método durante el login.
     @Override
-    public UserDetails loadUserByUsername(String codigo)
-            throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String codigo) throws UsernameNotFoundException {
+        Optional<Usuario> resultado = usuarioRepository.findByCodigo(codigo);
 
-        // Buscamos directamente en la tabla unificada de usuarios por su código
-        Usuario usuario = usuarioRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        if (resultado.isEmpty()) {
+            throw new UsernameNotFoundException("Usuario no encontrado");
+        }
 
-        return new UsuarioDetails(
-                usuario.getId(),
-                usuario.getCodigo(),
-                usuario.getPassword(),
-                usuario.getRol().getPermisos(),
-                usuario.isActivo());
+        Usuario usuario = resultado.get();
+
+        return new UsuarioDetails(usuario.getId(), usuario.getCodigo(), usuario.getPassword(), usuario.getRol().getPermisos(), usuario.isActivo());
     }
 }
