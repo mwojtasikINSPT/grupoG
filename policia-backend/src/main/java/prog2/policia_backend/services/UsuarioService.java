@@ -3,11 +3,14 @@ package prog2.policia_backend.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.DTOs.UsuarioDTO;
@@ -82,21 +85,18 @@ public class UsuarioService {
 
     public List<UsuarioDTO> buscarPorNombre(String nombre, Boolean activo) {
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios;
+
+        if (activo == null) {
+            usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            usuarios = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
         List<UsuarioDTO> resultado = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
-            if (!(usuario instanceof UsuarioGenerico)) {
-                continue;
-            }
-
-            if (activo != null && usuario.isActivo() != activo) {
-                continue;
-            }
-
-            String nombreUsuario = NormalizadorTexto.normalizarParaBuscar(usuario.getNombre());
-
-            if (nombreUsuario.contains(nombreNormalizado)) {
+            if (usuario instanceof UsuarioGenerico) {
                 resultado.add(convertirADTO(usuario));
             }
         }
@@ -114,6 +114,7 @@ public class UsuarioService {
         return convertirADTO(usuario);
     }
 
+    @Transactional
     public UsuarioDTO guardar(UsuarioDTO dto) {
         String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
 

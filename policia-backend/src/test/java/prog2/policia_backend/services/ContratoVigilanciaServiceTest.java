@@ -118,7 +118,8 @@ class ContratoVigilanciaServiceTest {
                 "CDV00001", LocalDate.now().plusDays(5), true
         ));
 
-        when(contratoRepository.findAll()).thenReturn(contratos);
+        when(contratoRepository.findAll())
+                .thenReturn(contratos);
 
         List<ContratoVigilanciaDTO> resultado
                 = contratoService.listar(null);
@@ -193,7 +194,9 @@ class ContratoVigilanciaServiceTest {
                 "CDV00001", LocalDate.now().plusDays(5), true
         ));
 
-        when(contratoRepository.findAll()).thenReturn(contratos);
+        when(contratoRepository.buscarPorNombreVigilante(
+                anyString(), nullable(Boolean.class)))
+                .thenReturn(contratos);
 
         List<ContratoVigilanciaDTO> resultado
                 = contratoService.buscarPorNombreVigilante("juan", null);
@@ -203,12 +206,8 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void buscarPorNombreVigilanteRespetaEstado() {
-        List<ContratoVigilancia> contratos = new ArrayList<>();
-        contratos.add(crearContrato(
-                "CDV00001", LocalDate.now().plusDays(5), true
-        ));
-
-        when(contratoRepository.findAll()).thenReturn(contratos);
+        when(contratoRepository.buscarPorNombreVigilante("juan", false))
+                .thenReturn(new ArrayList<>());
 
         List<ContratoVigilanciaDTO> resultado
                 = contratoService.buscarPorNombreVigilante("Juan", false);
@@ -218,8 +217,9 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void buscarPorNombreVigilanteSinCoincidencias() {
-        when(contratoRepository.findAll())
-                .thenReturn(new ArrayList<ContratoVigilancia>());
+        when(contratoRepository.buscarPorNombreVigilante(
+                anyString(), nullable(Boolean.class)))
+                .thenReturn(new ArrayList<>());
 
         List<ContratoVigilanciaDTO> resultado
                 = contratoService.buscarPorNombreVigilante("Pedro", null);

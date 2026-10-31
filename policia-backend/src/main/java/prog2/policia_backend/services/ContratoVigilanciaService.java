@@ -4,8 +4,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.exceptions.ContratoVigilanciaCumplidoException;
@@ -59,26 +62,19 @@ public class ContratoVigilanciaService {
 
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
-        List<ContratoVigilancia> contratos = contratoVigilanciaRepository.findAll();
+        List<ContratoVigilancia> contratos
+                = contratoVigilanciaRepository.buscarPorNombreVigilante(nombreNormalizado, activo);
+
         List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
 
         for (ContratoVigilancia contrato : contratos) {
-
-            if (activo != null && contrato.getActivo() != activo) {
-                continue;
-            }
-
-            String nombreVigilante = NormalizadorTexto.normalizarParaBuscar(
-                    contrato.getVigilante().getNombre());
-
-            if (nombreVigilante.contains(nombreNormalizado)) {
-                resultado.add(convertirADTO(contrato));
-            }
+            resultado.add(convertirADTO(contrato));
         }
 
         return resultado;
     }
 
+    @Transactional
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
 
         Vigilante vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());

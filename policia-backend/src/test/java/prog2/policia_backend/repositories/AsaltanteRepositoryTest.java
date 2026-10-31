@@ -177,4 +177,30 @@ class AsaltanteRepositoryTest {
         assertEquals(1, resultado.size());
         assertFalse(resultado.get(0).isActivo());
     }
+
+    @Test
+    void buscarPorNombreYEstadoActivo() {
+        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
+
+        assertEquals(1, resultado.size());
+        assertEquals("ASS00001", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoInactivo() {
+        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoDespuesDeDesactivar() {
+        asaltante.setActivo(false);
+        asaltanteRepository.saveAndFlush(asaltante);
+
+        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
+
+        assertEquals(1, resultado.size());
+        assertFalse(resultado.get(0).isActivo());
+    }
 }

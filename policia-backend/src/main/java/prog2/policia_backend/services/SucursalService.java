@@ -92,6 +92,7 @@ public class SucursalService {
         return resultado;
     }
 
+    @Transactional
     public SucursalDTO guardar(SucursalDTO dto) {
 
         Sucursal sucursal = convertirAEntidad(dto);

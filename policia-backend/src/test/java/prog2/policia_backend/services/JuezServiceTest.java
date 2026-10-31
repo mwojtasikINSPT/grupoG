@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.services;
 
 import java.time.LocalDate;
@@ -59,7 +58,6 @@ class JuezServiceTest {
     }
 
     // LISTAR
-
     @Test
     void listarTodosLosJueces() {
         List<Juez> jueces = new ArrayList<>();
@@ -100,7 +98,6 @@ class JuezServiceTest {
     }
 
     // BUSCAR
-
     @Test
     void buscarPorCodigoCorrectamente() {
         when(juezRepository.findByCodigo("JUE00001"))
@@ -126,46 +123,43 @@ class JuezServiceTest {
         }
     }
 
+    // BUSCAR POR NOMBRE
     @Test
     void buscarPorNombreCorrectamente() {
         List<Juez> jueces = new ArrayList<>();
         jueces.add(crearJuez());
 
-        when(juezRepository.findAll()).thenReturn(jueces);
+        when(juezRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(jueces);
 
-        List<JuezDTO> resultado =
-                juezService.buscarPorNombre("juan", null);
+        List<JuezDTO> resultado = juezService.buscarPorNombre("juan", null);
 
         assertEquals(1, resultado.size());
         assertEquals("Juan Perez", resultado.get(0).getNombre());
+
+        verify(juezRepository).findByNombreContainingIgnoreCase(anyString());
     }
 
     @Test
     void buscarPorNombreRespetaEstado() {
-        List<Juez> jueces = new ArrayList<>();
-        jueces.add(crearJuez());
+        when(juezRepository.findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false))).thenReturn(new ArrayList<>());
 
-        when(juezRepository.findAll()).thenReturn(jueces);
-
-        List<JuezDTO> resultado =
-                juezService.buscarPorNombre("Juan", false);
+        List<JuezDTO> resultado = juezService.buscarPorNombre("Juan", false);
 
         assertTrue(resultado.isEmpty());
+
+        verify(juezRepository).findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
     }
 
     @Test
     void buscarPorNombreSinCoincidencias() {
-        when(juezRepository.findAll())
-                .thenReturn(new ArrayList<Juez>());
+        when(juezRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(new ArrayList<>());
 
-        List<JuezDTO> resultado =
-                juezService.buscarPorNombre("Pedro", null);
+        List<JuezDTO> resultado = juezService.buscarPorNombre("Pedro", null);
 
         assertTrue(resultado.isEmpty());
     }
 
     // GUARDAR
-
     @Test
     void guardarJuezCorrectamente() {
         when(juezRepository.save(any(Juez.class)))
@@ -221,7 +215,6 @@ class JuezServiceTest {
     }
 
     // ACTUALIZAR
-
     @Test
     void actualizarNombreCorrectamente() {
         Juez juez = crearJuez();
@@ -235,8 +228,8 @@ class JuezServiceTest {
         JuezDTO dto = new JuezDTO();
         dto.setNombre("Carlos Rodriguez");
 
-        JuezDTO resultado =
-                juezService.actualizar("JUE00001", dto);
+        JuezDTO resultado
+                = juezService.actualizar("JUE00001", dto);
 
         assertEquals("Carlos Rodriguez", resultado.getNombre());
         verify(juezRepository).save(juez);
@@ -257,8 +250,8 @@ class JuezServiceTest {
         JuezDTO dto = new JuezDTO();
         dto.setJuezDesde(nuevaFecha);
 
-        JuezDTO resultado =
-                juezService.actualizar("JUE00001", dto);
+        JuezDTO resultado
+                = juezService.actualizar("JUE00001", dto);
 
         assertEquals(nuevaFecha, resultado.getJuezDesde());
         assertEquals(5, resultado.getAniosServicio());
@@ -314,7 +307,6 @@ class JuezServiceTest {
     }
 
     // ELIMINAR
-
     @Test
     void eliminarJuezCorrectamente() {
         Juez juez = crearJuez();
@@ -413,7 +405,6 @@ class JuezServiceTest {
     }
 
     // REACTIVAR
-
     @Test
     void reactivarJuezCorrectamente() {
         Juez juez = crearJuez();

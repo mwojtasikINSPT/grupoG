@@ -163,45 +163,35 @@ class VigilanteServiceTest {
     // BUSCAR POR NOMBRE
     @Test
     void buscarPorNombreEncuentraCoincidencias() {
-        Vigilante vigilante = crearVigilante(
-                "VIG00001", "Juan Perez", 30, true
-        );
+        Vigilante vigilante = crearVigilante("VIG00001", "Juan Perez", 30, true);
 
         List<Vigilante> vigilantes = new ArrayList<>();
         vigilantes.add(vigilante);
 
-        when(vigilanteRepository.findAll()).thenReturn(vigilantes);
+        when(vigilanteRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(vigilantes);
 
-        List<VigilanteDTO> resultado
-                = vigilanteService.buscarPorNombre("juan", null);
+        List<VigilanteDTO> resultado = vigilanteService.buscarPorNombre("juan", null);
 
         assertEquals(1, resultado.size());
+        assertEquals("Juan Perez", resultado.get(0).getNombre());
     }
 
     @Test
     void buscarPorNombreRespetaFiltroActivo() {
-        Vigilante vigilante = crearVigilante(
-                "VIG00001", "Juan Perez", 30, true
-        );
+        when(vigilanteRepository.findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false))).thenReturn(new ArrayList<>());
 
-        List<Vigilante> vigilantes = new ArrayList<>();
-        vigilantes.add(vigilante);
-
-        when(vigilanteRepository.findAll()).thenReturn(vigilantes);
-
-        List<VigilanteDTO> resultado
-                = vigilanteService.buscarPorNombre("Juan", false);
+        List<VigilanteDTO> resultado = vigilanteService.buscarPorNombre("Juan", false);
 
         assertTrue(resultado.isEmpty());
+
+        verify(vigilanteRepository).findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
     }
 
     @Test
     void buscarPorNombreSinCoincidencias() {
-        when(vigilanteRepository.findAll())
-                .thenReturn(new ArrayList<Vigilante>());
+        when(vigilanteRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(new ArrayList<>());
 
-        List<VigilanteDTO> resultado
-                = vigilanteService.buscarPorNombre("Pedro", null);
+        List<VigilanteDTO> resultado = vigilanteService.buscarPorNombre("Pedro", null);
 
         assertTrue(resultado.isEmpty());
     }

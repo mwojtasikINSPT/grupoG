@@ -181,7 +181,7 @@ public class CasoJudicialService {
 
         boolean completo = participantes != null && !participantes.isEmpty();
 
-        if (completo) {
+        if (completo && participantes != null) {
             for (Asaltante participante : participantes) {
                 boolean encontrado = false;
 

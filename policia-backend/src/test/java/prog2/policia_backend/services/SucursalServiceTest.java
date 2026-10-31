@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import prog2.policia_backend.DTOs.SucursalDTO;
 import prog2.policia_backend.exceptions.*;
@@ -142,7 +143,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.buscarPorCodigo("SUC00001")
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.buscarPorCodigo("SUC00001");
+                    }
+                }
         );
     }
 
@@ -205,7 +211,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.listarPorEntidadBancaria("ENB00001")
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.listarPorEntidadBancaria("ENB00001");
+                    }
+                }
         );
     }
 
@@ -248,7 +259,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.guardar(crearDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.guardar(crearDTO());
+                    }
+                }
         );
 
         verify(sucursalRepository, never()).save(any(Sucursal.class));
@@ -264,7 +280,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 EntidadInactivaException.class,
-                () -> sucursalService.guardar(crearDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.guardar(crearDTO());
+                    }
+                }
         );
     }
 
@@ -298,7 +319,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.actualizar("SUC00001", new SucursalDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.actualizar("SUC00001", new SucursalDTO());
+                    }
+                }
         );
     }
 
@@ -312,7 +338,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 SucursalYaCerradaException.class,
-                () -> sucursalService.actualizar("SUC00001", new SucursalDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.actualizar("SUC00001", new SucursalDTO());
+                    }
+                }
         );
 
         verify(sucursalRepository, never()).save(any(Sucursal.class));
@@ -335,7 +366,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 EntidadInactivaException.class,
-                () -> sucursalService.actualizar("SUC00001", dto)
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.actualizar("SUC00001", dto);
+                    }
+                }
         );
     }
 
@@ -387,7 +423,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 MotivoCierreSucursalObligatorioException.class,
-                () -> sucursalService.eliminar("SUC00001", new SucursalDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.eliminar("SUC00001", new SucursalDTO());
+                    }
+                }
         );
 
         verify(contratoRepository, never()).saveAll(any());
@@ -407,7 +448,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 SucursalYaCerradaException.class,
-                () -> sucursalService.eliminar("SUC00001", dto)
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.eliminar("SUC00001", dto);
+                    }
+                }
         );
     }
 
@@ -418,7 +464,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.eliminar("SUC00001", new SucursalDTO())
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.eliminar("SUC00001", new SucursalDTO());
+                    }
+                }
         );
     }
 
@@ -450,7 +501,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 SucursalYaActivaException.class,
-                () -> sucursalService.reactivar("SUC00001")
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.reactivar("SUC00001");
+                    }
+                }
         );
     }
 
@@ -465,7 +521,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 SucursalNoReactivableException.class,
-                () -> sucursalService.reactivar("SUC00001")
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.reactivar("SUC00001");
+                    }
+                }
         );
 
         verify(sucursalRepository, never()).save(any(Sucursal.class));
@@ -478,7 +539,12 @@ class SucursalServiceTest {
 
         assertThrows(
                 RecursoNoEncontradoException.class,
-                () -> sucursalService.reactivar("SUC00001")
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        sucursalService.reactivar("SUC00001");
+                    }
+                }
         );
     }
 }

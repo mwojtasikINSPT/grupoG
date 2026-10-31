@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.repositories;
 
 import java.util.List;
@@ -64,8 +63,8 @@ class UsuarioRepositoryTest {
 
     @Test
     void buscarPorIdCorrectamente() {
-        Optional<Usuario> resultado =
-                usuarioRepository.findById(vigilante.getId());
+        Optional<Usuario> resultado
+                = usuarioRepository.findById(vigilante.getId());
 
         assertTrue(resultado.isPresent());
         assertEquals("Juan Perez", resultado.get().getNombre());
@@ -73,16 +72,16 @@ class UsuarioRepositoryTest {
 
     @Test
     void buscarPorIdInexistente() {
-        Optional<Usuario> resultado =
-                usuarioRepository.findById(99999L);
+        Optional<Usuario> resultado
+                = usuarioRepository.findById(99999L);
 
         assertTrue(resultado.isEmpty());
     }
 
     @Test
     void buscarPorCodigoCorrectamente() {
-        Optional<Usuario> resultado =
-                usuarioRepository.findByCodigo("VIG00001");
+        Optional<Usuario> resultado
+                = usuarioRepository.findByCodigo("VIG00001");
 
         assertTrue(resultado.isPresent());
         assertEquals("Juan Perez", resultado.get().getNombre());
@@ -90,8 +89,8 @@ class UsuarioRepositoryTest {
 
     @Test
     void buscarPorCodigoInexistente() {
-        Optional<Usuario> resultado =
-                usuarioRepository.findByCodigo("VIG99999");
+        Optional<Usuario> resultado
+                = usuarioRepository.findByCodigo("VIG99999");
 
         assertTrue(resultado.isEmpty());
     }
@@ -108,8 +107,8 @@ class UsuarioRepositoryTest {
 
     @Test
     void listarUsuariosActivos() {
-        List<Usuario> resultado =
-                usuarioRepository.findByActivo(true);
+        List<Usuario> resultado
+                = usuarioRepository.findByActivo(true);
 
         assertEquals(1, resultado.size());
         assertEquals("VIG00001", resultado.get(0).getCodigo());
@@ -117,32 +116,32 @@ class UsuarioRepositoryTest {
 
     @Test
     void listarUsuariosInactivos() {
-        List<Usuario> resultado =
-                usuarioRepository.findByActivo(false);
+        List<Usuario> resultado
+                = usuarioRepository.findByActivo(false);
 
         assertTrue(resultado.isEmpty());
     }
 
     @Test
     void buscarPorNombreParcial() {
-        List<Usuario> resultado =
-                usuarioRepository.findByNombreContainingIgnoreCase("Juan");
+        List<Usuario> resultado
+                = usuarioRepository.findByNombreContainingIgnoreCase("Juan");
 
         assertEquals(1, resultado.size());
     }
 
     @Test
     void buscarPorNombreSinDistinguirMayusculas() {
-        List<Usuario> resultado =
-                usuarioRepository.findByNombreContainingIgnoreCase("juan perez");
+        List<Usuario> resultado
+                = usuarioRepository.findByNombreContainingIgnoreCase("juan perez");
 
         assertEquals(1, resultado.size());
     }
 
     @Test
     void buscarPorNombreInexistente() {
-        List<Usuario> resultado =
-                usuarioRepository.findByNombreContainingIgnoreCase("Carlos");
+        List<Usuario> resultado
+                = usuarioRepository.findByNombreContainingIgnoreCase("Carlos");
 
         assertTrue(resultado.isEmpty());
     }
@@ -152,8 +151,8 @@ class UsuarioRepositoryTest {
         vigilante.setNombre("Pedro Gomez");
         usuarioRepository.saveAndFlush(vigilante);
 
-        Usuario resultado =
-                usuarioRepository.findById(vigilante.getId()).get();
+        Usuario resultado
+                = usuarioRepository.findById(vigilante.getId()).get();
 
         assertEquals("Pedro Gomez", resultado.getNombre());
     }
@@ -163,8 +162,8 @@ class UsuarioRepositoryTest {
         vigilante.setActivo(false);
         usuarioRepository.saveAndFlush(vigilante);
 
-        List<Usuario> resultado =
-                usuarioRepository.findByActivo(false);
+        List<Usuario> resultado
+                = usuarioRepository.findByActivo(false);
 
         assertEquals(1, resultado.size());
         assertFalse(resultado.get(0).isActivo());
@@ -178,5 +177,31 @@ class UsuarioRepositoryTest {
         usuarioRepository.flush();
 
         assertFalse(usuarioRepository.findById(id).isPresent());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoActivo() {
+        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
+
+        assertEquals(1, resultado.size());
+        assertEquals("VIG00001", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoInactivo() {
+        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoDespuesDeDesactivar() {
+        vigilante.setActivo(false);
+        usuarioRepository.saveAndFlush(vigilante);
+
+        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
+
+        assertEquals(1, resultado.size());
+        assertFalse(resultado.get(0).isActivo());
     }
 }

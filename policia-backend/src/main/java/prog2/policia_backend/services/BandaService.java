@@ -3,8 +3,11 @@ package prog2.policia_backend.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.BandaDTO;
 import prog2.policia_backend.exceptions.BandaConMiembrosException;
@@ -46,6 +49,7 @@ public class BandaService {
         return convertirADTO(obtenerBanda(codigo));
     }
 
+    @Transactional
     public BandaDTO guardar() {
         Banda banda = new Banda();
 

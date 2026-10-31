@@ -195,7 +195,7 @@ class UsuarioServiceTest {
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(usuario);
 
-        when(usuarioRepository.findAll()).thenReturn(usuarios);
+        when(usuarioRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(usuarios);
 
         List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("juan", null);
 
@@ -205,16 +205,13 @@ class UsuarioServiceTest {
 
     @Test
     void buscarPorNombreRespetaFiltroActivo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
-
-        List<Usuario> usuarios = new ArrayList<>();
-        usuarios.add(usuario);
-
-        when(usuarioRepository.findAll()).thenReturn(usuarios);
+        when(usuarioRepository.findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false))).thenReturn(new ArrayList<>());
 
         List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("Juan", false);
 
         assertTrue(resultado.isEmpty());
+
+        verify(usuarioRepository).findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
     }
 
     @Test
@@ -225,7 +222,7 @@ class UsuarioServiceTest {
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(vigilante);
 
-        when(usuarioRepository.findAll()).thenReturn(usuarios);
+        when(usuarioRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(usuarios);
 
         List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("Juan", null);
 

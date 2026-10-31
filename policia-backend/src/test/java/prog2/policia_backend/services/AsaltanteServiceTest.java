@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.services;
 
 import java.util.ArrayList;
@@ -91,7 +90,6 @@ class AsaltanteServiceTest {
     }
 
     // LISTAR
-
     @Test
     void listarTodosLosAsaltantes() {
         List<Asaltante> asaltantes = new ArrayList<>();
@@ -126,7 +124,7 @@ class AsaltanteServiceTest {
     @Test
     void listarAsaltantesInactivos() {
         when(asaltanteRepository.findByActivo(false))
-                .thenReturn(new ArrayList<Asaltante>());
+                .thenReturn(new ArrayList<>());
 
         List<AsaltanteDTO> resultado = asaltanteService.listar(false);
 
@@ -134,14 +132,13 @@ class AsaltanteServiceTest {
     }
 
     // BUSCAR POR CODIGO
-
     @Test
     void buscarPorCodigoCorrectamente() {
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(crearAsaltante()));
 
-        AsaltanteDTO resultado =
-                asaltanteService.buscarPorCodigo("ASS00001");
+        AsaltanteDTO resultado
+                = asaltanteService.buscarPorCodigo("ASS00001");
 
         assertEquals("ASS00001", resultado.getCodigo());
         assertEquals("Juan Perez", resultado.getNombre());
@@ -162,16 +159,16 @@ class AsaltanteServiceTest {
     }
 
     // BUSCAR POR NOMBRE
-
     @Test
     void buscarPorNombreCorrectamente() {
         List<Asaltante> asaltantes = new ArrayList<>();
         asaltantes.add(crearAsaltante());
 
-        when(asaltanteRepository.findAll()).thenReturn(asaltantes);
+        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
+                .thenReturn(asaltantes);
 
-        List<AsaltanteDTO> resultado =
-                asaltanteService.buscarPorNombre("juan", null);
+        List<AsaltanteDTO> resultado
+                = asaltanteService.buscarPorNombre("juan", null);
 
         assertEquals(1, resultado.size());
         assertEquals("Juan Perez", resultado.get(0).getNombre());
@@ -179,24 +176,26 @@ class AsaltanteServiceTest {
 
     @Test
     void buscarPorNombreRespetaEstado() {
-        List<Asaltante> asaltantes = new ArrayList<>();
-        asaltantes.add(crearAsaltante());
+        when(asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo(
+                anyString(), eq(false)))
+                .thenReturn(new ArrayList<>());
 
-        when(asaltanteRepository.findAll()).thenReturn(asaltantes);
-
-        List<AsaltanteDTO> resultado =
-                asaltanteService.buscarPorNombre("Juan", false);
+        List<AsaltanteDTO> resultado
+                = asaltanteService.buscarPorNombre("Juan", false);
 
         assertTrue(resultado.isEmpty());
+
+        verify(asaltanteRepository)
+                .findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
     }
 
     @Test
     void buscarPorNombreSinCoincidencias() {
-        when(asaltanteRepository.findAll())
-                .thenReturn(new ArrayList<Asaltante>());
+        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
+                .thenReturn(new ArrayList<>());
 
-        List<AsaltanteDTO> resultado =
-                asaltanteService.buscarPorNombre("Pedro", null);
+        List<AsaltanteDTO> resultado
+                = asaltanteService.buscarPorNombre("Pedro", null);
 
         assertTrue(resultado.isEmpty());
     }
@@ -206,22 +205,21 @@ class AsaltanteServiceTest {
         List<Asaltante> asaltantes = new ArrayList<>();
         asaltantes.add(crearAsaltante());
 
-        when(asaltanteRepository.findAll()).thenReturn(asaltantes);
+        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
+                .thenReturn(asaltantes);
 
-        List<AsaltanteDTO> resultado =
-                asaltanteService.buscarPorNombre("JUAN", null);
+        List<AsaltanteDTO> resultado = asaltanteService.buscarPorNombre("JUAN", null);
 
         assertEquals(1, resultado.size());
     }
 
     // GUARDAR
-
     @Test
     void guardarAsaltanteCorrectamente() {
         configurarGuardado();
 
-        AsaltanteDTO resultado =
-                asaltanteService.guardar(crearDTO());
+        AsaltanteDTO resultado
+                = asaltanteService.guardar(crearDTO());
 
         assertNotNull(resultado);
         assertEquals("ASS00001", resultado.getCodigo());
@@ -306,7 +304,6 @@ class AsaltanteServiceTest {
     }
 
     // ACTUALIZAR
-
     @Test
     void actualizarNombreCorrectamente() {
         Asaltante asaltante = crearAsaltante();
@@ -320,8 +317,8 @@ class AsaltanteServiceTest {
         AsaltanteDTO dto = new AsaltanteDTO();
         dto.setNombre("Carlos Gomez");
 
-        AsaltanteDTO resultado =
-                asaltanteService.actualizar("ASS00001", dto);
+        AsaltanteDTO resultado
+                = asaltanteService.actualizar("ASS00001", dto);
 
         assertEquals("Carlos Gomez", resultado.getNombre());
         verify(asaltanteRepository).save(asaltante);
@@ -347,8 +344,8 @@ class AsaltanteServiceTest {
         AsaltanteDTO dto = new AsaltanteDTO();
         dto.setBandaCodigo("BAN00002");
 
-        AsaltanteDTO resultado =
-                asaltanteService.actualizar("ASS00001", dto);
+        AsaltanteDTO resultado
+                = asaltanteService.actualizar("ASS00001", dto);
 
         assertEquals("BAN00002", resultado.getBandaCodigo());
         verify(bandaRepository).findByCodigo("BAN00002");
@@ -367,8 +364,8 @@ class AsaltanteServiceTest {
         AsaltanteDTO dto = new AsaltanteDTO();
         dto.setQuitarDeBanda(true);
 
-        AsaltanteDTO resultado =
-                asaltanteService.actualizar("ASS00001", dto);
+        AsaltanteDTO resultado
+                = asaltanteService.actualizar("ASS00001", dto);
 
         assertNull(asaltante.getBanda());
         assertNull(resultado.getBandaCodigo());
@@ -446,7 +443,6 @@ class AsaltanteServiceTest {
     }
 
     // ELIMINAR
-
     @Test
     void eliminarAsaltanteCorrectamente() {
         Asaltante asaltante = crearAsaltante();

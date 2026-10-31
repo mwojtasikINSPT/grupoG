@@ -3,8 +3,11 @@ package prog2.policia_backend.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.RolDTO;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
@@ -44,6 +47,7 @@ public class RolService {
         return convertirADTO(obtenerRol(codigo));
     }
 
+    @Transactional
     public RolDTO guardar(RolDTO dto) {
 
         String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());

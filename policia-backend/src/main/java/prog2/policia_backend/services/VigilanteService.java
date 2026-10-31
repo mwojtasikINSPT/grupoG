@@ -1,13 +1,16 @@
 package prog2.policia_backend.services;
 
 import java.time.LocalDate;
+
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.exceptions.EdadInvalidaException;
@@ -60,29 +63,25 @@ public class VigilanteService {
     }
 
     public List<VigilanteDTO> buscarPorNombre(String nombre, Boolean activo) {
-
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
+        List<Vigilante> vigilantes;
 
-        List<Vigilante> vigilantes = vigilanteRepository.findAll();
+        if (activo == null) {
+            vigilantes = vigilanteRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            vigilantes = vigilanteRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
         List<VigilanteDTO> resultado = new ArrayList<>();
 
         for (Vigilante vigilante : vigilantes) {
-
-            if (activo != null && vigilante.isActivo() != activo) {
-                continue;
-            }
-
-            String nombreVigilante = NormalizadorTexto.normalizarParaBuscar(
-                    vigilante.getNombre());
-
-            if (nombreVigilante.contains(nombreNormalizado)) {
-                resultado.add(convertirADTO(vigilante));
-            }
+            resultado.add(convertirADTO(vigilante));
         }
 
         return resultado;
     }
 
+    @Transactional
     public VigilanteDTO guardar(VigilanteDTO dto) {
         Vigilante vigilante = convertirAEntidad(dto);
         vigilante.setActivo(true);

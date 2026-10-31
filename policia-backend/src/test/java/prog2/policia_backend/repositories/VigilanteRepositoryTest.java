@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.repositories;
 
 import java.util.List;
@@ -64,8 +63,8 @@ class VigilanteRepositoryTest {
 
     @Test
     void buscarPorIdCorrectamente() {
-        Optional<Vigilante> resultado =
-                vigilanteRepository.findById(vigilante.getId());
+        Optional<Vigilante> resultado
+                = vigilanteRepository.findById(vigilante.getId());
 
         assertTrue(resultado.isPresent());
         assertEquals("VIG00001", resultado.get().getCodigo());
@@ -78,8 +77,8 @@ class VigilanteRepositoryTest {
 
     @Test
     void buscarPorCodigoCorrectamente() {
-        Optional<Vigilante> resultado =
-                vigilanteRepository.findByCodigo("VIG00001");
+        Optional<Vigilante> resultado
+                = vigilanteRepository.findByCodigo("VIG00001");
 
         assertTrue(resultado.isPresent());
         assertEquals("Juan Perez", resultado.get().getNombre());
@@ -102,8 +101,8 @@ class VigilanteRepositoryTest {
 
     @Test
     void listarVigilantesActivos() {
-        List<Vigilante> resultado =
-                vigilanteRepository.findByActivo(true);
+        List<Vigilante> resultado
+                = vigilanteRepository.findByActivo(true);
 
         assertEquals(1, resultado.size());
         assertEquals("VIG00001", resultado.get(0).getCodigo());
@@ -116,16 +115,16 @@ class VigilanteRepositoryTest {
 
     @Test
     void buscarPorNombreParcial() {
-        List<Vigilante> resultado =
-                vigilanteRepository.findByNombreContainingIgnoreCase("Juan");
+        List<Vigilante> resultado
+                = vigilanteRepository.findByNombreContainingIgnoreCase("Juan");
 
         assertEquals(1, resultado.size());
     }
 
     @Test
     void buscarPorNombreSinDistinguirMayusculas() {
-        List<Vigilante> resultado =
-                vigilanteRepository.findByNombreContainingIgnoreCase("juan perez");
+        List<Vigilante> resultado
+                = vigilanteRepository.findByNombreContainingIgnoreCase("juan perez");
 
         assertEquals(1, resultado.size());
     }
@@ -143,8 +142,8 @@ class VigilanteRepositoryTest {
 
         vigilanteRepository.saveAndFlush(vigilante);
 
-        Vigilante resultado =
-                vigilanteRepository.findById(vigilante.getId()).get();
+        Vigilante resultado
+                = vigilanteRepository.findById(vigilante.getId()).get();
 
         assertEquals("Pedro Gomez", resultado.getNombre());
         assertEquals(35, resultado.getEdad());
@@ -155,10 +154,37 @@ class VigilanteRepositoryTest {
         vigilante.setActivo(false);
         vigilanteRepository.saveAndFlush(vigilante);
 
-        List<Vigilante> resultado =
-                vigilanteRepository.findByActivo(false);
+        List<Vigilante> resultado
+                = vigilanteRepository.findByActivo(false);
 
         assertEquals(1, resultado.size());
         assertFalse(resultado.get(0).isActivo());
     }
+
+    @Test
+    void buscarPorNombreYEstadoActivo() {
+        List<Vigilante> resultado = vigilanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
+
+        assertEquals(1, resultado.size());
+        assertEquals("VIG00001", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoInactivo() {
+        List<Vigilante> resultado = vigilanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoDespuesDeDesactivar() {
+        vigilante.setActivo(false);
+        vigilanteRepository.saveAndFlush(vigilante);
+
+        List<Vigilante> resultado = vigilanteRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
+
+        assertEquals(1, resultado.size());
+        assertFalse(resultado.get(0).isActivo());
+    }
+
 }

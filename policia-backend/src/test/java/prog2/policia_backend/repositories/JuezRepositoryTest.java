@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.repositories;
 
 import java.time.LocalDate;
@@ -51,8 +50,8 @@ class JuezRepositoryTest {
 
     @Test
     void buscarPorIdCorrectamente() {
-        Optional<Juez> resultado =
-                juezRepository.findById(juez.getId());
+        Optional<Juez> resultado
+                = juezRepository.findById(juez.getId());
 
         assertTrue(resultado.isPresent());
         assertEquals("Juan Perez", resultado.get().getNombre());
@@ -65,8 +64,8 @@ class JuezRepositoryTest {
 
     @Test
     void buscarPorCodigoCorrectamente() {
-        Optional<Juez> resultado =
-                juezRepository.findByCodigo("JUE00001");
+        Optional<Juez> resultado
+                = juezRepository.findByCodigo("JUE00001");
 
         assertTrue(resultado.isPresent());
         assertEquals("Juan Perez", resultado.get().getNombre());
@@ -92,16 +91,16 @@ class JuezRepositoryTest {
 
     @Test
     void buscarPorNombreParcial() {
-        List<Juez> resultado =
-                juezRepository.findByNombreContainingIgnoreCase("Juan");
+        List<Juez> resultado
+                = juezRepository.findByNombreContainingIgnoreCase("Juan");
 
         assertEquals(1, resultado.size());
     }
 
     @Test
     void buscarPorNombreSinDistinguirMayusculas() {
-        List<Juez> resultado =
-                juezRepository.findByNombreContainingIgnoreCase("juan perez");
+        List<Juez> resultado
+                = juezRepository.findByNombreContainingIgnoreCase("juan perez");
 
         assertEquals(1, resultado.size());
     }
@@ -117,8 +116,8 @@ class JuezRepositoryTest {
         juez.setNombre("Pedro Gomez");
         juezRepository.saveAndFlush(juez);
 
-        Juez resultado =
-                juezRepository.findById(juez.getId()).get();
+        Juez resultado
+                = juezRepository.findById(juez.getId()).get();
 
         assertEquals("Pedro Gomez", resultado.getNombre());
     }
@@ -129,8 +128,8 @@ class JuezRepositoryTest {
         juez.setJuezDesde(nuevaFecha);
         juezRepository.saveAndFlush(juez);
 
-        Juez resultado =
-                juezRepository.findById(juez.getId()).get();
+        Juez resultado
+                = juezRepository.findById(juez.getId()).get();
 
         assertEquals(nuevaFecha, resultado.getJuezDesde());
     }
@@ -154,8 +153,8 @@ class JuezRepositoryTest {
         juez.setActivo(true);
         juezRepository.saveAndFlush(juez);
 
-        Juez resultado =
-                juezRepository.findById(juez.getId()).get();
+        Juez resultado
+                = juezRepository.findById(juez.getId()).get();
 
         assertTrue(resultado.isActivo());
     }
@@ -168,5 +167,31 @@ class JuezRepositoryTest {
         juezRepository.flush();
 
         assertTrue(juezRepository.findById(id).isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoActivo() {
+        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
+
+        assertEquals(1, resultado.size());
+        assertEquals("JUE00001", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoInactivo() {
+        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreYEstadoDespuesDeDesactivar() {
+        juez.setActivo(false);
+        juezRepository.saveAndFlush(juez);
+
+        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
+
+        assertEquals(1, resultado.size());
+        assertFalse(resultado.get(0).isActivo());
     }
 }

@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.repositories;
 
 import java.time.LocalDate;
@@ -117,8 +116,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void buscarPorIdCorrectamente() {
-        Optional<ContratoVigilancia> resultado =
-                contratoRepository.findById(contrato.getId());
+        Optional<ContratoVigilancia> resultado
+                = contratoRepository.findById(contrato.getId());
 
         assertTrue(resultado.isPresent());
         assertEquals("CON00001", resultado.get().getCodigo());
@@ -131,8 +130,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void buscarPorCodigoCorrectamente() {
-        Optional<ContratoVigilancia> resultado =
-                contratoRepository.findByCodigo("CON00001");
+        Optional<ContratoVigilancia> resultado
+                = contratoRepository.findByCodigo("CON00001");
 
         assertTrue(resultado.isPresent());
         assertEquals(contrato.getId(), resultado.get().getId());
@@ -145,8 +144,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void listarContratosActivos() {
-        List<ContratoVigilancia> resultado =
-                contratoRepository.findByActivo(true);
+        List<ContratoVigilancia> resultado
+                = contratoRepository.findByActivo(true);
 
         assertEquals(1, resultado.size());
         assertEquals("CON00001", resultado.get(0).getCodigo());
@@ -159,8 +158,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoActivoEnMismaFecha() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
                         vigilante.getId(),
                         contrato.getFecha()
                 );
@@ -170,8 +169,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoEnFechaDiferente() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
                         vigilante.getId(),
                         LocalDate.of(2026, 12, 20)
                 );
@@ -181,8 +180,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoExcluyendoSuPropioId() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
                         vigilante.getId(),
                         contrato.getFecha(),
                         contrato.getId()
@@ -193,8 +192,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoExcluyendoOtroId() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
                         vigilante.getId(),
                         contrato.getFecha(),
                         99999L
@@ -205,8 +204,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoActivoFuturo() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
                         vigilante.getId(),
                         LocalDate.of(2026, 11, 1)
                 );
@@ -216,8 +215,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void verificarContratoSinFechasFuturas() {
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(
                         vigilante.getId(),
                         LocalDate.of(2027, 1, 1)
                 );
@@ -227,8 +226,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void listarContratosPorVigilante() {
-        List<ContratoVigilancia> resultado =
-                contratoRepository.findByVigilante_Id(vigilante.getId());
+        List<ContratoVigilancia> resultado
+                = contratoRepository.findByVigilante_Id(vigilante.getId());
 
         assertEquals(1, resultado.size());
         assertEquals("CON00001", resultado.get(0).getCodigo());
@@ -236,16 +235,16 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void listarContratosPorSucursal() {
-        List<ContratoVigilancia> resultado =
-                contratoRepository.findBySucursal_Id(sucursal.getId());
+        List<ContratoVigilancia> resultado
+                = contratoRepository.findBySucursal_Id(sucursal.getId());
 
         assertEquals(1, resultado.size());
     }
 
     @Test
     void listarContratosFuturosActivosPorSucursal() {
-        List<ContratoVigilancia> resultado =
-                contratoRepository.findBySucursal_IdAndFechaAfterAndActivoTrue(
+        List<ContratoVigilancia> resultado
+                = contratoRepository.findBySucursal_IdAndFechaAfterAndActivoTrue(
                         sucursal.getId(),
                         LocalDate.of(2026, 11, 1)
                 );
@@ -255,8 +254,8 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void noListarContratosVencidosPorSucursal() {
-        List<ContratoVigilancia> resultado =
-                contratoRepository.findBySucursal_IdAndFechaAfterAndActivoTrue(
+        List<ContratoVigilancia> resultado
+                = contratoRepository.findBySucursal_IdAndFechaAfterAndActivoTrue(
                         sucursal.getId(),
                         LocalDate.of(2026, 12, 1)
                 );
@@ -269,8 +268,8 @@ class ContratoVigilanciaRepositoryTest {
         contrato.setConArma(false);
         contratoRepository.saveAndFlush(contrato);
 
-        ContratoVigilancia resultado =
-                contratoRepository.findById(contrato.getId()).get();
+        ContratoVigilancia resultado
+                = contratoRepository.findById(contrato.getId()).get();
 
         assertFalse(resultado.getConArma());
     }
@@ -289,15 +288,15 @@ class ContratoVigilanciaRepositoryTest {
         contrato.setFecha(LocalDate.of(2026, 10, 1));
         contratoRepository.saveAndFlush(contrato);
 
-        int modificados =
-                contratoRepository.desactivarContratosVencidos(
+        int modificados
+                = contratoRepository.desactivarContratosVencidos(
                         LocalDate.of(2026, 10, 31)
                 );
 
         entityManager.clear();
 
-        ContratoVigilancia resultado =
-                contratoRepository.findByCodigo("CON00001").get();
+        ContratoVigilancia resultado
+                = contratoRepository.findByCodigo("CON00001").get();
 
         assertEquals(1, modificados);
         assertFalse(resultado.getActivo());
@@ -305,15 +304,15 @@ class ContratoVigilanciaRepositoryTest {
 
     @Test
     void noDesactivarContratosFuturos() {
-        int modificados =
-                contratoRepository.desactivarContratosVencidos(
+        int modificados
+                = contratoRepository.desactivarContratosVencidos(
                         LocalDate.of(2026, 10, 31)
                 );
 
         entityManager.clear();
 
-        ContratoVigilancia resultado =
-                contratoRepository.findByCodigo("CON00001").get();
+        ContratoVigilancia resultado
+                = contratoRepository.findByCodigo("CON00001").get();
 
         assertEquals(0, modificados);
         assertTrue(resultado.getActivo());
@@ -324,15 +323,15 @@ class ContratoVigilanciaRepositoryTest {
         contrato.setFecha(LocalDate.of(2026, 10, 31));
         contratoRepository.saveAndFlush(contrato);
 
-        int modificados =
-                contratoRepository.desactivarContratosVencidos(
+        int modificados
+                = contratoRepository.desactivarContratosVencidos(
                         LocalDate.of(2026, 10, 31)
                 );
 
         entityManager.clear();
 
-        ContratoVigilancia resultado =
-                contratoRepository.findByCodigo("CON00001").get();
+        ContratoVigilancia resultado
+                = contratoRepository.findByCodigo("CON00001").get();
 
         assertEquals(0, modificados);
         assertTrue(resultado.getActivo());
@@ -343,12 +342,47 @@ class ContratoVigilanciaRepositoryTest {
         contrato.setActivo(false);
         contratoRepository.saveAndFlush(contrato);
 
-        boolean existe =
-                contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
+        boolean existe
+                = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
                         vigilante.getId(),
                         contrato.getFecha()
                 );
 
         assertFalse(existe);
+    }
+
+    @Test
+    void buscarPorNombreVigilanteActivo() {
+        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("juan", true);
+
+        assertEquals(1, resultado.size());
+        assertEquals("CON00001", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    void buscarPorNombreVigilanteSinDistinguirMayusculas() {
+        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("JUAN PEREZ", null);
+
+        assertEquals(1, resultado.size());
+    }
+
+    @Test
+    void buscarPorNombreVigilanteInexistente() {
+        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("Carlos", null);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void buscarPorNombreVigilanteContratoInactivo() {
+        contrato.setActivo(false);
+        contratoRepository.saveAndFlush(contrato);
+
+        List<ContratoVigilancia> activos = contratoRepository.buscarPorNombreVigilante("Juan", true);
+        List<ContratoVigilancia> inactivos = contratoRepository.buscarPorNombreVigilante("Juan", false);
+
+        assertTrue(activos.isEmpty());
+        assertEquals(1, inactivos.size());
+        assertFalse(inactivos.get(0).getActivo());
     }
 }

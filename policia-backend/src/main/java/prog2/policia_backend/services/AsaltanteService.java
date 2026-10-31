@@ -2,8 +2,11 @@ package prog2.policia_backend.services;
 
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.exceptions.BandaInactivaException;
@@ -54,7 +57,14 @@ public class AsaltanteService {
 
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
-        List<Asaltante> asaltantes = asaltanteRepository.findAll();
+        List<Asaltante> asaltantes;
+
+        if (activo == null) {
+            asaltantes = asaltanteRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            asaltantes = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
         List<AsaltanteDTO> resultado = new java.util.ArrayList<>();
 
         for (Asaltante asaltante : asaltantes) {
@@ -74,6 +84,7 @@ public class AsaltanteService {
         return resultado;
     }
 
+    @Transactional
     public AsaltanteDTO guardar(AsaltanteDTO dto) {
         Asaltante asaltante = convertirAEntidad(dto);
 

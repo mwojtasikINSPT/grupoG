@@ -6,7 +6,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+
 import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -27,6 +30,8 @@ public class Juez extends EntidadAuditable {
     private String nombre;
     private LocalDate juezDesde;
     private boolean activo = true;
+
+    @Column(unique = true)
     private String codigo;
 
     @Enumerated(EnumType.STRING)

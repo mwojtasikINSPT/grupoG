@@ -11,8 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"asalto_id"})
-})
+    @UniqueConstraint(columnNames = {"asalto_id"})})
 public class CasoJudicial extends EntidadAuditable {
 
     @Id
@@ -20,6 +19,8 @@ public class CasoJudicial extends EntidadAuditable {
     private Long id;
 
     private boolean activo = true;
+    
+    @Column(unique = true)
     private String codigo;
     private boolean sentenciado;
 

@@ -5,8 +5,11 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.JuezDTO;
 import prog2.policia_backend.exceptions.FechaFuturaException;
@@ -55,28 +58,25 @@ public class JuezService {
     }
 
     public List<JuezDTO> buscarPorNombre(String nombre, Boolean activo) {
-
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
+        List<Juez> jueces;
 
-        List<Juez> jueces = juezRepository.findAll();
+        if (activo == null) {
+            jueces = juezRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
+        } else {
+            jueces = juezRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
+        }
+
         List<JuezDTO> resultado = new ArrayList<>();
 
         for (Juez juez : jueces) {
-
-            if (activo != null && juez.isActivo() != activo) {
-                continue;
-            }
-
-            String nombreJuez = NormalizadorTexto.normalizarParaBuscar(juez.getNombre());
-
-            if (nombreJuez.contains(nombreNormalizado)) {
-                resultado.add(convertirADTO(juez));
-            }
+            resultado.add(convertirADTO(juez));
         }
 
         return resultado;
     }
 
+    @Transactional
     public JuezDTO guardar(JuezDTO dto) {
         Juez juez = convertirAEntidad(dto);
 
