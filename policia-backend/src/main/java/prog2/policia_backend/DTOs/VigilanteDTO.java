@@ -28,12 +28,12 @@ public class VigilanteDTO {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(groups = OnCreate.class)
-    @Size(min = 4, max = 20, groups = { OnCreate.class, OnUpdate.class })
+    @Size(min = 4, max = 20, groups = {OnCreate.class, OnUpdate.class})
     private String password;
 
-    @NotNull(groups = { OnCreate.class, OnUpdate.class })
-    @Min(value = 18, groups = { OnCreate.class, OnUpdate.class })
-    @Max(value = 65, groups = { OnCreate.class, OnUpdate.class })
+    @NotNull(groups = {OnCreate.class})
+    @Min(value = 18, groups = {OnCreate.class, OnUpdate.class})
+    @Max(value = 65, groups = {OnCreate.class, OnUpdate.class})
     private Integer edad;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

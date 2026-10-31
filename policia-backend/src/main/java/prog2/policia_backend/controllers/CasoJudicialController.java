@@ -62,13 +62,13 @@ public class CasoJudicialController {
     }
 
     @PostMapping("/{codigo}/sentencias")
-    public ResponseEntity<Void> registrarSentencia(@PathVariable String codigo, @Validated(OnCreate.class) @RequestBody SentenciaAsaltanteDTO dto) {
+    public ResponseEntity<Void> registrarSentencia(@PathVariable String codigo, @Validated({OnCreate.class, Default.class}) @RequestBody SentenciaAsaltanteDTO dto) {
         casoJudicialService.registrarSentencia(codigo, dto.getAsaltanteCodigo(), dto.getCondenado(), dto.getTiempoCarcel());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{codigo}/sentencias/{asaltanteCodigo}")
-    public ResponseEntity<Void> modificarSentencia(@PathVariable String codigo, @PathVariable String asaltanteCodigo, @Validated(OnCreate.class) @RequestBody SentenciaAsaltanteDTO dto) {
+    public ResponseEntity<Void> modificarSentencia(@PathVariable String codigo, @PathVariable String asaltanteCodigo, @Validated({OnCreate.class, Default.class}) @RequestBody SentenciaAsaltanteDTO dto) {
         casoJudicialService.modificarSentencia(codigo, asaltanteCodigo, dto.getCondenado(), dto.getTiempoCarcel());
         return ResponseEntity.noContent().build();
     }

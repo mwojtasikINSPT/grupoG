@@ -1,5 +1,6 @@
 package prog2.policia_backend.exceptions;
 
+import java.lang.System.Logger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,11 +13,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.exc.InvalidFormatException;
 
 // Centraliza el manejo de excepciones de la API y las convierte en respuestas HTTP
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // Devuelve 404 para recursos inexistentes.
     @ExceptionHandler(RecursoNoEncontradoException.class)
@@ -147,7 +151,7 @@ public class GlobalExceptionHandler {
     // Devuelve 500 ante errores inesperados.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarErrorGeneral(Exception ex) {
-        ex.printStackTrace();
+        logger.error("Error inesperado: tipo={}, mensaje={}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
 
         return crearRespuesta(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_INTERNO", "Error interno del servidor");
     }
