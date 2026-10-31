@@ -119,3 +119,63 @@ Las entidades aplicables permiten baja lógica mediante el campo `activo`. Se re
 Los códigos públicos se generan automáticamente con un prefijo, por ejemplo `SUC00004` o `VIG00001`.
 
 Algunas actualizaciones permiten enviar solo los campos que se desean modificar, conservando los restantes.
+
+
+## 🐳 Ejecución con Docker (opcional)
+
+El proyecto también puede ejecutarse utilizando **Docker Desktop y Docker Compose**, sin necesidad de instalar MySQL Server ni Maven localmente.
+
+### 🚀 Iniciar con Docker
+
+1. Instalar y abrir Docker Desktop.
+2. Clonar el repositorio.
+3. Dentro de `policia-backend/`, copiar `.env.example` y renombrar la copia a `.env`.
+4. Configurar una contraseña para MySQL en `.env`:
+
+   ```env
+   DB_PASSWORD=TU_PASSWORD
+   ```
+
+5. Desde la carpeta `policia-backend/`, ejecutar:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+La API estará disponible en `http://localhost:8080`.
+
+Docker crea automáticamente la base de datos `policia_db`. Hibernate genera las tablas y `InicializadorDatos` carga los datos iniciales.
+
+**No es necesario ejecutar manualmente `data.sql`.**
+
+### 📋 Comandos útiles
+
+Consultar el estado de los contenedores:
+
+```bash
+docker compose ps
+```
+
+Consultar los logs del backend:
+
+```bash
+docker compose logs backend --tail=50
+```
+
+Detener los contenedores:
+
+```bash
+docker compose down
+```
+
+Los datos de MySQL se conservan mediante un volumen de Docker.
+
+### 💻 Ejecución sin Docker
+
+**Docker es completamente opcional.**
+
+El proyecto puede seguir ejecutándose desde NetBeans u otro IDE, utilizando MySQL Server local y MySQL Workbench.
+
+Para ello, seguir las instrucciones de **Instalación y ejecución** y **Base de datos** de este README.
+
+El archivo `.env` está excluido de Git para proteger las credenciales. Se proporciona `.env.example` como referencia.
