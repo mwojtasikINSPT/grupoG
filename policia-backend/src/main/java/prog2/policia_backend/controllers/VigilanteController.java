@@ -1,19 +1,21 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.services.ContratoVigilanciaService;
 import prog2.policia_backend.DTOs.VigilanteDTO;
 import prog2.policia_backend.services.VigilanteService;
+import prog2.policia_backend.utils.SeguridadUtils;
 import prog2.policia_backend.validations.OnCreate;
 import prog2.policia_backend.validations.OnUpdate;
 
@@ -29,14 +31,8 @@ public class VigilanteController {
     public ResponseEntity<List<VigilanteDTO>> listar(@RequestParam(required = false) Boolean activo,
             @RequestParam(required = false) String nombre, Authentication authentication) {
 
-        boolean tieneLecturaCompleta = false;
+        boolean tieneLecturaCompleta = SeguridadUtils.tieneLecturaCompleta(authentication);
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            if (authority.getAuthority().equals("LECTURA")) {
-                tieneLecturaCompleta = true;
-                break;
-            }
-        }
         if (!tieneLecturaCompleta) {
             return ResponseEntity.ok(
                     vigilanteService.listarPropio(authentication.getName(), activo, nombre));

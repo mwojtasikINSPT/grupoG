@@ -1,17 +1,19 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.services.UsuarioService;
+import prog2.policia_backend.utils.SeguridadUtils;
 import prog2.policia_backend.validations.OnCreate;
 import prog2.policia_backend.validations.OnUpdate;
 
@@ -26,14 +28,7 @@ public class UsuarioController {
     @PreAuthorize("hasAnyAuthority('LECTURA', 'LECTURA_DATOS_PROPIOS')")
     public ResponseEntity<List<UsuarioDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String nombre, Authentication authentication) {
 
-        boolean tieneLecturaCompleta = false;
-
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            if (authority.getAuthority().equals("LECTURA")) {
-                tieneLecturaCompleta = true;
-                break;
-            }
-        }
+        boolean tieneLecturaCompleta = SeguridadUtils.tieneLecturaCompleta(authentication);
 
         if (!tieneLecturaCompleta) {
             return ResponseEntity.ok(usuarioService.listarPropio(authentication.getName(), activo, nombre));
