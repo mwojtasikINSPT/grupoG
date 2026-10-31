@@ -1,6 +1,8 @@
 package prog2.policia_backend.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +33,13 @@ public class BandaService {
             bandas = bandaRepository.findByActivo(activo);
         }
 
-        return bandas.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<BandaDTO> resultado = new ArrayList<>();
+
+        for (Banda banda : bandas) {
+            resultado.add(convertirADTO(banda));
+        }
+
+        return resultado;
     }
 
     public BandaDTO buscarPorCodigo(String codigo) {
@@ -53,19 +59,9 @@ public class BandaService {
         return convertirADTO(banda);
     }
 
-    /*
-    //Por el momento, no se usa para nada
-    public BandaDTO actualizar(Long id, BandaDTO dto) {
-        Banda banda = bandaRepository.findById(id)
-                .filter(Banda::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", id));
-        return convertirADTO(bandaRepository.save(banda));
-    }
-
-     */
     public void eliminar(String codigo) {
         Banda banda = obtenerBanda(codigo);
-        
+
         if (!banda.isActivo()) {
             throw new BandaYaInactivaException();
         }
@@ -101,13 +97,17 @@ public class BandaService {
                 banda.getFechaCreacion(),
                 banda.getFechaModificacion(),
                 banda.getCreadoPor(),
-                banda.getModificadoPor()
-        );
+                banda.getModificadoPor());
     }
 
-    //-----------Métodos Aux---
+    // -----------Métodos Aux---
     private Banda obtenerBanda(String codigo) {
-        return bandaRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", codigo));
+        Optional<Banda> resultado = bandaRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Banda", codigo);
+        }
+
+        return resultado.get();
     }
 }

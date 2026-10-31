@@ -2,7 +2,6 @@ package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
@@ -25,7 +24,7 @@ public class AsaltoDTO {
     private Long id;
 
     @NotNull(groups = OnCreate.class)
-    @PastOrPresent(groups = {OnCreate.class})
+    @PastOrPresent(groups = { OnCreate.class })
     private LocalDate fecha;
 
     private List<String> asaltantesCodigos = new ArrayList<>();

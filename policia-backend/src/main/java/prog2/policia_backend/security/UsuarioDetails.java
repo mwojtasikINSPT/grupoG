@@ -1,8 +1,8 @@
 package prog2.policia_backend.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +27,13 @@ public class UsuarioDetails implements UserDetails {
     // Conierto  los permisos del rol en GrantedAuthority para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return permisos.stream()
-                .map(permiso -> new SimpleGrantedAuthority(permiso.name()))
-                .collect(Collectors.toList());
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+        for (Permiso permiso : permisos) {
+            authorities.add(new SimpleGrantedAuthority(permiso.name()));
+        }
+
+        return authorities;
     }
 
     // Contraseña almacenada

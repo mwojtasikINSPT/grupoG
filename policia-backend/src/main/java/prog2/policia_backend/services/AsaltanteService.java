@@ -1,6 +1,7 @@
 package prog2.policia_backend.services;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,9 +37,13 @@ public class AsaltanteService {
             asaltantes = asaltanteRepository.findByActivo(activo);
         }
 
-        return asaltantes.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<AsaltanteDTO> resultado = new java.util.ArrayList<>();
+
+        for (Asaltante asaltante : asaltantes) {
+            resultado.add(convertirADTO(asaltante));
+        }
+
+        return resultado;
     }
 
     public AsaltanteDTO buscarPorCodigo(String codigo) {
@@ -49,13 +54,24 @@ public class AsaltanteService {
 
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
-        return asaltanteRepository.findAll()
-                .stream()
-                .filter(asaltante -> activo == null || asaltante.isActivo() == activo)
-                .filter(asaltante -> NormalizadorTexto.normalizarParaBuscar(asaltante.getNombre())
-                .contains(nombreNormalizado))
-                .map(this::convertirADTO)
-                .toList();
+        List<Asaltante> asaltantes = asaltanteRepository.findAll();
+        List<AsaltanteDTO> resultado = new java.util.ArrayList<>();
+
+        for (Asaltante asaltante : asaltantes) {
+
+            if (activo != null && asaltante.isActivo() != activo) {
+                continue;
+            }
+
+            String nombreAsaltante = NormalizadorTexto.normalizarParaBuscar(
+                    asaltante.getNombre());
+
+            if (nombreAsaltante.contains(nombreNormalizado)) {
+                resultado.add(convertirADTO(asaltante));
+            }
+        }
+
+        return resultado;
     }
 
     public AsaltanteDTO guardar(AsaltanteDTO dto) {
@@ -121,13 +137,12 @@ public class AsaltanteService {
                 asaltante.getBanda() != null ? asaltante.getBanda().getCodigo() : null,
                 asaltante.getCodigo(),
                 asaltante.getMotivoBaja(),
-                null, //quitar de Banda
+                null, // quitar de Banda
                 asaltante.isActivo(),
                 asaltante.getFechaCreacion(),
                 asaltante.getFechaModificacion(),
                 asaltante.getCreadoPor(),
-                asaltante.getModificadoPor()
-        );
+                asaltante.getModificadoPor());
     }
 
     // Convierto un AsaltanteDTO en una entidad Asaltante para el Repo
@@ -145,16 +160,25 @@ public class AsaltanteService {
         return asaltante;
     }
 
-    //----Métodos Aux------
+    // ----Métodos Aux------
     private Asaltante obtenerAsaltante(String codigo) {
+        Optional<Asaltante> resultado = asaltanteRepository.findByCodigo(codigo);
 
-        return asaltanteRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Asaltante", codigo));
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Asaltante", codigo);
+        }
+
+        return resultado.get();
     }
 
     private Banda obtenerBandaActiva(String bandaCodigo) {
-        Banda banda = bandaRepository.findByCodigo(bandaCodigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Banda", bandaCodigo));
+        Optional<Banda> resultado = bandaRepository.findByCodigo(bandaCodigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Banda", bandaCodigo);
+        }
+
+        Banda banda = resultado.get();
 
         if (!banda.isActivo()) {
             throw new BandaInactivaException();

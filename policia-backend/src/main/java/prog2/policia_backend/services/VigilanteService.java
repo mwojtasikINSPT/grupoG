@@ -2,7 +2,10 @@ package prog2.policia_backend.services;
 
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +28,7 @@ import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
-@RequiredArgsConstructor //inyecto atrb final
+@RequiredArgsConstructor // inyecto atrb final
 public class VigilanteService {
 
     private final VigilanteRepository vigilanteRepository;
@@ -43,9 +46,13 @@ public class VigilanteService {
             vigilantes = vigilanteRepository.findByActivo(activo);
         }
 
-        return vigilantes.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<VigilanteDTO> resultado = new ArrayList<>();
+
+        for (Vigilante vigilante : vigilantes) {
+            resultado.add(convertirADTO(vigilante));
+        }
+
+        return resultado;
     }
 
     public VigilanteDTO buscarPorCodigo(String codigo) {
@@ -56,23 +63,32 @@ public class VigilanteService {
 
         String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
 
-        return vigilanteRepository.findAll()
-                .stream()
-                .filter(vigilante -> activo == null || vigilante.isActivo() == activo)
-                .filter(vigilante -> NormalizadorTexto.normalizarParaBuscar(vigilante.getNombre())
-                .contains(nombreNormalizado))
-                .map(this::convertirADTO)
-                .toList();
+        List<Vigilante> vigilantes = vigilanteRepository.findAll();
+        List<VigilanteDTO> resultado = new ArrayList<>();
+
+        for (Vigilante vigilante : vigilantes) {
+
+            if (activo != null && vigilante.isActivo() != activo) {
+                continue;
+            }
+
+            String nombreVigilante = NormalizadorTexto.normalizarParaBuscar(
+                    vigilante.getNombre());
+
+            if (nombreVigilante.contains(nombreNormalizado)) {
+                resultado.add(convertirADTO(vigilante));
+            }
+        }
+
+        return resultado;
     }
 
     public VigilanteDTO guardar(VigilanteDTO dto) {
-
         Vigilante vigilante = convertirAEntidad(dto);
-
-        vigilante = vigilanteRepository.save(vigilante);
-        vigilante.setCodigo(GeneradorCodigo.generar("VIG", vigilante.getId()));
         vigilante.setActivo(true);
 
+        vigilante = vigilanteRepository.save(vigilante);
+        vigilante.setCodigo(generarCodigoDisponible());
         vigilante = vigilanteRepository.save(vigilante);
 
         return convertirADTO(vigilante);
@@ -114,7 +130,8 @@ public class VigilanteService {
             throw new MotivoBajaObligatorioException();
         }
 
-        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(), LocalDate.now())) {
+        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(),
+                LocalDate.now())) {
 
             throw new VigilanteConContratoFuturoException();
         }
@@ -171,26 +188,67 @@ public class VigilanteService {
         vigilante.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         validarEdad(dto.getEdad());
         vigilante.setEdad(dto.getEdad());
-        Rol rol = rolRepository.findByNombre("VIGILANTE")
-                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", "VIGILANTE"));
+
+        Optional<Rol> resultado = rolRepository.findByNombre("VIGILANTE");
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Rol", "VIGILANTE");
+        }
+
+        Rol rol = resultado.get();
         vigilante.setRol(rol);
         vigilante.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         return vigilante;
     }
 
-//-------Aux---------
-    private Vigilante obtenerVigilante(String codigo) {
+    public List<VigilanteDTO> listarPropio(String codigo, Boolean activo, String nombre) {
+        Vigilante vigilante = obtenerVigilante(codigo);
 
+        if (activo != null && vigilante.isActivo() != activo) {
+            return List.of();
+        }
+
+        if (nombre != null && !nombre.isBlank()) {
+            String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
+            String nombreVigilante = NormalizadorTexto.normalizarParaBuscar(vigilante.getNombre());
+
+            if (!nombreVigilante.contains(nombreNormalizado)) {
+                return List.of();
+            }
+        }
+
+        return List.of(convertirADTO(vigilante));
+    }
+
+    // -------Aux---------
+    private Vigilante obtenerVigilante(String codigo) {
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
-        return vigilanteRepository.findByCodigo(codigoNormalizado)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Vigilante", codigoNormalizado));
+        Optional<Vigilante> resultado = vigilanteRepository.findByCodigo(codigoNormalizado);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Vigilante", codigoNormalizado);
+        }
+
+        return resultado.get();
     }
 
     private void validarEdad(Integer edad) {
-        if (edad != null && (edad > 65 || edad < 18)) {
+        if (edad == null || edad < 18 || edad > 65) {
             throw new EdadInvalidaException();
         }
+    }
+
+    private String generarCodigoDisponible() {
+        long numero = 1;
+        String codigo;
+
+        do {
+            codigo = GeneradorCodigo.generar("VIG", numero);
+            numero++;
+        } while (vigilanteRepository.existsByCodigo(codigo));
+
+        return codigo;
     }
 }

@@ -1,7 +1,9 @@
 package prog2.policia_backend.services;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +44,13 @@ public class SucursalService {
             sucursales = sucursalRepository.findByActivo(activo);
         }
 
-        return sucursales.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<SucursalDTO> resultado = new ArrayList<>();
+
+        for (Sucursal sucursal : sucursales) {
+            resultado.add(convertirADTO(sucursal));
+        }
+
+        return resultado;
     }
 
     public SucursalDTO buscarPorCodigo(String codigo) {
@@ -61,20 +67,29 @@ public class SucursalService {
             sucursales = sucursalRepository.findByDomicilioContainingIgnoreCaseAndActivo(domicilioNormalizado, activo);
         }
 
-        return sucursales.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<SucursalDTO> resultado = new ArrayList<>();
+
+        for (Sucursal sucursal : sucursales) {
+            resultado.add(convertirADTO(sucursal));
+        }
+
+        return resultado;
     }
 
     public List<SucursalDTO> listarPorEntidadBancaria(String codigo) {
 
         EntidadBancaria entidad = obtenerEntidad(codigo);
 
-        return sucursalRepository
-                .findByEntidadBancaria_Id(entidad.getId())
-                .stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<Sucursal> sucursales = sucursalRepository
+                .findByEntidadBancaria_Id(entidad.getId());
+
+        List<SucursalDTO> resultado = new ArrayList<>();
+
+        for (Sucursal sucursal : sucursales) {
+            resultado.add(convertirADTO(sucursal));
+        }
+
+        return resultado;
     }
 
     public SucursalDTO guardar(SucursalDTO dto) {
@@ -109,7 +124,8 @@ public class SucursalService {
         return convertirADTO(sucursalRepository.save(sucursal));
     }
 
-    @Transactional //Si falla la baja de alguno de los contratos o la suc, se revierte la operación
+    @Transactional // Si falla la baja de alguno de los contratos o la suc, se revierte la
+    // operación
     public void eliminar(String codigo, SucursalDTO dto) {
 
         Sucursal sucursal = obtenerSucursal(codigo);
@@ -123,10 +139,11 @@ public class SucursalService {
 
         List<ContratoVigilancia> contratosFuturos = contratoVigilanciaRepository
                 .findBySucursal_IdAndFechaAfterAndActivoTrue(sucursal.getId(), LocalDate.now());
-        contratosFuturos.forEach(contrato -> {
+
+        for (ContratoVigilancia contrato : contratosFuturos) {
             contrato.setActivo(false);
             contrato.setMotivoBaja(MotivoBajaContrato.CIERRE_SUCURSAL);
-        });
+        }
 
         contratoVigilanciaRepository.saveAll(contratosFuturos);
 
@@ -180,11 +197,15 @@ public class SucursalService {
         return sucursal;
     }
 
-    //-----Metodos Aux----
+    // -----Metodos Aux----
     private EntidadBancaria obtenerEntidad(String codigo) {
-        return entidadBancariaRepository
-                .findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("EntidadBancaria", codigo));
+        Optional<EntidadBancaria> resultado = entidadBancariaRepository.findByCodigo(codigo);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("EntidadBancaria", codigo);
+        }
+
+        return resultado.get();
     }
 
     private EntidadBancaria obtenerEntidadBancariaActiva(String codigo) {
@@ -196,8 +217,12 @@ public class SucursalService {
     }
 
     private Sucursal obtenerSucursal(String codigo) {
-        return sucursalRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal", codigo));
-    }
+        Optional<Sucursal> resultado = sucursalRepository.findByCodigo(codigo);
 
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Sucursal", codigo);
+        }
+
+        return resultado.get();
+    }
 }

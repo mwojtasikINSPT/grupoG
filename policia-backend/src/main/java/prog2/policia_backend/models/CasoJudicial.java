@@ -1,49 +1,58 @@
 package prog2.policia_backend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-//Relaciona Asalto, Asaltante y Juez con cada caso judicial: Asalto 1 ─ N CasoJudicial N - 1 Juez
+//Relaciona Asalto, Asaltante y Juez con cada caso judicial: Asalto 1 - 1 CasoJudicial N - 1 Juez
 @Entity
 @Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"asalto_id", "asaltante_id"})
+    @UniqueConstraint(columnNames = {"asalto_id"})
 })
 public class CasoJudicial extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private boolean activo = true;
     private String codigo;
-    private boolean condenado;
-    private int tiempoCarcel;
     private boolean sentenciado;
 
-    @ManyToOne
+    @OneToOne(optional = false)
+    @JoinColumn(name = "asalto_id", nullable = false, unique = true)
     private Asalto asalto;
 
-    @ManyToMany
-    private List<Asaltante> asaltantes = new ArrayList<>();
-
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "juez_id", nullable = false)
     private Juez juez;
 
+    @OneToMany(mappedBy = "casoJudicial")
+    private List<SentenciaAsaltante> sentencias = new ArrayList<>();
+
+    public CasoJudicial(String codigo, Asalto asalto, Juez juez) {
+        this.codigo = codigo;
+        this.asalto = asalto;
+        this.juez = juez;
+    }
+
+    public void cambiarJuez(Juez nuevoJuez) {
+        this.juez = nuevoJuez;
+    }
+
+    public void actualizarEstadoSentenciado(boolean sentenciado) {
+        this.sentenciado = sentenciado;
+    }
+
+    public void asignarCodigo(String codigo) {
+        this.codigo = codigo;
+    }
+
+    public void actualizarActivo(boolean activo) {
+        this.activo = activo;
+    }
 }

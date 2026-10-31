@@ -1,68 +1,64 @@
 package prog2.policia_backend.exceptions;
 
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import tools.jackson.databind.exc.InvalidFormatException;
 
 // Centraliza el manejo de excepciones de la API y las convierte en respuestas HTTP
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    //Devuelve 404 para Recurso inexistente
+    // Devuelve 404 para recursos inexistentes.
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage()));
+        return crearRespuesta(HttpStatus.NOT_FOUND, ex.getClass().getSimpleName(), ex.getMessage());
     }
 
-    // Devuelve 400 cuando fallan las validaciones de los datos 
+    // Devuelve 400 cuando fallan las validaciones de los DTO.
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> manejarValidaciones(MethodArgumentNotValidException ex) {
+        StringBuilder mensaje = new StringBuilder();
 
-        Map<String, String> errores = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        error -> error.getField(),
-                        error -> error.getDefaultMessage(),
-                        (mensaje1, mensaje2) -> mensaje1));
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            if (mensaje.length() > 0) {
+                mensaje.append("; ");
+            }
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errores);
+            mensaje.append(error.getField());
+            mensaje.append(": ");
+            mensaje.append(error.getDefaultMessage());
+        }
+
+        return crearRespuesta(HttpStatus.BAD_REQUEST, "VALIDACION_INVALIDA", mensaje.toString());
     }
 
-    // Devuelve 400 cuando se viola una regla de negocio
+    // Devuelve 400 para las reglas configuradas como peticiones incorrectas.
     @ExceptionHandler({
         CasoSinCondenaConCarcelException.class,
-        CasoCondenadoSinCarcelException.class
+        CasoCondenadoSinCarcelException.class,
+        OperacionNoPermitidaException.class
     })
     public ResponseEntity<Map<String, String>> manejarError400(RuntimeException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "Petición incorrecta", "mensaje", ex.getMessage()));
+        return crearRespuesta(HttpStatus.BAD_REQUEST, ex.getClass().getSimpleName(), ex.getMessage());
     }
 
-    // Devuelve 403 cuando el usuario autenticado no tiene permiso
+    // Devuelve 403 cuando el usuario no tiene permiso.
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("error", "Acceso denegado - Revise sus credenciales"));
+    public ResponseEntity<Map<String, String>> manejarAccesoDenegado(AccessDeniedException ex) {
+        return crearRespuesta(HttpStatus.FORBIDDEN, "ACCESO_DENEGADO", "Acceso denegado - Revise sus credenciales");
     }
 
-    // Devuelve 409 Conflict ante conflictos de reglas de negocio
+    // Devuelve 409 para los conflictos de reglas de negocio.
     @ExceptionHandler({
         AdministradorNoPuedeDarseDeBajaException.class,
         AsaltanteConCasoJudicialException.class,
@@ -99,66 +95,70 @@ public class GlobalExceptionHandler {
         SucursalYaCerradaException.class,
         SucursalNoReactivableException.class,
         SucursalYaActivaException.class,
-        VigilanteConContratoFuturoException.class})
+        VigilanteConContratoFuturoException.class
+    })
     public ResponseEntity<Map<String, String>> manejarConflicto(RuntimeException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", ex.getMessage()));
+        return crearRespuesta(HttpStatus.CONFLICT, ex.getClass().getSimpleName(), ex.getMessage());
     }
 
-    // Devuelve 500 ante errores inesperados no controlados 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> manejarErrorGeneral(Exception ex) {
-
-        ex.printStackTrace();
-
-        // Extraigo  mensaje (o el nombre del error si es nulo)
-        String detalle = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error interno del servidor", "detalle", detalle));
-    }
-
-    // Maneja errores de formato en el JSON como valores inválidos en enums,
-    // indicando el campo afectado, el valor recibido y los valores permitidos.
+    // Devuelve 400 cuando el JSON recibido es inválido.
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> manejarJsonInvalido(HttpMessageNotReadableException ex) {
-
         Throwable causa = ex.getCause();
 
-        if (causa instanceof InvalidFormatException invalidFormat && invalidFormat.getTargetType() != null
-                && invalidFormat.getTargetType().isEnum()) {
+        if (causa instanceof InvalidFormatException) {
+            InvalidFormatException formato = (InvalidFormatException) causa;
 
-            Class<?> tipoEnum = invalidFormat.getTargetType();
+            if (formato.getTargetType() != null && formato.getTargetType().isEnum()) {
+                Object[] valores = formato.getTargetType().getEnumConstants();
+                StringBuilder permitidos = new StringBuilder();
 
-            String valoresPermitidos = Arrays.stream(tipoEnum.getEnumConstants())
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", "));
+                for (Object valor : valores) {
+                    if (permitidos.length() > 0) {
+                        permitidos.append(", ");
+                    }
 
-            String campo = "campo";
-
-            if (!invalidFormat.getPath().isEmpty()) {
-                String descripcion = invalidFormat.getPath()
-                        .get(0)
-                        .getDescription();
-
-                int inicio = descripcion.indexOf("[\"");
-                int fin = descripcion.indexOf("\"]");
-
-                if (inicio >= 0 && fin > inicio) {
-                    campo = descripcion.substring(inicio + 2, fin);
+                    permitidos.append(valor.toString());
                 }
-            }
 
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Valor no válido", "campo", campo, "valorRecibido", String.valueOf(invalidFormat.getValue()), "valoresPermitidos", valoresPermitidos));
+                String campo = "campo";
+
+                if (!formato.getPath().isEmpty()) {
+                    String descripcion = formato.getPath().get(0).getDescription();
+                    int inicio = descripcion.indexOf("[\"");
+                    int fin = descripcion.indexOf("\"]");
+
+                    if (inicio >= 0 && fin > inicio) {
+                        campo = descripcion.substring(inicio + 2, fin);
+                    }
+                }
+
+                String mensaje = "Valor no válido para " + campo
+                        + ": " + formato.getValue()
+                        + ". Valores permitidos: " + permitidos;
+
+                return crearRespuesta(HttpStatus.BAD_REQUEST, "VALOR_ENUM_INVALIDO", mensaje);
+            }
         }
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "El JSON enviado no es válido", "detalle", ex.getMessage()));
+        return crearRespuesta(HttpStatus.BAD_REQUEST, "JSON_INVALIDO", "El JSON enviado no es válido");
+    }
+
+    // Devuelve 500 ante errores inesperados.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> manejarErrorGeneral(Exception ex) {
+        ex.printStackTrace();
+
+        return crearRespuesta(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_INTERNO", "Error interno del servidor");
+    }
+
+    // Construye una respuesta uniforme para todos los errores.
+    private ResponseEntity<Map<String, String>> crearRespuesta(HttpStatus estado, String codigo, String mensaje) {
+        Map<String, String> respuesta = new LinkedHashMap<>();
+
+        respuesta.put("codigo", codigo);
+        respuesta.put("mensaje", mensaje);
+
+        return ResponseEntity.status(estado).body(respuesta);
     }
 }

@@ -1,6 +1,8 @@
 package prog2.policia_backend.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +31,13 @@ public class RolService {
             roles = rolRepository.findByActivo(activo);
         }
 
-        return roles.stream()
-                .map(this::convertirADTO)
-                .toList();
+        List<RolDTO> resultado = new ArrayList<>();
+
+        for (Rol rol : roles) {
+            resultado.add(convertirADTO(rol));
+        }
+
+        return resultado;
     }
 
     public RolDTO buscarPorCodigo(String codigo) {
@@ -141,10 +147,14 @@ public class RolService {
 
     // --- Métodos Auxiliares ---
     private Rol obtenerRol(String codigo) {
-
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
-        return rolRepository.findByCodigo(codigoNormalizado)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Rol", "código: " + codigo));
+        Optional<Rol> resultado = rolRepository.findByCodigo(codigoNormalizado);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Rol", "código: " + codigo);
+        }
+
+        return resultado.get();
     }
 }
