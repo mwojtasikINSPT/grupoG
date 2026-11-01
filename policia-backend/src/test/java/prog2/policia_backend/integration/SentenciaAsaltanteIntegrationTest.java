@@ -228,7 +228,7 @@ class SentenciaAsaltanteIntegrationTest {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonSentencia(true, 8)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isBadRequest());
 
         assertEquals(1, sentenciaRepository.count());
     }
@@ -355,6 +355,10 @@ class SentenciaAsaltanteIntegrationTest {
     void modificarSentenciaCondenatoria() throws Exception {
         registrarSentencia();
 
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar")
+                .param("motivo", "Apelación de sentencia"))
+                .andExpect(status().isOk());
+
         mockMvc.perform(put("/api/casos-judiciales/CJU00001/sentencias/ASS00001")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonSentencia(true, 10)))
@@ -371,6 +375,10 @@ class SentenciaAsaltanteIntegrationTest {
     @WithMockUser(authorities = "ESCRITURA")
     void modificarSentenciaAAbsolucion() throws Exception {
         registrarSentencia();
+
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar")
+                .param("motivo", "Apelación de sentencia"))
+                .andExpect(status().isOk());
 
         mockMvc.perform(put("/api/casos-judiciales/CJU00001/sentencias/ASS00001")
                 .contentType(MediaType.APPLICATION_JSON)

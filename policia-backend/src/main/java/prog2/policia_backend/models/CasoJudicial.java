@@ -19,7 +19,7 @@ public class CasoJudicial extends EntidadAuditable {
     private Long id;
 
     private boolean activo = true;
-    
+
     @Column(unique = true)
     private String codigo;
     private boolean sentenciado;
@@ -34,6 +34,12 @@ public class CasoJudicial extends EntidadAuditable {
 
     @OneToMany(mappedBy = "casoJudicial")
     private List<SentenciaAsaltante> sentencias = new ArrayList<>();
+
+    private String motivoReapertura;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoCasoJudicial estado = EstadoCasoJudicial.EN_TRAMITE;
 
     public CasoJudicial(String codigo, Asalto asalto, Juez juez) {
         this.codigo = codigo;
@@ -55,5 +61,22 @@ public class CasoJudicial extends EntidadAuditable {
 
     public void actualizarActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public void reabrirPorApelacion(String motivo) {
+        this.activo = true;
+        this.estado = EstadoCasoJudicial.REABIERTO_POR_APELACION;
+        this.motivoReapertura = motivo;
+    }
+
+    public void cerrarAutomaticamente() {
+        if (estado == EstadoCasoJudicial.EN_TRAMITE) {
+            this.activo = false;
+            this.estado = EstadoCasoJudicial.CERRADO;
+        }
+    }
+
+    public void actualizarEstado(EstadoCasoJudicial estado) {
+        this.estado = estado;
     }
 }

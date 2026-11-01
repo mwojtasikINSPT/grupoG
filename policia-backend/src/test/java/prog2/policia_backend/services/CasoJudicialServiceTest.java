@@ -14,7 +14,6 @@ import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.SentenciaAsaltanteDTO;
 import prog2.policia_backend.exceptions.AsaltanteNoParticipaEnAsaltoException;
 import prog2.policia_backend.exceptions.CasoCondenadoSinCarcelException;
-import prog2.policia_backend.exceptions.CasoJudicialActivoException;
 import prog2.policia_backend.exceptions.CasoJudicialYaExistenteException;
 import prog2.policia_backend.exceptions.CasoSentenciadoException;
 import prog2.policia_backend.exceptions.CasoSinCondenaConCarcelException;
@@ -25,6 +24,8 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.models.CasoJudicial;
+import prog2.policia_backend.models.EstadoCasoJudicial;
+import prog2.policia_backend.models.EstadoParticipacionJudicial;
 import prog2.policia_backend.models.Juez;
 import prog2.policia_backend.models.SentenciaAsaltante;
 import prog2.policia_backend.models.Sucursal;
@@ -444,11 +445,13 @@ class CasoJudicialServiceTest {
     @Test
     void eliminarCasoCorrectamente() {
         CasoJudicial caso = crearCaso();
+        caso.reabrirPorApelacion("Revisión de sentencia");
         configurarCasoExistente(caso);
 
         casoJudicialService.eliminar("CJU00001");
 
         assertFalse(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, caso.getEstado());
         verify(casoJudicialRepository).save(caso);
     }
 
@@ -474,13 +477,16 @@ class CasoJudicialServiceTest {
     void reactivarCasoCorrectamente() {
         CasoJudicial caso = crearCaso();
         caso.actualizarActivo(false);
+        caso.actualizarEstado(EstadoCasoJudicial.CERRADO);
         configurarCasoExistente(caso);
 
         CasoJudicialDTO resultado
-                = casoJudicialService.reactivar("CJU00001");
+                = casoJudicialService.reactivar("CJU00001", "Apelación de sentencia");
 
         assertTrue(caso.isActivo());
         assertTrue(resultado.getActivo());
+        assertEquals(EstadoCasoJudicial.REABIERTO_POR_APELACION, caso.getEstado());
+        assertEquals("Apelación de sentencia", caso.getMotivoReapertura());
 
         verify(casoJudicialRepository).save(caso);
     }
@@ -491,9 +497,9 @@ class CasoJudicialServiceTest {
         configurarCasoExistente(caso);
 
         try {
-            casoJudicialService.reactivar("CJU00001");
-            fail("Debía lanzar CasoJudicialActivoException");
-        } catch (CasoJudicialActivoException e) {
+            casoJudicialService.reactivar("CJU00001", "Apelación de sentencia");
+            fail("Debía lanzar OperacionNoPermitidaException");
+        } catch (OperacionNoPermitidaException e) {
             assertNotNull(e);
         }
 
@@ -511,6 +517,7 @@ class CasoJudicialServiceTest {
                 .thenReturn(caso.getAsalto().getAsaltantes().get(0));
 
         when(sentencia.isSentenciado()).thenReturn(true);
+        when(sentencia.getEstado()).thenReturn(EstadoParticipacionJudicial.SENTENCIADO);
 
         when(casoJudicialRepository.findById(1L))
                 .thenReturn(Optional.of(caso));
@@ -521,21 +528,87 @@ class CasoJudicialServiceTest {
         casoJudicialService.actualizarEstadoSentenciado(1L);
 
         assertTrue(caso.isSentenciado());
+        assertFalse(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, caso.getEstado());
         verify(casoJudicialRepository).save(caso);
     }
 
     @Test
     void actualizarEstadoSentenciadoIncompleto() {
         CasoJudicial caso = crearCaso();
+        SentenciaAsaltante sentencia = mock(SentenciaAsaltante.class);
+        when(sentencia.getEstado()).thenReturn(EstadoParticipacionJudicial.PENDIENTE);
 
         when(casoJudicialRepository.findById(1L))
                 .thenReturn(Optional.of(caso));
 
         when(sentenciaAsaltanteRepository.findByCasoJudicial_Id(1L))
-                .thenReturn(new ArrayList<SentenciaAsaltante>());
+                .thenReturn(Arrays.asList(sentencia));
 
         casoJudicialService.actualizarEstadoSentenciado(1L);
 
+        assertFalse(caso.isSentenciado());
+        assertTrue(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.EN_TRAMITE, caso.getEstado());
+        verify(casoJudicialRepository).save(caso);
+    }
+
+    @Test
+    void cerrarCasoConSentenciaYFallecimiento() {
+        CasoJudicial caso = crearCaso();
+        SentenciaAsaltante sentenciado = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante fallecido = mock(SentenciaAsaltante.class);
+
+        when(sentenciado.getEstado()).thenReturn(EstadoParticipacionJudicial.SENTENCIADO);
+        when(sentenciado.isSentenciado()).thenReturn(true);
+        when(fallecido.getEstado()).thenReturn(EstadoParticipacionJudicial.EXTINGUIDO_POR_FALLECIMIENTO);
+        when(fallecido.isSentenciado()).thenReturn(false);
+        when(casoJudicialRepository.findById(1L)).thenReturn(Optional.of(caso));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_Id(1L)).thenReturn(Arrays.asList(sentenciado, fallecido));
+
+        casoJudicialService.actualizarEstadoCaso(1L);
+
+        assertFalse(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, caso.getEstado());
+        assertFalse(caso.isSentenciado());
+        verify(casoJudicialRepository).save(caso);
+    }
+
+    @Test
+    void cerrarCasoConTodasLasParticipacionesExtinguidas() {
+        CasoJudicial caso = crearCaso();
+        SentenciaAsaltante fallecido = mock(SentenciaAsaltante.class);
+
+        when(fallecido.getEstado()).thenReturn(EstadoParticipacionJudicial.EXTINGUIDO_POR_FALLECIMIENTO);
+        when(fallecido.isSentenciado()).thenReturn(false);
+        when(casoJudicialRepository.findById(1L)).thenReturn(Optional.of(caso));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_Id(1L)).thenReturn(Arrays.asList(fallecido));
+
+        casoJudicialService.actualizarEstadoCaso(1L);
+
+        assertFalse(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, caso.getEstado());
+        assertFalse(caso.isSentenciado());
+        verify(casoJudicialRepository).save(caso);
+    }
+
+    @Test
+    void mantenerCasoAbiertoConParticipacionPendiente() {
+        CasoJudicial caso = crearCaso();
+        SentenciaAsaltante sentenciado = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante pendiente = mock(SentenciaAsaltante.class);
+
+        when(sentenciado.getEstado()).thenReturn(EstadoParticipacionJudicial.SENTENCIADO);
+        when(sentenciado.isSentenciado()).thenReturn(true);
+        when(pendiente.getEstado()).thenReturn(EstadoParticipacionJudicial.PENDIENTE);
+        when(pendiente.isSentenciado()).thenReturn(false);
+        when(casoJudicialRepository.findById(1L)).thenReturn(Optional.of(caso));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_Id(1L)).thenReturn(Arrays.asList(sentenciado, pendiente));
+
+        casoJudicialService.actualizarEstadoCaso(1L);
+
+        assertTrue(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.EN_TRAMITE, caso.getEstado());
         assertFalse(caso.isSentenciado());
         verify(casoJudicialRepository).save(caso);
     }

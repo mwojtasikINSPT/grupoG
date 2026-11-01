@@ -31,6 +31,10 @@ public class SentenciaAsaltante extends EntidadAuditable {
     private boolean condenado;
     private int tiempoCarcel;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoParticipacionJudicial estado = EstadoParticipacionJudicial.PENDIENTE;
+
     public SentenciaAsaltante(CasoJudicial casoJudicial, Asaltante asaltante) {
         this.casoJudicial = casoJudicial;
         this.asaltante = asaltante;
@@ -40,6 +44,13 @@ public class SentenciaAsaltante extends EntidadAuditable {
         this.condenado = condenado;
         this.tiempoCarcel = tiempoCarcel;
         this.sentenciado = true;
+        this.estado = EstadoParticipacionJudicial.SENTENCIADO;
+    }
+
+    public void extinguirPorFallecimiento() {
+        if (estado == EstadoParticipacionJudicial.PENDIENTE) {
+            this.estado = EstadoParticipacionJudicial.EXTINGUIDO_POR_FALLECIMIENTO;
+        }
     }
 
     public void modificarSentencia(boolean condenado, int tiempoCarcel) {
