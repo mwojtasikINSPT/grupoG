@@ -19,6 +19,8 @@ public class CasoJudicialDTO {
     private String juezCodigo;
     private String codigo;
     private Boolean activo;
+    private String estado;
+    private String motivoReapertura;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaModificacion;
     private String creadoPor;
@@ -95,6 +97,22 @@ public class CasoJudicialDTO {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getMotivoReapertura() {
+        return motivoReapertura;
+    }
+
+    public void setMotivoReapertura(String motivoReapertura) {
+        this.motivoReapertura = motivoReapertura;
     }
 
     public LocalDateTime getFechaCreacion() {

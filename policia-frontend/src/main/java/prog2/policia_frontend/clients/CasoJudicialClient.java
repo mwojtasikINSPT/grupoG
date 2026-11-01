@@ -140,15 +140,23 @@ public class CasoJudicialClient {
                 .toBodilessEntity();
     }
 
-    public CasoJudicialDTO reactivar(String codigo) {
+    public CasoJudicialDTO reactivar(
+            String codigo,
+            String motivo) {
 
         validarCodigo(codigo, "caso judicial");
 
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe indicar el motivo de la apelación."
+            );
+        }
+
         return restClient.patch()
-                .uri(
-                        "/casos-judiciales/{codigo}/reactivar",
-                        codigo.trim().toUpperCase()
-                )
+                .uri(constructor -> constructor
+                .path("/casos-judiciales/{codigo}/reactivar")
+                .queryParam("motivo", motivo.trim())
+                .build(codigo.trim().toUpperCase()))
                 .headers(sesionUsuario::aplicarAutenticacion)
                 .retrieve()
                 .body(CasoJudicialDTO.class);
