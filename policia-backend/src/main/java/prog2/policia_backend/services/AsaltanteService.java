@@ -20,6 +20,8 @@ import prog2.policia_backend.repositories.BandaRepository;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.models.MotivoBajaPersona;
+import prog2.policia_backend.models.SentenciaAsaltante;
+import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
@@ -29,6 +31,8 @@ public class AsaltanteService {
 
     private final AsaltanteRepository asaltanteRepository;
     private final BandaRepository bandaRepository;
+    private final SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
+    private final CasoJudicialService casoJudicialService;
 
     public List<AsaltanteDTO> listar(Boolean activo) {
 
@@ -121,6 +125,7 @@ public class AsaltanteService {
         return convertirADTO(asaltante);
     }
 
+    @Transactional
     public void eliminar(String codigo, AsaltanteDTO dto) {
         Asaltante asaltante = obtenerAsaltante(codigo);
 
@@ -134,6 +139,18 @@ public class AsaltanteService {
 
         if (dto.getMotivoBaja() != MotivoBajaPersona.FALLECIMIENTO) {
             throw new MotivoBajaAsaltanteInvalidoException();
+        }
+
+        List<SentenciaAsaltante> participaciones = sentenciaAsaltanteRepository.findByAsaltante_Id(asaltante.getId());
+
+        for (SentenciaAsaltante participacion : participaciones) {
+            participacion.extinguirPorFallecimiento();
+        }
+
+        sentenciaAsaltanteRepository.saveAll(participaciones);
+
+        for (SentenciaAsaltante participacion : participaciones) {
+            casoJudicialService.actualizarEstadoCaso(participacion.getCasoJudicial().getId());
         }
 
         asaltante.setActivo(false);

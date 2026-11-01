@@ -1,13 +1,18 @@
 package prog2.policia_backend.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import prog2.policia_backend.models.EstadoCasoJudicial;
 import prog2.policia_backend.validations.OnCreate;
 
 // Transporta los datos de un caso judicial entre las capas.
@@ -32,6 +37,12 @@ public class CasoJudicialDTO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<String> asaltanteCodigos = new ArrayList<>();
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private EstadoCasoJudicial estado;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String motivoReapertura;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime fechaCreacion;

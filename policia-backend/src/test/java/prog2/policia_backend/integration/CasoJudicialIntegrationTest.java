@@ -19,6 +19,7 @@ import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.models.CasoJudicial;
 import prog2.policia_backend.models.EntidadBancaria;
+import prog2.policia_backend.models.EstadoCasoJudicial;
 import prog2.policia_backend.models.Juez;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -452,24 +453,39 @@ class CasoJudicialIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "ESCRITURA")
-    void darDeBajaCasoCorrectamente() throws Exception {
-        crearCaso();
+    void cerrarCasoReabiertoPorApelacionCorrectamente() throws Exception {
+        CasoJudicial caso = crearCaso();
+        caso.cerrarAutomaticamente();
+        caso.reabrirPorApelacion("Revision de sentencia");
+        casoJudicialRepository.saveAndFlush(caso);
 
         mockMvc.perform(patch("/api/casos-judiciales/CJU00001/eliminar"))
                 .andExpect(status().isNoContent());
 
-        CasoJudicial resultado
-                = casoJudicialRepository.findByCodigo("CJU00001").get();
+        CasoJudicial resultado = casoJudicialRepository.findByCodigo("CJU00001").get();
 
         assertFalse(resultado.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, resultado.getEstado());
         assertEquals(1, casoJudicialRepository.count());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ESCRITURA")
+    void impedirCierreManualDeCasoEnTramite() throws Exception {
+        CasoJudicial caso = crearCaso();
+
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/eliminar"))
+                .andExpect(status().isBadRequest());
+
+        assertTrue(caso.isActivo());
+        assertEquals(EstadoCasoJudicial.EN_TRAMITE, caso.getEstado());
     }
 
     @Test
     @WithMockUser(authorities = "ESCRITURA")
     void impedirBajaDeCasoInactivo() throws Exception {
         CasoJudicial caso = crearCaso();
-        caso.actualizarActivo(false);
+        caso.cerrarAutomaticamente();
         casoJudicialRepository.saveAndFlush(caso);
 
         mockMvc.perform(patch("/api/casos-judiciales/CJU00001/eliminar"))
@@ -480,15 +496,19 @@ class CasoJudicialIntegrationTest {
     @WithMockUser(authorities = "ESCRITURA")
     void reactivarCasoCorrectamente() throws Exception {
         CasoJudicial caso = crearCaso();
-        caso.actualizarActivo(false);
+        caso.cerrarAutomaticamente();
         casoJudicialRepository.saveAndFlush(caso);
 
-        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar"))
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar")
+                .param("motivo", "Revision de sentencia"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.activo").value(true));
+                .andExpect(jsonPath("$.activo").value(true))
+                .andExpect(jsonPath("$.estado").value("REABIERTO_POR_APELACION"))
+                .andExpect(jsonPath("$.motivoReapertura").value("Revision de sentencia"));
 
-        assertTrue(casoJudicialRepository
-                .findByCodigo("CJU00001").get().isActivo());
+        CasoJudicial resultado = casoJudicialRepository.findByCodigo("CJU00001").get();
+        assertTrue(resultado.isActivo());
+        assertEquals(EstadoCasoJudicial.REABIERTO_POR_APELACION, resultado.getEstado());
     }
 
     @Test
@@ -496,8 +516,9 @@ class CasoJudicialIntegrationTest {
     void impedirReactivarCasoActivo() throws Exception {
         crearCaso();
 
-        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar"))
-                .andExpect(status().isConflict());
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar")
+                .param("motivo", "Revision de sentencia"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -541,5 +562,43 @@ class CasoJudicialIntegrationTest {
     void impedirAccesoSinAutenticacion() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ESCRITURA")
+    void impedirReaperturaSinMotivo() throws Exception {
+        CasoJudicial caso = crearCaso();
+        caso.cerrarAutomaticamente();
+        casoJudicialRepository.saveAndFlush(caso);
+
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar"))
+                .andExpect(status().isBadRequest());
+
+        CasoJudicial resultado = casoJudicialRepository.findByCodigo("CJU00001").get();
+        assertFalse(resultado.isActivo());
+        assertEquals(EstadoCasoJudicial.CERRADO, resultado.getEstado());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ESCRITURA")
+    void flujoCompletoReaperturaYCierrePorApelacion() throws Exception {
+        CasoJudicial caso = crearCaso();
+        caso.cerrarAutomaticamente();
+        casoJudicialRepository.saveAndFlush(caso);
+
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/reactivar")
+                .param("motivo", "Revision de sentencia"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("REABIERTO_POR_APELACION"))
+                .andExpect(jsonPath("$.activo").value(true));
+
+        mockMvc.perform(patch("/api/casos-judiciales/CJU00001/eliminar"))
+                .andExpect(status().isNoContent());
+
+        CasoJudicial resultado = casoJudicialRepository.findByCodigo("CJU00001").get();
+        assertEquals(EstadoCasoJudicial.CERRADO, resultado.getEstado());
+        assertFalse(resultado.isActivo());
+        assertEquals("Revision de sentencia", resultado.getMotivoReapertura());
+        assertEquals(1, casoJudicialRepository.count());
     }
 }
