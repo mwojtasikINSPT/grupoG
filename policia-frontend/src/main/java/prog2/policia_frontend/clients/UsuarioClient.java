@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.dtos.BajaUsuarioDTO;
+import prog2.policia_frontend.dtos.CambioPasswordDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 
 /*
@@ -216,5 +217,37 @@ public UsuarioDTO actualizar(
             .body(datos)
             .retrieve()
             .body(UsuarioDTO.class);
+}
+
+/**
+ * Cambia la contraseña del usuario que se encuentra autenticado.
+ */
+public void cambiarPasswordPropia(
+        String passwordActual,
+        String passwordNueva) {
+
+    if (passwordActual == null || passwordActual.isBlank()) {
+        throw new IllegalArgumentException(
+                "La contraseña actual es obligatoria."
+        );
+    }
+
+    if (passwordNueva == null || passwordNueva.isBlank()) {
+        throw new IllegalArgumentException(
+                "La nueva contraseña es obligatoria."
+        );
+    }
+
+    CambioPasswordDTO datos = new CambioPasswordDTO(
+            passwordActual,
+            passwordNueva
+    );
+
+    restClient.patch()
+            .uri("/usuarios/password")
+            .headers(sesionUsuario::aplicarAutenticacion)
+            .body(datos)
+            .retrieve()
+            .toBodilessEntity();
 }
 }
