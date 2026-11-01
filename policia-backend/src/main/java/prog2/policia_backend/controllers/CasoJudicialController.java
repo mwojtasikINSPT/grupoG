@@ -57,8 +57,8 @@ public class CasoJudicialController {
     }
 
     @PatchMapping("/{codigo}/reactivar")
-    public ResponseEntity<CasoJudicialDTO> reactivar(@PathVariable String codigo) {
-        return ResponseEntity.ok(casoJudicialService.reactivar(codigo));
+    public ResponseEntity<CasoJudicialDTO> reactivar(@PathVariable String codigo, @RequestParam String motivo) {
+        return ResponseEntity.ok(casoJudicialService.reactivar(codigo, motivo));
     }
 
     @PostMapping("/{codigo}/sentencias")

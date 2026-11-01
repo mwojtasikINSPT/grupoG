@@ -16,9 +16,13 @@ import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Banda;
+import prog2.policia_backend.models.CasoJudicial;
+import prog2.policia_backend.models.EstadoParticipacionJudicial;
+import prog2.policia_backend.models.SentenciaAsaltante;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.BandaRepository;
+import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,15 +34,17 @@ class AsaltanteServiceTest {
     private BandaRepository bandaRepository;
     private AsaltanteService asaltanteService;
 
+    private SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
+    private CasoJudicialService casoJudicialService;
+
     @BeforeEach
     void setUp() {
         asaltanteRepository = mock(AsaltanteRepository.class);
         bandaRepository = mock(BandaRepository.class);
+        sentenciaAsaltanteRepository = mock(SentenciaAsaltanteRepository.class);
+        casoJudicialService = mock(CasoJudicialService.class);
 
-        asaltanteService = new AsaltanteService(
-                asaltanteRepository,
-                bandaRepository
-        );
+        asaltanteService = new AsaltanteService(asaltanteRepository, bandaRepository, sentenciaAsaltanteRepository, casoJudicialService);
     }
 
     private Banda crearBanda() {
@@ -462,6 +468,53 @@ class AsaltanteServiceTest {
         );
 
         verify(asaltanteRepository).save(asaltante);
+    }
+
+    @Test
+    void fallecimientoExtingueParticipacionPendiente() {
+        Asaltante asaltante = crearAsaltante();
+        CasoJudicial caso = mock(CasoJudicial.class);
+        when(caso.getId()).thenReturn(10L);
+        SentenciaAsaltante participacion = new SentenciaAsaltante(caso, asaltante);
+        List<SentenciaAsaltante> participaciones = new ArrayList<>();
+        participaciones.add(participacion);
+
+        when(asaltanteRepository.findByCodigo("ASS00001")).thenReturn(Optional.of(asaltante));
+        when(sentenciaAsaltanteRepository.findByAsaltante_Id(1L)).thenReturn(participaciones);
+
+        AsaltanteDTO dto = new AsaltanteDTO();
+        dto.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
+        asaltanteService.eliminar("ASS00001", dto);
+
+        assertEquals(EstadoParticipacionJudicial.EXTINGUIDO_POR_FALLECIMIENTO, participacion.getEstado());
+        assertFalse(participacion.isSentenciado());
+        assertFalse(asaltante.isActivo());
+        verify(sentenciaAsaltanteRepository).saveAll(participaciones);
+        verify(casoJudicialService).actualizarEstadoCaso(10L);
+    }
+
+    @Test
+    void fallecimientoConservaSentenciaRegistrada() {
+        Asaltante asaltante = crearAsaltante();
+        CasoJudicial caso = mock(CasoJudicial.class);
+        when(caso.getId()).thenReturn(10L);
+        SentenciaAsaltante participacion = new SentenciaAsaltante(caso, asaltante);
+        participacion.registrarSentencia(true, 5);
+        List<SentenciaAsaltante> participaciones = new ArrayList<>();
+        participaciones.add(participacion);
+
+        when(asaltanteRepository.findByCodigo("ASS00001")).thenReturn(Optional.of(asaltante));
+        when(sentenciaAsaltanteRepository.findByAsaltante_Id(1L)).thenReturn(participaciones);
+
+        AsaltanteDTO dto = new AsaltanteDTO();
+        dto.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
+        asaltanteService.eliminar("ASS00001", dto);
+
+        assertEquals(EstadoParticipacionJudicial.SENTENCIADO, participacion.getEstado());
+        assertTrue(participacion.isSentenciado());
+        assertTrue(participacion.isCondenado());
+        assertEquals(5, participacion.getTiempoCarcel());
+        verify(casoJudicialService).actualizarEstadoCaso(10L);
     }
 
     @Test

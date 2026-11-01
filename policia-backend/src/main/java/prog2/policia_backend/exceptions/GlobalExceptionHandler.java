@@ -165,4 +165,10 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(estado).body(respuesta);
     }
+
+    // Devuelve HTTP 400 cuando falta un parámetro obligatorio en la petición.
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> manejarParametroObligatorio(org.springframework.web.bind.MissingServletRequestParameterException ex) {
+        return crearRespuesta(HttpStatus.BAD_REQUEST, "PARAMETRO_OBLIGATORIO", "El parámetro " + ex.getParameterName() + " es obligatorio");
+    }
 }

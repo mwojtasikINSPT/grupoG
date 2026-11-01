@@ -3,9 +3,12 @@ package prog2.policia_backend.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.SentenciaAsaltanteDTO;
 import prog2.policia_backend.exceptions.AsaltanteNoParticipaEnAsaltoException;
@@ -21,6 +24,8 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Asalto;
 import prog2.policia_backend.models.CasoJudicial;
+import prog2.policia_backend.models.EstadoCasoJudicial;
+import prog2.policia_backend.models.EstadoParticipacionJudicial;
 import prog2.policia_backend.models.Juez;
 import prog2.policia_backend.models.SentenciaAsaltante;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -146,61 +151,36 @@ public class CasoJudicialService {
     public void eliminar(String codigo) {
         CasoJudicial caso = obtenerCaso(codigo);
 
-        if (!caso.isActivo()) {
-            throw new OperacionNoPermitidaException("El caso judicial ya está inactivo");
+        if (caso.getEstado() != EstadoCasoJudicial.REABIERTO_POR_APELACION) {
+            throw new OperacionNoPermitidaException("Solo se puede cerrar manualmente un caso reabierto por apelación");
         }
 
         caso.actualizarActivo(false);
+        caso.actualizarEstado(EstadoCasoJudicial.CERRADO);
+
         casoJudicialRepository.save(caso);
     }
 
     @Transactional
-    public CasoJudicialDTO reactivar(String codigo) {
+    public CasoJudicialDTO reactivar(String codigo, String motivo) {
         CasoJudicial caso = obtenerCaso(codigo);
 
-        if (caso.isActivo()) {
-            throw new CasoJudicialActivoException();
+        if (caso.getEstado() != EstadoCasoJudicial.CERRADO) {
+            throw new OperacionNoPermitidaException("Solo se pueden reabrir casos cerrados");
         }
 
-        caso.actualizarActivo(true);
+        if (motivo == null || motivo.isBlank()) {
+            throw new OperacionNoPermitidaException("Debe indicar el motivo de la apelación");
+        }
+
+        caso.reabrirPorApelacion(motivo);
 
         return convertirADTO(casoJudicialRepository.save(caso));
     }
 
     @Transactional
     public void actualizarEstadoSentenciado(Long casoId) {
-        Optional<CasoJudicial> resultado = casoJudicialRepository.findById(casoId);
-
-        if (resultado.isEmpty()) {
-            throw new RecursoNoEncontradoException("CasoJudicial", String.valueOf(casoId));
-        }
-
-        CasoJudicial caso = resultado.get();
-        List<Asaltante> participantes = caso.getAsalto().getAsaltantes();
-        List<SentenciaAsaltante> sentencias = sentenciaAsaltanteRepository.findByCasoJudicial_Id(casoId);
-
-        boolean completo = participantes != null && !participantes.isEmpty();
-
-        if (completo && participantes != null) {
-            for (Asaltante participante : participantes) {
-                boolean encontrado = false;
-
-                for (SentenciaAsaltante sentencia : sentencias) {
-                    if (sentencia.getAsaltante().getId().equals(participante.getId()) && sentencia.isSentenciado()) {
-                        encontrado = true;
-                        break;
-                    }
-                }
-
-                if (!encontrado) {
-                    completo = false;
-                    break;
-                }
-            }
-        }
-
-        caso.actualizarEstadoSentenciado(completo);
-        casoJudicialRepository.save(caso);
+        actualizarEstadoCaso(casoId);
     }
 
     private CasoJudicialDTO convertirADTO(CasoJudicial caso) {
@@ -212,6 +192,8 @@ public class CasoJudicialService {
         dto.setSentenciado(caso.isSentenciado());
         dto.setAsaltoCodigo(caso.getAsalto().getCodigo());
         dto.setJuezCodigo(caso.getJuez().getCodigo());
+        dto.setEstado(caso.getEstado());
+        dto.setMotivoReapertura(caso.getMotivoReapertura());
 
         List<String> codigos = new ArrayList<>();
 
@@ -394,5 +376,42 @@ public class CasoJudicialService {
         }
 
         return resultado;
+    }
+
+    @Transactional
+    public void actualizarEstadoCaso(Long casoId) {
+        Optional<CasoJudicial> resultado = casoJudicialRepository.findById(casoId);
+
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("CasoJudicial", String.valueOf(casoId));
+        }
+
+        CasoJudicial caso = resultado.get();
+        List<SentenciaAsaltante> participaciones = sentenciaAsaltanteRepository.findByCasoJudicial_Id(casoId);
+
+        if (participaciones.isEmpty()) {
+            return;
+        }
+
+        boolean todosResueltos = true;
+        boolean todosSentenciados = true;
+
+        for (SentenciaAsaltante participacion : participaciones) {
+            if (participacion.getEstado() == EstadoParticipacionJudicial.PENDIENTE) {
+                todosResueltos = false;
+            }
+
+            if (!participacion.isSentenciado()) {
+                todosSentenciados = false;
+            }
+        }
+
+        caso.actualizarEstadoSentenciado(todosSentenciados);
+
+        if (todosResueltos) {
+            caso.cerrarAutomaticamente();
+        }
+
+        casoJudicialRepository.save(caso);
     }
 }
