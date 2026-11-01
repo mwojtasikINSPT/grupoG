@@ -17,4 +17,6 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
     List<Asaltante> findByNombreContainingIgnoreCase(String nombre);
 
     List<Asaltante> findByNombreContainingIgnoreCaseAndActivo(String nombre, boolean activo);
+
+    List<Asaltante> findByBanda_IdAndActivoTrue(Long bandaId);
 }
