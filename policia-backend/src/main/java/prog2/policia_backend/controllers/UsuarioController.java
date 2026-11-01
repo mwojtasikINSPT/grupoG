@@ -2,6 +2,8 @@ package prog2.policia_backend.controllers;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import prog2.policia_backend.DTOs.CambioPasswordDTO;
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.services.UsuarioService;
 import prog2.policia_backend.utils.SeguridadUtils;
@@ -60,6 +63,12 @@ public class UsuarioController {
     @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody UsuarioDTO dto) {
         usuarioService.eliminar(codigo, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<Void> cambiarPassword(@Valid @RequestBody CambioPasswordDTO dto) {
+        usuarioService.cambiarPassword(dto);
         return ResponseEntity.noContent().build();
     }
 

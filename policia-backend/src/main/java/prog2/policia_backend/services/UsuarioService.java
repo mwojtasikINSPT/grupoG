@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import prog2.policia_backend.DTOs.CambioPasswordDTO;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
@@ -276,4 +277,22 @@ public class UsuarioService {
         return resultado.get();
     }
 
+    @Transactional
+    public void cambiarPassword(CambioPasswordDTO dto) {
+        Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
+
+        Usuario usuario = obtenerUsuario(autenticacion.getName());
+
+        if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPassword())) {
+            throw new OperacionNoPermitidaException("La contraseña actual es incorrecta");
+        }
+
+        if (!usuario.isActivo()) {
+            throw new PersonaInactivaException();
+        }
+
+        usuario.setPassword(passwordEncoder.encode(dto.getPasswordNueva()));
+
+        usuarioRepository.save(usuario);
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import prog2.policia_backend.DTOs.CambioPasswordDTO;
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.*;
@@ -542,5 +543,103 @@ class UsuarioServiceTest {
         } catch (PersonaNoReactivableException e) {
             assertNotNull(e);
         }
+    }
+
+    @Test
+    void cambiarPasswordCorrectamente() {
+        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        autenticar("ADM00001");
+
+        when(usuarioRepository.findByCodigo("ADM00001"))
+                .thenReturn(Optional.of(usuario));
+
+        when(passwordEncoder.matches("actual123", "encoded"))
+                .thenReturn(true);
+
+        when(passwordEncoder.encode("nueva123"))
+                .thenReturn("nuevaEncoded");
+
+        CambioPasswordDTO dto = new CambioPasswordDTO();
+        dto.setPasswordActual("actual123");
+        dto.setPasswordNueva("nueva123");
+
+        usuarioService.cambiarPassword(dto);
+
+        assertEquals("nuevaEncoded", usuario.getPassword());
+        verify(passwordEncoder).matches("actual123", "encoded");
+        verify(passwordEncoder).encode("nueva123");
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void cambiarPasswordRechazaPasswordActualIncorrecta() {
+        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        autenticar("ADM00001");
+
+        when(usuarioRepository.findByCodigo("ADM00001"))
+                .thenReturn(Optional.of(usuario));
+
+        CambioPasswordDTO dto = new CambioPasswordDTO();
+        dto.setPasswordActual("incorrecta");
+        dto.setPasswordNueva("nueva123");
+
+        assertThrows(
+                OperacionNoPermitidaException.class,
+                () -> usuarioService.cambiarPassword(dto)
+        );
+
+        verify(usuarioRepository, never()).save(any(Usuario.class));
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    void cambiarPasswordRechazaUsuarioInactivo() {
+        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        autenticar("ADM00001");
+
+        when(usuarioRepository.findByCodigo("ADM00001"))
+                .thenReturn(Optional.of(usuario));
+
+        when(passwordEncoder.matches("actual123", "encoded"))
+                .thenReturn(true);
+
+        CambioPasswordDTO dto = new CambioPasswordDTO();
+        dto.setPasswordActual("actual123");
+        dto.setPasswordNueva("nueva123");
+
+        assertThrows(
+                PersonaInactivaException.class,
+                () -> usuarioService.cambiarPassword(dto)
+        );
+
+        verify(usuarioRepository, never()).save(any(Usuario.class));
+    }
+
+    @Test
+    void cambiarPasswordPermiteVigilantes() {
+        Vigilante vigilante = new Vigilante();
+        vigilante.setCodigo("VIG00001");
+        vigilante.setPassword("encoded");
+        vigilante.setActivo(true);
+
+        autenticar("VIG00001");
+
+        when(usuarioRepository.findByCodigo("VIG00001"))
+                .thenReturn(Optional.of(vigilante));
+
+        when(passwordEncoder.matches("actual123", "encoded"))
+                .thenReturn(true);
+
+        when(passwordEncoder.encode("nueva123"))
+                .thenReturn("nuevaEncoded");
+
+        CambioPasswordDTO dto = new CambioPasswordDTO();
+        dto.setPasswordActual("actual123");
+        dto.setPasswordNueva("nueva123");
+
+        usuarioService.cambiarPassword(dto);
+
+        assertEquals("nuevaEncoded", vigilante.getPassword());
+        verify(usuarioRepository).save(vigilante);
     }
 }
