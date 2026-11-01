@@ -15,6 +15,7 @@ import prog2.policia_backend.exceptions.BandaConMiembrosException;
 import prog2.policia_backend.exceptions.BandaYaActivaException;
 import prog2.policia_backend.exceptions.BandaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.repositories.BandaRepository;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -120,21 +121,27 @@ public class BandaService {
     public List<AsaltanteDTO> listarIntegrantes(String codigo) {
         Banda banda = obtenerBanda(codigo);
 
-        return asaltanteRepository.findByBanda_IdAndActivoTrue(banda.getId())
-                .stream()
-                .map(asaltante -> new AsaltanteDTO(
-                asaltante.getId(),
-                asaltante.getNombre(),
-                banda.getCodigo(),
-                asaltante.getCodigo(),
-                asaltante.getMotivoBaja(),
-                null,
-                asaltante.isActivo(),
-                asaltante.getFechaCreacion(),
-                asaltante.getFechaModificacion(),
-                asaltante.getCreadoPor(),
-                asaltante.getModificadoPor()
-        ))
-                .toList();
+        List<Asaltante> integrantes = asaltanteRepository.findByBanda_IdAndActivoTrue(banda.getId());
+        List<AsaltanteDTO> resultado = new ArrayList<>();
+
+        for (Asaltante asaltante : integrantes) {
+            AsaltanteDTO dto = new AsaltanteDTO(
+                    asaltante.getId(),
+                    asaltante.getNombre(),
+                    banda.getCodigo(),
+                    asaltante.getCodigo(),
+                    asaltante.getMotivoBaja(),
+                    null,
+                    asaltante.isActivo(),
+                    asaltante.getFechaCreacion(),
+                    asaltante.getFechaModificacion(),
+                    asaltante.getCreadoPor(),
+                    asaltante.getModificadoPor()
+            );
+
+            resultado.add(dto);
+        }
+        return resultado;
     }
+
 }

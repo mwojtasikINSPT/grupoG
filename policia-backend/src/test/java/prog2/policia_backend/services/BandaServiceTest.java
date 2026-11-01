@@ -7,11 +7,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.DTOs.BandaDTO;
 import prog2.policia_backend.exceptions.BandaConMiembrosException;
 import prog2.policia_backend.exceptions.BandaYaActivaException;
 import prog2.policia_backend.exceptions.BandaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Banda;
 import prog2.policia_backend.repositories.BandaRepository;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -66,7 +68,6 @@ class BandaServiceTest {
     }
 
     // LISTAR
-
     @Test
     void listarTodasLasBandas() {
         List<Banda> bandas = new ArrayList<>();
@@ -111,7 +112,6 @@ class BandaServiceTest {
     }
 
     // BUSCAR POR CODIGO
-
     @Test
     void buscarPorCodigoCorrectamente() {
         when(bandaRepository.findByCodigo("BAN00001"))
@@ -137,7 +137,6 @@ class BandaServiceTest {
     }
 
     // GUARDAR
-
     @Test
     void guardarBandaCorrectamente() {
         configurarGuardado();
@@ -154,7 +153,6 @@ class BandaServiceTest {
     }
 
     // ELIMINAR
-
     @Test
     void eliminarBandaCorrectamente() {
         Banda banda = crearBanda();
@@ -238,7 +236,6 @@ class BandaServiceTest {
     }
 
     // REACTIVAR
-
     @Test
     void reactivarBandaCorrectamente() {
         Banda banda = crearBanda();
@@ -291,5 +288,48 @@ class BandaServiceTest {
 
         verify(bandaRepository, never())
                 .save(any(Banda.class));
+    }
+
+    @Test
+    void listarIntegrantesCorrectamente() {
+        Banda banda = crearBanda();
+        Asaltante asaltante = new Asaltante();
+        asaltante.setId(1L);
+        asaltante.setNombre("Juan Perez");
+        asaltante.setCodigo("ASA00001");
+        asaltante.setActivo(true);
+
+        List<Asaltante> integrantes = new ArrayList<>();
+        integrantes.add(asaltante);
+
+        when(bandaRepository.findByCodigo("BAN00001")).thenReturn(Optional.of(banda));
+        when(asaltanteRepository.findByBanda_IdAndActivoTrue(1L)).thenReturn(integrantes);
+
+        List<AsaltanteDTO> resultado = bandaService.listarIntegrantes("BAN00001");
+
+        assertEquals(1, resultado.size());
+        assertEquals("Juan Perez", resultado.get(0).getNombre());
+        assertEquals("ASA00001", resultado.get(0).getCodigo());
+        assertEquals("BAN00001", resultado.get(0).getBandaCodigo());
+    }
+
+    @Test
+    void listarIntegrantesBandaSinMiembros() {
+        when(bandaRepository.findByCodigo("BAN00001")).thenReturn(Optional.of(crearBanda()));
+        when(asaltanteRepository.findByBanda_IdAndActivoTrue(1L)).thenReturn(new ArrayList<>());
+
+        List<AsaltanteDTO> resultado = bandaService.listarIntegrantes("BAN00001");
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void listarIntegrantesBandaInexistente() {
+        when(bandaRepository.findByCodigo("BAN99999")).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class,
+                () -> bandaService.listarIntegrantes("BAN99999"));
+
+        verifyNoInteractions(asaltanteRepository);
     }
 }
