@@ -198,11 +198,6 @@ public class MainLayout extends AppLayout
 
             menuPersonal.addItem(
                     new SideNavItem(
-                            "Vigilantes",
-                            VigilantesView.class,
-                            VaadinIcon.SHIELD.create()
-                    ),
-                    new SideNavItem(
                             "Jueces",
                             JuecesView.class,
                             VaadinIcon.GAVEL.create()
@@ -246,7 +241,7 @@ public class MainLayout extends AppLayout
                     new SideNavItem(
                             "Asaltos",
                             AsaltosView.class,
-                            VaadinIcon.CAR.create()
+                            VaadinIcon.SAFE.create()
                     ),
                     new SideNavItem(
                             "Casos judiciales",
