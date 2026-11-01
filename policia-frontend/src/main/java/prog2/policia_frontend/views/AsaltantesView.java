@@ -394,13 +394,15 @@ public class AsaltantesView
 
             try {
 
+                AsaltanteDTO asaltanteGuardado;
+
                 if (esCreacion) {
 
-                    asaltanteClient.crear(datos);
+                    asaltanteGuardado = asaltanteClient.crear(datos);
 
                 } else {
 
-                    asaltanteClient.actualizar(
+                    asaltanteGuardado = asaltanteClient.actualizar(
                             asaltante.getCodigo(),
                             datos
                     );
@@ -411,8 +413,14 @@ public class AsaltantesView
 
                 NotificacionUtils.mostrarExito(
                         esCreacion
-                                ? "Asaltante creado correctamente."
-                                : "Asaltante modificado correctamente."
+                                ? "Asaltante "
+                                + asaltanteGuardado.getCodigo()
+                                + " creado correctamente."
+                                : "Asaltante "
+                                + asaltanteGuardado.getCodigo()
+                                + " - "
+                                + asaltanteGuardado.getNombre()
+                                + " modificado correctamente."
                 );
 
             } catch (RestClientResponseException excepcion) {

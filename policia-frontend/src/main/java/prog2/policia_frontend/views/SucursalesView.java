@@ -1,5 +1,6 @@
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
@@ -77,6 +78,9 @@ public class SucursalesView
     private final Button botonNuevaSucursal
         = new Button("Nueva sucursal");
 
+    private final Button botonVolverEntidades
+            = new Button("Volver a entidades bancarias");
+
     private List<EntidadBancariaDTO> entidadesDisponibles = List.of();
 
    public SucursalesView(
@@ -87,6 +91,13 @@ public class SucursalesView
     this.sucursalClient = sucursalClient;
     this.entidadClient = entidadClient;
     this.sesionUsuario = sesionUsuario;
+
+    botonVolverEntidades.setVisible(false);
+    botonVolverEntidades.addClickListener(
+            evento -> UI.getCurrent().navigate(
+                    EntidadesBancariasView.class
+            )
+    );
 
     configurarFiltros();
     configurarVista();
@@ -185,6 +196,7 @@ public class SucursalesView
 
         add(
                  titulo,
+        botonVolverEntidades,
         botonNuevaSucursal,
         filtros,
         tabla,
@@ -1028,6 +1040,7 @@ private void reactivarSucursal(
         if (entidad != null) {
             filtroTipoBusqueda.setValue("Por entidad bancaria");
             filtroEntidad.setValue(entidad);
+            botonVolverEntidades.setVisible(true);
         }
     }
 

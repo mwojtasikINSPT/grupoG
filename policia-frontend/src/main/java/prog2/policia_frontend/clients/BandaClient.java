@@ -7,6 +7,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.BandaDTO;
+import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
 /*
@@ -74,6 +75,23 @@ public class BandaClient {
                 )
                 .retrieve()
                 .body(BandaDTO.class);
+    }
+
+    public List<AsaltanteDTO> listarIntegrantes(String codigo) {
+        validarCodigo(codigo);
+
+        List<AsaltanteDTO> integrantes = restClient.get()
+                .uri(
+                        "/bandas/{codigo}/integrantes",
+                        codigo.trim().toUpperCase()
+                )
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve()
+                .body(new ParameterizedTypeReference
+                        <List<AsaltanteDTO>>() {
+                });
+
+        return integrantes != null ? integrantes : List.of();
     }
 
     public void darDeBaja(

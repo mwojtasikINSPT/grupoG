@@ -433,7 +433,7 @@ private void abrirFormularioEdicion(
 
         try {
 
-            usuarioClient.actualizar(
+            UsuarioDTO usuarioModificado = usuarioClient.actualizar(
                     usuario.getCodigo(),
                     datos
             );
@@ -442,7 +442,11 @@ private void abrirFormularioEdicion(
             cargarUsuarios();
 
             NotificacionUtils.mostrarExito(
-                    "Usuario modificado correctamente."
+                    "Usuario "
+                    + usuarioModificado.getCodigo()
+                    + " - "
+                    + usuarioModificado.getNombre()
+                    + " modificado correctamente."
             );
 
         } catch (RestClientResponseException excepcion) {
@@ -1068,14 +1072,18 @@ private Boolean obtenerEstadoSeleccionado() {
             );
 
             try {
-                vigilanteClient.actualizar(
+                VigilanteDTO vigilanteModificado = vigilanteClient.actualizar(
                         vigilante.getCodigo(),
                         datos
                 );
                 dialogo.close();
                 cargarUsuarios();
                 NotificacionUtils.mostrarExito(
-                        "Vigilante modificado correctamente."
+                        "Vigilante "
+                        + vigilanteModificado.getCodigo()
+                        + " - "
+                        + vigilanteModificado.getNombre()
+                        + " modificado correctamente."
                 );
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);

@@ -1,5 +1,6 @@
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
@@ -54,8 +55,10 @@ public class CasosJudicialesView extends VerticalLayout
     private final Select<String> filtroRelacion = new Select<>();
     private final Select<JuezDTO> filtroJuez = new Select<>();
     private final Select<AsaltanteDTO> filtroAsaltante = new Select<>();
+    private final Button botonVolver = new Button("Volver");
     private List<JuezDTO> juecesDisponibles = List.of();
     private List<AsaltanteDTO> asaltantesDisponibles = List.of();
+    private String rutaVolver;
 
     public CasosJudicialesView(
             CasoJudicialClient casoJudicialClient,
@@ -69,6 +72,13 @@ public class CasosJudicialesView extends VerticalLayout
         this.asaltanteClient = asaltanteClient;
         this.juezClient = juezClient;
         this.sesionUsuario = sesionUsuario;
+
+        botonVolver.setVisible(false);
+        botonVolver.addClickListener(evento -> {
+            if (rutaVolver != null) {
+                UI.getCurrent().navigate(rutaVolver);
+            }
+        });
 
         configurarFiltros();
         configurarTabla();
@@ -173,7 +183,7 @@ public class CasosJudicialesView extends VerticalLayout
         filtros.setAlignItems(HorizontalLayout.Alignment.END);
 
         setSizeFull();
-        add(titulo, botonNuevo, filtros, tabla);
+        add(titulo, botonVolver, botonNuevo, filtros, tabla);
         expand(tabla);
     }
 
@@ -538,6 +548,10 @@ public class CasosJudicialesView extends VerticalLayout
             if (asaltante != null) {
                 filtroRelacion.setValue("Por asaltante");
                 filtroAsaltante.setValue(asaltante);
+                configurarRegreso(
+                        "asaltantes",
+                        "Volver a asaltantes"
+                );
             }
         } else if (codigoJuez != null) {
             JuezDTO juez = juecesDisponibles.stream()
@@ -549,8 +563,15 @@ public class CasosJudicialesView extends VerticalLayout
             if (juez != null) {
                 filtroRelacion.setValue("Por juez");
                 filtroJuez.setValue(juez);
+                configurarRegreso("jueces", "Volver a jueces");
             }
         }
+    }
+
+    private void configurarRegreso(String ruta, String texto) {
+        rutaVolver = ruta;
+        botonVolver.setText(texto);
+        botonVolver.setVisible(true);
     }
 
     private String primerParametro(

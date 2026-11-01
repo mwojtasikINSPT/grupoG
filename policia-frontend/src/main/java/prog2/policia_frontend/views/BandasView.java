@@ -14,10 +14,12 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import java.util.List;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.BandaClient;
 import prog2.policia_frontend.dtos.BandaDTO;
+import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
@@ -96,12 +98,17 @@ public class BandasView
 
         tabla.addComponentColumn(banda -> {
 
+            Button botonIntegrantes = new Button(
+                    "Mostrar integrantes",
+                    evento -> mostrarIntegrantes(banda)
+            );
+
             /*
              * La consulta continúa disponible con permiso de lectura,
              * pero cambiar el estado requiere permiso de escritura.
              */
             if (!puedeEscribir()) {
-                return new Span("Solo lectura");
+                return botonIntegrantes;
             }
 
             Button botonEstado = new Button();
@@ -125,12 +132,69 @@ public class BandasView
                 );
             }
 
-            return botonEstado;
+            return new HorizontalLayout(
+                    botonIntegrantes,
+                    botonEstado
+            );
 
         }).setHeader("Acciones")
                 .setAutoWidth(true);
 
         tabla.setSizeFull();
+    }
+
+    private void mostrarIntegrantes(BandaDTO banda) {
+        try {
+            List<AsaltanteDTO> integrantes
+                    = bandaClient.listarIntegrantes(banda.getCodigo());
+
+            Dialog dialogo = new Dialog();
+            dialogo.setHeaderTitle(
+                    "Integrantes de " + banda.getCodigo()
+            );
+
+            VerticalLayout contenido = new VerticalLayout();
+            contenido.setPadding(false);
+
+            if (integrantes.isEmpty()) {
+                contenido.add(new Paragraph(
+                        "La banda no tiene integrantes activos."
+                ));
+            } else {
+                Grid<AsaltanteDTO> tablaIntegrantes
+                        = new Grid<>(AsaltanteDTO.class, false);
+
+                tablaIntegrantes.addColumn(AsaltanteDTO::getCodigo)
+                        .setHeader("Código")
+                        .setAutoWidth(true);
+                tablaIntegrantes.addColumn(AsaltanteDTO::getNombre)
+                        .setHeader("Nombre")
+                        .setAutoWidth(true);
+                tablaIntegrantes.setItems(integrantes);
+                tablaIntegrantes.setAllRowsVisible(true);
+
+                contenido.add(tablaIntegrantes);
+            }
+
+            contenido.add(new Button(
+                    "Cerrar",
+                    evento -> dialogo.close()
+            ));
+
+            dialogo.add(contenido);
+            dialogo.open();
+
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion(
+                    "No se puede conectar con el backend."
+            );
+        } catch (IllegalArgumentException excepcion) {
+            NotificacionUtils.mostrarInformacion(
+                    excepcion.getMessage()
+            );
+        }
     }
 
     private void configurarVista() {

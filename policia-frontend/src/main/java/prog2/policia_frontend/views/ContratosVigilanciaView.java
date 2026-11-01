@@ -150,7 +150,7 @@ public class ContratosVigilanciaView
         filtroEstado.setItems(
                 "Todos",
                 "Activos",
-                "Inactivos"
+                "Finalizados"
         );
         filtroEstado.setValue("Todos");
 
@@ -204,12 +204,7 @@ public class ContratosVigilanciaView
         ).setHeader("Sucursal")
                 .setAutoWidth(true);
 
-        tabla.addColumn(contrato ->
-                Boolean.TRUE.equals(
-                        contrato.getActivo()
-                )
-                        ? "Activo"
-                        : "Inactivo"
+        tabla.addColumn(this::obtenerEstadoVisible
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
@@ -234,7 +229,7 @@ public class ContratosVigilanciaView
                     = new Button("Modificar");
 
             Button botonCancelarContrato
-                    = new Button("Cancelar");
+                    = new Button("Dar de baja");
 
             boolean puedeOperarse
                     = Boolean.TRUE.equals(
@@ -332,17 +327,27 @@ public class ContratosVigilanciaView
         Dialog dialogo = new Dialog();
 
         dialogo.setHeaderTitle(
-                "Cancelar "
+                "Dar de baja "
                         + contrato.getCodigo()
         );
 
         Paragraph mensaje = new Paragraph(
-                "El contrato quedará inactivo y no podrá reactivarse. "
+                "El contrato quedará cancelado y no podrá reactivarse. "
                 + "¿Desea continuar?"
         );
 
+        Select<String> campoMotivo = new Select<>();
+        campoMotivo.setLabel("Motivo de baja");
+        campoMotivo.setItems("CANCELACION");
+        campoMotivo.setPlaceholder("Seleccione un motivo");
+        campoMotivo.setRequiredIndicatorVisible(true);
+
+        Paragraph aclaracion = new Paragraph(
+                "CIERRE_SUCURSAL se asigna automáticamente cuando se cierra una sucursal."
+        );
+
         Button botonConfirmar
-                = new Button("Confirmar cancelación");
+                = new Button("Confirmar baja");
 
         Button botonVolver
                 = new Button(
@@ -351,6 +356,16 @@ public class ContratosVigilanciaView
                 );
 
         botonConfirmar.addClickListener(evento -> {
+
+            boolean motivoVacio = campoMotivo.getValue() == null;
+            campoMotivo.setInvalid(motivoVacio);
+            campoMotivo.setErrorMessage(
+                    "Debe seleccionar un motivo de baja."
+            );
+
+            if (motivoVacio) {
+                return;
+            }
 
             try {
 
@@ -362,7 +377,7 @@ public class ContratosVigilanciaView
                 cargarContratos();
 
                 NotificacionUtils.mostrarExito(
-                        "Contrato cancelado correctamente."
+                        "Contrato dado de baja por CANCELACION."
                 );
 
             } catch (RestClientResponseException excepcion) {
@@ -391,6 +406,8 @@ public class ContratosVigilanciaView
         VerticalLayout contenido
                 = new VerticalLayout(
                         mensaje,
+                        campoMotivo,
+                        aclaracion,
                         botones
                 );
 
@@ -867,9 +884,32 @@ public class ContratosVigilanciaView
         return switch (filtroEstado.getValue()) {
 
             case "Activos" -> true;
-            case "Inactivos" -> false;
+            case "Finalizados" -> false;
             default -> null;
         };
+    }
+
+    private String obtenerEstadoVisible(
+            ContratoVigilanciaDTO contrato) {
+
+        if (Boolean.TRUE.equals(contrato.getActivo())) {
+            return "ACTIVO";
+        }
+
+        if ("CANCELACION".equals(contrato.getMotivoBaja())) {
+            return "CANCELADO";
+        }
+
+        if ("CIERRE_SUCURSAL".equals(contrato.getMotivoBaja())) {
+            return "BAJA POR CIERRE DE SUCURSAL";
+        }
+
+        if (contrato.getFecha() != null
+                && contrato.getFecha().isBefore(LocalDate.now())) {
+            return "CUMPLIDO";
+        }
+
+        return "FINALIZADO";
     }
 
     /*
