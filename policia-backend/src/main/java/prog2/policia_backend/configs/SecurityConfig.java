@@ -70,7 +70,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/*").hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
                 .requestMatchers(HttpMethod.GET, "/api/**")
                 .hasAuthority("LECTURA")
-                // Creación, modificación o eliminación requieren escritura
+                // Creación, modificación o eliminación requieren escritura - cambio password
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/password")
+                .authenticated()
                 .requestMatchers("/api/**")
                 .hasAuthority("ESCRITURA")
                 .requestMatchers("/error")

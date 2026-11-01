@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import prog2.policia_backend.DTOs.AsaltanteDTO;
 import prog2.policia_backend.DTOs.BandaDTO;
 import prog2.policia_backend.exceptions.BandaConMiembrosException;
 import prog2.policia_backend.exceptions.BandaYaActivaException;
@@ -113,5 +114,27 @@ public class BandaService {
         }
 
         return resultado.get();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AsaltanteDTO> listarIntegrantes(String codigo) {
+        Banda banda = obtenerBanda(codigo);
+
+        return asaltanteRepository.findByBanda_IdAndActivoTrue(banda.getId())
+                .stream()
+                .map(asaltante -> new AsaltanteDTO(
+                asaltante.getId(),
+                asaltante.getNombre(),
+                banda.getCodigo(),
+                asaltante.getCodigo(),
+                asaltante.getMotivoBaja(),
+                null,
+                asaltante.isActivo(),
+                asaltante.getFechaCreacion(),
+                asaltante.getFechaModificacion(),
+                asaltante.getCreadoPor(),
+                asaltante.getModificadoPor()
+        ))
+                .toList();
     }
 }
