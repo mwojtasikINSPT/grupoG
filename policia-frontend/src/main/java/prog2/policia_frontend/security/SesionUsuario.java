@@ -1,51 +1,46 @@
 
 package prog2.policia_frontend.security;
 
-
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 import org.springframework.http.HttpHeaders;
 
-//si entran con dif sesiones no se mezclan los datos
+/**
+ * Conserva la identidad y los permisos de una única sesión de Vaadin.
+ */
 @Component
 @VaadinSessionScope
 public class SesionUsuario {
 
     private UsuarioDTO usuario;
     private String contrasena;
-    
-    
-    /*
- * Guarda los datos cuando el backend
- * confirma que las credenciales son correctas.
- */
-public void iniciarSesion(
-        UsuarioDTO usuario,
-        String contrasena) {
+    private Set<String> permisos = new HashSet<>();
 
-    this.usuario = usuario;
-    this.contrasena = contrasena;
-}
+    public void iniciarSesion(
+            ResultadoAutenticacion resultado,
+            String contrasena) {
 
-/*
- * Comprueba si actualmente existe
- * un usuario autenticado.
- */
-public boolean estaAutenticado() {
+        if (resultado == null || resultado.getUsuario() == null) {
+            throw new IllegalArgumentException(
+                    "El resultado de autenticación es obligatorio."
+            );
+        }
 
-    return usuario != null;
-}
+        this.usuario = resultado.getUsuario();
+        this.contrasena = contrasena;
+        this.permisos = new HashSet<>(resultado.getPermisos());
+    }
 
+    public boolean estaAutenticado() {
+        return usuario != null;
+    }
 
-/*
- * Devuelve los datos del usuario conectado.
- * No devuelve la contraseña.
- */
-public UsuarioDTO getUsuario() {
-
-    return usuario;
-}
+    public UsuarioDTO getUsuario() {
+        return usuario;
+    }
 
 /*
  * Coloca las credenciales del usuario conectado
@@ -54,39 +49,28 @@ public UsuarioDTO getUsuario() {
  * De esta manera, las vistas y los clientes
  * no necesitan obtener directamente la contraseña.
  */
-public void aplicarAutenticacion(
-        HttpHeaders encabezados) {
+    public void aplicarAutenticacion(
+            HttpHeaders encabezados) {
 
-    if (!estaAutenticado()
-            || contrasena == null) {
+        if (!estaAutenticado() || contrasena == null) {
 
-        throw new IllegalStateException(
-                "No existe una sesión autenticada."
+            throw new IllegalStateException(
+                    "No existe una sesión autenticada."
+            );
+        }
+
+        encabezados.setBasicAuth(
+                usuario.getCodigo(),
+                contrasena
         );
     }
 
-    encabezados.setBasicAuth(
-            usuario.getCodigo(),
-            contrasena
-    );
-}
-
-
-
-
-
     public void cerrarSesion() {
+        usuario = null;
+        contrasena = null;
+        permisos.clear();
+    }
 
-    // Borra de la sesión los datos del usuario autenticado.
-    usuario = null;
-    contrasena = null;
-
-   
-}
-    /*
- * Comprueba si el usuario conectado
- * posee el rol recibido.
- */
     public boolean tieneRol(String rol) {
 
         if (!estaAutenticado()) {
@@ -99,40 +83,17 @@ public void aplicarAutenticacion(
 
         return usuario.getRol().equalsIgnoreCase(rol);
     }
-    /*
- * Comprueba si el usuario conectado
- * posee un permiso determinado.
- */ 
     public boolean tienePermiso(String permisoBuscado) {
 
-  
-    if (!estaAutenticado()) {
-        return false;
-    }
+        if (!estaAutenticado()
+                || permisoBuscado == null
+                || permisoBuscado.isBlank()) {
+            return false;
+        }
 
-  
-    if (permisoBuscado == null
-            || permisoBuscado.isBlank()) {
-        return false;
+        return permisos.stream()
+                .anyMatch(permiso
+                        -> permiso != null
+                        && permiso.equalsIgnoreCase(permisoBuscado));
     }
-
-    // Evita errores si el backend todavía
-    // no envía la lista de permisos.
-    if (usuario.getPermisos() == null) {
-        return false;
-    }
-
-    /*
-     * Recorre los permisos del usuario y comprueba
-     * si alguno coincide con el permiso buscado.
-     */
-    return usuario.getPermisos()
-            .stream()
-            .anyMatch(permiso
-                    -> permiso != null
-                    && permiso.equalsIgnoreCase(
-                            permisoBuscado
-                    )
-            );
-}
 }

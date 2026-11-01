@@ -7,6 +7,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.VigilanteDTO;
+import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
 /*
@@ -77,6 +78,29 @@ public class VigilanteClient {
         return vigilantes != null
                 ? vigilantes
                 : List.of();
+    }
+
+    /**
+     * Consulta los contratos del vigilante autenticado mediante la ruta que el
+     * backend autoriza para lectura de datos propios.
+     */
+    public List<ContratoVigilanciaDTO> listarContratosPropios(
+            String codigo) {
+
+        validarCodigo(codigo);
+
+        List<ContratoVigilanciaDTO> contratos = restClient.get()
+                .uri(
+                        "/vigilantes/{codigo}/contratos",
+                        codigo.trim().toUpperCase()
+                )
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve()
+                .body(new ParameterizedTypeReference
+                        <List<ContratoVigilanciaDTO>>() {
+                });
+
+        return contratos != null ? contratos : List.of();
     }
 
     /*

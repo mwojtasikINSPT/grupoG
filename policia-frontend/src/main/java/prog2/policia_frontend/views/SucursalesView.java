@@ -16,6 +16,7 @@ import com.vaadin.flow.router.Route;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.SucursalClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
@@ -49,6 +50,9 @@ public class SucursalesView
 
     private final Grid<SucursalDTO> tabla
             = new Grid<>(SucursalDTO.class, false);
+
+    private final PaginadorGrid<SucursalDTO> paginadorSucursales
+            = new PaginadorGrid<>(tabla, 10);
 
     private final TextField filtroDomicilio
             = new TextField("Buscar por domicilio");
@@ -179,7 +183,8 @@ public class SucursalesView
                  titulo,
         botonNuevaSucursal,
         filtros,
-        tabla
+        tabla,
+        paginadorSucursales.getControles()
         );
 
         expand(tabla);
@@ -958,7 +963,7 @@ private void reactivarSucursal(
                 );
             }
 
-            tabla.setItems(sucursales);
+            paginadorSucursales.setItems(sucursales);
 
             if (sucursales.isEmpty()) {
 

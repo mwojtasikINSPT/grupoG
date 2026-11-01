@@ -3,6 +3,7 @@ package prog2.policia_frontend.dtos;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 /*
  * Representa los datos que el frontend envía y recibe
@@ -13,13 +14,15 @@ public class CasoJudicialDTO {
 
     private Long id;
     private Boolean sentenciado;
-    private Boolean condenado;
-    private Integer tiempoCarcel;
     private String asaltoCodigo;
     private List<String> asaltanteCodigos = new ArrayList<>();
     private String juezCodigo;
     private String codigo;
     private Boolean activo;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaModificacion;
+    private String creadoPor;
+    private String modificadoPor;
 
     public CasoJudicialDTO() {
     }
@@ -52,22 +55,6 @@ public class CasoJudicialDTO {
 
     public void setSentenciado(Boolean sentenciado) {
         this.sentenciado = sentenciado;
-    }
-
-    public Boolean getCondenado() {
-        return condenado;
-    }
-
-    public void setCondenado(Boolean condenado) {
-        this.condenado = condenado;
-    }
-
-    public Integer getTiempoCarcel() {
-        return tiempoCarcel;
-    }
-
-    public void setTiempoCarcel(Integer tiempoCarcel) {
-        this.tiempoCarcel = tiempoCarcel;
     }
 
     public String getAsaltoCodigo() {
@@ -108,5 +95,37 @@ public class CasoJudicialDTO {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public LocalDateTime getFechaModificacion() {
+        return fechaModificacion;
+    }
+
+    public void setFechaModificacion(LocalDateTime fechaModificacion) {
+        this.fechaModificacion = fechaModificacion;
+    }
+
+    public String getCreadoPor() {
+        return creadoPor;
+    }
+
+    public void setCreadoPor(String creadoPor) {
+        this.creadoPor = creadoPor;
+    }
+
+    public String getModificadoPor() {
+        return modificadoPor;
+    }
+
+    public void setModificadoPor(String modificadoPor) {
+        this.modificadoPor = modificadoPor;
     }
 }
