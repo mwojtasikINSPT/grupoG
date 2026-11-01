@@ -32,6 +32,7 @@ import prog2.policia_frontend.views.RolesView;
 import prog2.policia_frontend.views.SucursalesView;
 import prog2.policia_frontend.views.UsuariosView;
 import prog2.policia_frontend.views.VigilantesView;
+import com.vaadin.flow.component.applayout.DrawerToggle;
 
 /*
  * Estructura general de todas las pantallas privadas.
@@ -78,13 +79,8 @@ public class MainLayout extends AppLayout
          * desactiva ese comportamiento responsive mediante la propiedad
          * oficial del componente.
          */
-        setPrimarySection(AppLayout.Section.DRAWER);
-        getElement().getStyle().set(
-                "--vaadin-app-layout-drawer-overlay",
-                "false"
-        );
-        setDrawerOpened(true);
-
+       setPrimarySection(AppLayout.Section.NAVBAR);
+       
         crearEncabezado();
         crearMenuLateral();
     }
@@ -114,20 +110,29 @@ public class MainLayout extends AppLayout
         encabezado.setAlignItems(
                 HorizontalLayout.Alignment.CENTER
         );
+        
 
         /*
          * Hace que el título ocupe el espacio disponible
          * y empuja los datos del usuario hacia la derecha.
          */
-        encabezado.expand(titulo);
+       DrawerToggle botonMenu = new DrawerToggle();
+botonMenu.setAriaLabel("Mostrar u ocultar el menú");
+botonMenu.setTooltipText("Mostrar u ocultar el menú");
 
-        encabezado.add(
-                titulo,
-                datosUsuario,
-                botonCerrarSesion
-        );
-        //lo deja en la parte superior
-        addToNavbar(encabezado);
+// Quita el margen propio del H2 para que el título quede pegado al botón
+titulo.getStyle().set("margin", "0");
+
+encabezado.expand(titulo);
+
+encabezado.add(
+        botonMenu,
+        titulo,
+        datosUsuario,
+        botonCerrarSesion
+);
+
+addToNavbar(encabezado);
     }
 
     /*
