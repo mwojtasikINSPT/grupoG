@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -21,6 +22,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.BandaClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.dtos.BandaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
@@ -46,6 +48,9 @@ public class AsaltantesView
 
     private final Grid<AsaltanteDTO> tabla
             = new Grid<>(AsaltanteDTO.class, false);
+
+    private final PaginadorGrid<AsaltanteDTO> paginador
+            = new PaginadorGrid<>(tabla, 10);
 
     private final TextField filtroNombre
             = new TextField("Buscar por nombre");
@@ -181,7 +186,11 @@ public class AsaltantesView
         }).setHeader("Acciones")
                 .setAutoWidth(true);
 
-        tabla.setSizeFull();
+        tabla.setWidthFull();
+        tabla.setAllRowsVisible(true);
+        tabla.addThemeVariants(
+                GridVariant.LUMO_COMPACT
+        );
     }
 
     private void configurarVista() {
@@ -231,10 +240,9 @@ public class AsaltantesView
                 titulo,
                 botonNuevo,
                 filtros,
-                tabla
+                tabla,
+                paginador.getControles()
         );
-
-        expand(tabla);
     }
 
     /*
@@ -509,7 +517,7 @@ public class AsaltantesView
 
         try {
 
-            tabla.setItems(
+            paginador.setItems(
                     asaltanteClient.listar(
                             obtenerEstado(),
                             filtroNombre.getValue()

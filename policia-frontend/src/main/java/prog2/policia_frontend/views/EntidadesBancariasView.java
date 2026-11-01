@@ -18,6 +18,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
+import prog2.policia_frontend.dtos.RespuestaErrorDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import com.vaadin.flow.component.dialog.Dialog;
 import prog2.policia_frontend.security.PermisosApp;
@@ -649,7 +650,10 @@ private void mostrarErrorOperacion(
     } else if (estado == 409) {
 
         Notification.show(
-                "La operación entra en conflicto con los datos existentes."
+                obtenerMensajeBackend(
+                        excepcion,
+                        "La operación entra en conflicto con los datos existentes."
+                )
         );
 
     } else {
@@ -657,6 +661,34 @@ private void mostrarErrorOperacion(
         Notification.show(
                 "No se pudo completar la operación."
         );
+    }
+}
+
+/*
+ * Recupera el mensaje explicativo que el backend envía en su respuesta JSON.
+ * Si la respuesta no tiene el formato esperado, conserva un texto seguro.
+ */
+private String obtenerMensajeBackend(
+        RestClientResponseException excepcion,
+        String mensajeAlternativo) {
+
+    try {
+
+        RespuestaErrorDTO respuesta
+                = excepcion.getResponseBodyAs(
+                        RespuestaErrorDTO.class
+                );
+
+        String mensaje = respuesta != null
+                ? respuesta.getMensaje()
+                : null;
+
+        return mensaje == null || mensaje.isBlank()
+                ? mensajeAlternativo
+                : mensaje;
+
+    } catch (RuntimeException excepcionConversion) {
+        return mensajeAlternativo;
     }
 }
 
