@@ -1,5 +1,6 @@
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -14,8 +15,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import java.time.LocalDate;
+import java.util.Map;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.JuezClient;
@@ -110,12 +113,17 @@ public class JuecesView
 
         tabla.addComponentColumn(juez -> {
 
+            Button botonVerCasos = new Button(
+                    "Ver casos",
+                    evento -> verCasos(juez)
+            );
+
             /*
              * La lectura permite consultar jueces, pero las acciones
              * que cambian datos requieren permiso de escritura.
              */
             if (!puedeEscribir()) {
-                return new Span("Solo lectura");
+                return botonVerCasos;
             }
 
             boolean estaActivo
@@ -165,6 +173,7 @@ public class JuecesView
             }
 
             return new HorizontalLayout(
+                    botonVerCasos,
                     botonModificar,
                     botonEstado
             );
@@ -173,6 +182,15 @@ public class JuecesView
                 .setAutoWidth(true);
 
         tabla.setSizeFull();
+    }
+
+    private void verCasos(JuezDTO juez) {
+        UI.getCurrent().navigate(
+                CasosJudicialesView.class,
+                QueryParameters.simple(
+                        Map.of("juez", juez.getCodigo())
+                )
+        );
     }
 
     private void configurarVista() {

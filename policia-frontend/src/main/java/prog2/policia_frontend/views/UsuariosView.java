@@ -397,19 +397,37 @@ private void abrirFormularioEdicion(
         boolean nombreVacio
                 = campoNombre.getValue().isBlank();
 
+        String nuevaPassword
+                = campoPassword.getValue();
+
+        boolean passwordInvalida
+                = !nuevaPassword.isBlank()
+                && (nuevaPassword.length() < 4
+                || nuevaPassword.length() > 20);
+
         campoNombre.setInvalid(nombreVacio);
         campoNombre.setErrorMessage(
                 "El nombre es obligatorio."
         );
 
-        if (nombreVacio) {
+        campoPassword.setInvalid(passwordInvalida);
+        campoPassword.setErrorMessage(
+                "La contraseña debe tener entre 4 y 20 caracteres."
+        );
+
+        if (nombreVacio || passwordInvalida) {
             return;
         }
+
+        String passwordParaEnviar
+                = nuevaPassword.isBlank()
+                        ? null
+                        : nuevaPassword;
 
         UsuarioFormularioDTO datos
                 = new UsuarioFormularioDTO(
                         campoNombre.getValue().trim(),
-                        campoPassword.getValue(),
+                        passwordParaEnviar,
                         null
                 );
 

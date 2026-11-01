@@ -23,6 +23,7 @@ import prog2.policia_frontend.clients.EntidadBancariaClient;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.NumberField;
 import java.util.List;
+import java.util.Map;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
@@ -75,6 +76,8 @@ public class SucursalesView
     
     private final Button botonNuevaSucursal
         = new Button("Nueva sucursal");
+
+    private List<EntidadBancariaDTO> entidadesDisponibles = List.of();
 
    public SucursalesView(
         SucursalClient sucursalClient,
@@ -870,6 +873,7 @@ private void reactivarSucursal(
             BeforeEnterEvent evento) {
 
         cargarOpcionesFiltros();
+        aplicarFiltroRecibido(evento);
         cargarSucursales();
     }
 
@@ -983,9 +987,10 @@ private void reactivarSucursal(
 
         try {
 
-            filtroEntidad.setItems(
-                    entidadClient.listar(null, null, null)
-            );
+            entidadesDisponibles
+                    = entidadClient.listar(null, null, null);
+
+            filtroEntidad.setItems(entidadesDisponibles);
 
         } catch (RestClientResponseException excepcion) {
 
@@ -998,6 +1003,31 @@ private void reactivarSucursal(
             NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
+        }
+    }
+
+    private void aplicarFiltroRecibido(BeforeEnterEvent evento) {
+        Map<String, List<String>> parametros = evento.getLocation()
+                .getQueryParameters()
+                .getParameters();
+
+        List<String> valores = parametros.get("entidad");
+
+        if (valores == null || valores.isEmpty()) {
+            return;
+        }
+
+        String codigoEntidad = valores.get(0);
+
+        EntidadBancariaDTO entidad = entidadesDisponibles.stream()
+                .filter(item -> codigoEntidad.equalsIgnoreCase(
+                item.getCodigo()))
+                .findFirst()
+                .orElse(null);
+
+        if (entidad != null) {
+            filtroTipoBusqueda.setValue("Por entidad bancaria");
+            filtroEntidad.setValue(entidad);
         }
     }
 

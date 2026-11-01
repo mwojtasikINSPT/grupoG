@@ -1,5 +1,6 @@
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -16,8 +17,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import java.util.List;
+import java.util.Map;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.AsaltanteClient;
@@ -130,12 +133,17 @@ public class AsaltantesView
 
         tabla.addComponentColumn(asaltante -> {
 
+            Button botonVerCasos = new Button(
+                    "Ver casos",
+                    evento -> verCasos(asaltante)
+            );
+
             /*
              * Un permiso de lectura permite consultar los asaltantes,
              * pero no modificar sus datos, estado ni banda asignada.
              */
             if (!puedeEscribir()) {
-                return new Span("Solo lectura");
+                return botonVerCasos;
             }
 
             boolean estaActivo
@@ -180,6 +188,7 @@ public class AsaltantesView
             }
 
             return new HorizontalLayout(
+                    botonVerCasos,
                     botonModificar,
                     botonBaja
             );
@@ -191,6 +200,15 @@ public class AsaltantesView
         tabla.setAllRowsVisible(true);
         tabla.addThemeVariants(
                 GridVariant.LUMO_COMPACT
+        );
+    }
+
+    private void verCasos(AsaltanteDTO asaltante) {
+        UI.getCurrent().navigate(
+                CasosJudicialesView.class,
+                QueryParameters.simple(
+                        Map.of("asaltante", asaltante.getCodigo())
+                )
         );
     }
 

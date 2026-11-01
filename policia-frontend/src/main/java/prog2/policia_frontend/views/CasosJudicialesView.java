@@ -16,6 +16,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import java.util.List;
+import java.util.Map;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.AsaltanteClient;
@@ -53,6 +54,8 @@ public class CasosJudicialesView extends VerticalLayout
     private final Select<String> filtroRelacion = new Select<>();
     private final Select<JuezDTO> filtroJuez = new Select<>();
     private final Select<AsaltanteDTO> filtroAsaltante = new Select<>();
+    private List<JuezDTO> juecesDisponibles = List.of();
+    private List<AsaltanteDTO> asaltantesDisponibles = List.of();
 
     public CasosJudicialesView(
             CasoJudicialClient casoJudicialClient,
@@ -479,8 +482,10 @@ public class CasosJudicialesView extends VerticalLayout
 
     private void cargarOpcionesFiltros() {
         try {
-            filtroJuez.setItems(juezClient.listar(null, null));
-            filtroAsaltante.setItems(asaltanteClient.listar(null, null));
+            juecesDisponibles = juezClient.listar(null, null);
+            asaltantesDisponibles = asaltanteClient.listar(null, null);
+            filtroJuez.setItems(juecesDisponibles);
+            filtroAsaltante.setItems(asaltantesDisponibles);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
@@ -508,6 +513,52 @@ public class CasosJudicialesView extends VerticalLayout
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
         cargarOpcionesFiltros();
+        aplicarFiltroRecibido(evento);
         cargarCasos();
+    }
+
+    private void aplicarFiltroRecibido(BeforeEnterEvent evento) {
+        Map<String, List<String>> parametros = evento.getLocation()
+                .getQueryParameters()
+                .getParameters();
+
+        String codigoAsaltante = primerParametro(
+                parametros,
+                "asaltante"
+        );
+        String codigoJuez = primerParametro(parametros, "juez");
+
+        if (codigoAsaltante != null) {
+            AsaltanteDTO asaltante = asaltantesDisponibles.stream()
+                    .filter(item -> codigoAsaltante.equalsIgnoreCase(
+                    item.getCodigo()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (asaltante != null) {
+                filtroRelacion.setValue("Por asaltante");
+                filtroAsaltante.setValue(asaltante);
+            }
+        } else if (codigoJuez != null) {
+            JuezDTO juez = juecesDisponibles.stream()
+                    .filter(item -> codigoJuez.equalsIgnoreCase(
+                    item.getCodigo()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (juez != null) {
+                filtroRelacion.setValue("Por juez");
+                filtroJuez.setValue(juez);
+            }
+        }
+    }
+
+    private String primerParametro(
+            Map<String, List<String>> parametros,
+            String nombre) {
+        List<String> valores = parametros.get(nombre);
+        return valores == null || valores.isEmpty()
+                ? null
+                : valores.get(0);
     }
 }

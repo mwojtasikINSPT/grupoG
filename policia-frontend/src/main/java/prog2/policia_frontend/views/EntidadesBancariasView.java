@@ -1,6 +1,7 @@
 
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
@@ -13,7 +14,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import java.util.Map;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
@@ -195,8 +198,13 @@ public class EntidadesBancariasView
          */
         tabla.addComponentColumn(entidad -> {
 
+            Button botonVerSucursales = new Button(
+                    "Ver sucursales",
+                    evento -> verSucursales(entidad)
+            );
+
             if (!puedeEscribir()) {
-                return new Span("Solo lectura");
+                return botonVerSucursales;
             }
 
             Button botonModificar
@@ -240,6 +248,7 @@ public class EntidadesBancariasView
             }
 
             return new HorizontalLayout(
+                    botonVerSucursales,
                     botonModificar,
                     botonEstado
             );
@@ -248,6 +257,15 @@ public class EntidadesBancariasView
                 .setAutoWidth(true);
 
         tabla.setSizeFull();
+    }
+
+    private void verSucursales(EntidadBancariaDTO entidad) {
+        UI.getCurrent().navigate(
+                SucursalesView.class,
+                QueryParameters.simple(
+                        Map.of("entidad", entidad.getCodigo())
+                )
+        );
     }
 
     /*
