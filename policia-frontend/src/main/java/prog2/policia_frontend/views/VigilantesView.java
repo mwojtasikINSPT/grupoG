@@ -19,6 +19,7 @@ import prog2.policia_frontend.dtos.VigilanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -760,46 +761,7 @@ private void abrirFormularioNuevo() {
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-
-    int estado
-            = excepcion.getStatusCode().value();
-
-    if (estado == 400) {
-
-        Notification.show(
-                "Los datos ingresados no son válidos."
-        );
-
-    } else if (estado == 401) {
-
-        Notification.show(
-                "La sesión no es válida."
-        );
-
-    } else if (estado == 403) {
-
-        Notification.show(
-                "No tiene permiso para realizar esta operación."
-        );
-
-    } else if (estado == 404) {
-
-        Notification.show(
-                "No se encontró el recurso solicitado."
-        );
-
-    } else if (estado == 409) {
-
-        Notification.show(
-                "La operación no puede realizarse en el estado actual."
-        );
-
-    } else {
-
-        Notification.show(
-                "No se pudo completar la operación."
-        );
-    }
+    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
     /*
@@ -842,28 +804,7 @@ private void mostrarErrorOperacion(
             );
 
         } catch (RestClientResponseException excepcion) {
-
-            int estado
-                    = excepcion.getStatusCode().value();
-
-            if (estado == 401) {
-
-                Notification.show(
-                        "La sesión no es válida."
-                );
-
-            } else if (estado == 403) {
-
-                Notification.show(
-                        "No tiene permiso para consultar vigilantes."
-                );
-
-            } else {
-
-                Notification.show(
-                        "No se pudieron consultar los vigilantes."
-                );
-            }
+            mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
 

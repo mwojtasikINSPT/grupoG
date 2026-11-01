@@ -16,8 +16,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.AsaltanteClient;
@@ -32,6 +30,7 @@ import prog2.policia_frontend.dtos.SentenciaAsaltanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /**
  * Administra los casos judiciales y las sentencias individuales de sus
@@ -499,45 +498,7 @@ public class CasosJudicialesView extends VerticalLayout
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        int estado = excepcion.getStatusCode().value();
-        String mensaje = obtenerMensajeBackend(excepcion);
-
-        if (estado == 400) {
-            Notification.show(mensaje != null
-                    ? mensaje : "Los datos ingresados no son válidos.");
-        } else if (estado == 401) {
-            Notification.show("La sesión no es válida.");
-        } else if (estado == 403) {
-            Notification.show("No tiene permiso para realizar esta operación.");
-        } else if (estado == 404) {
-            Notification.show(mensaje != null
-                    ? mensaje : "No se encontró el recurso solicitado.");
-        } else if (estado == 409) {
-            Notification.show(mensaje != null
-                    ? mensaje : "La operación no está permitida.");
-        } else {
-            Notification.show("No se pudo completar la operación.");
-        }
-    }
-
-    private String obtenerMensajeBackend(
-            RestClientResponseException excepcion) {
-        String cuerpo = excepcion.getResponseBodyAsString();
-        if (cuerpo == null || cuerpo.isBlank()) {
-            return null;
-        }
-
-        Pattern patron = Pattern.compile(
-                "\\\"(?:mensaje|error)\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"");
-        Matcher coincidencia = patron.matcher(cuerpo);
-        if (!coincidencia.find()) {
-            return null;
-        }
-
-        return coincidencia.group(1)
-                .replace("\\\\\"", "\"")
-                .replace("\\\\n", " ")
-                .replace("\\\\\\\\", "\\");
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     private boolean puedeEscribir() {

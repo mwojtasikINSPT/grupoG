@@ -23,6 +23,7 @@ import prog2.policia_frontend.dtos.JuezDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para administrar jueces.
@@ -469,37 +470,7 @@ public class JuecesView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-
-        int estado = excepcion.getStatusCode().value();
-
-        if (estado == 400) {
-
-            Notification.show("Los datos ingresados no son válidos.");
-
-        } else if (estado == 401) {
-
-            Notification.show("La sesión no es válida.");
-
-        } else if (estado == 403) {
-
-            Notification.show(
-                    "No tiene permiso para realizar esta operación."
-            );
-
-        } else if (estado == 404) {
-
-            Notification.show("No se encontró el juez solicitado.");
-
-        } else if (estado == 409) {
-
-            Notification.show(
-                    "No se puede dar de baja al juez porque tiene casos judiciales activos."
-            );
-
-        } else {
-
-            Notification.show("No se pudo completar la operación.");
-        }
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override

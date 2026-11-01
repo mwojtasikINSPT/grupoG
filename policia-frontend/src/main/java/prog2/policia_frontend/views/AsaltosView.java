@@ -30,6 +30,7 @@ import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para administrar asaltos.
@@ -606,46 +607,7 @@ public class AsaltosView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-
-        int estado
-                = excepcion.getStatusCode().value();
-
-        if (estado == 400) {
-
-            Notification.show(
-                    "Los datos ingresados no son válidos."
-            );
-
-        } else if (estado == 401) {
-
-            Notification.show(
-                    "La sesión no es válida."
-            );
-
-        } else if (estado == 403) {
-
-            Notification.show(
-                    "No tiene permiso para realizar esta operación."
-            );
-
-        } else if (estado == 404) {
-
-            Notification.show(
-                    "No se encontró el recurso solicitado."
-            );
-
-        } else if (estado == 409) {
-
-            Notification.show(
-                    "No se puede quitar un participante asociado a un caso judicial."
-            );
-
-        } else {
-
-            Notification.show(
-                    "No se pudo completar la operación."
-            );
-        }
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*

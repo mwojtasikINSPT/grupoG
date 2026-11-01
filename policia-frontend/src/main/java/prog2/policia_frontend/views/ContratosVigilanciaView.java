@@ -29,6 +29,7 @@ import prog2.policia_frontend.dtos.VigilanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para consultar y administrar
@@ -365,17 +366,7 @@ public class ContratosVigilanciaView
                 );
 
             } catch (RestClientResponseException excepcion) {
-
-                if (excepcion.getStatusCode().value() == 409) {
-
-                    Notification.show(
-                            "El contrato ya fue cancelado o cumplido."
-                    );
-
-                } else {
-
-                    mostrarErrorOperacion(excepcion);
-                }
+                mostrarErrorOperacion(excepcion);
 
             } catch (ResourceAccessException excepcion) {
 
@@ -864,46 +855,7 @@ public class ContratosVigilanciaView
      */
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-
-        int estado
-                = excepcion.getStatusCode().value();
-
-        if (estado == 400) {
-
-            Notification.show(
-                    "Los datos ingresados no son válidos."
-            );
-
-        } else if (estado == 401) {
-
-            Notification.show(
-                    "La sesión no es válida."
-            );
-
-        } else if (estado == 403) {
-
-            Notification.show(
-                    "No tiene permiso para realizar esta operación."
-            );
-
-        } else if (estado == 404) {
-
-            Notification.show(
-                    "No se encontró el recurso solicitado."
-            );
-
-        } else if (estado == 409) {
-
-            Notification.show(
-                    "El vigilante ya posee un contrato activo en esa fecha."
-            );
-
-        } else {
-
-            Notification.show(
-                    "No se pudo completar la operación."
-            );
-        }
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*
@@ -1031,28 +983,7 @@ public class ContratosVigilanciaView
             }
 
         } catch (RestClientResponseException excepcion) {
-
-            int estado
-                    = excepcion.getStatusCode().value();
-
-            if (estado == 401) {
-
-                Notification.show(
-                        "La sesión no es válida."
-                );
-
-            } else if (estado == 403) {
-
-                Notification.show(
-                        "No tiene permiso para consultar contratos."
-                );
-
-            } else {
-
-                Notification.show(
-                        "No se pudieron consultar los contratos."
-                );
-            }
+            mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
 

@@ -21,6 +21,7 @@ import prog2.policia_frontend.dtos.BandaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para administrar bandas.
@@ -248,17 +249,7 @@ public class BandasView
                 );
 
             } catch (RestClientResponseException excepcion) {
-
-                if (excepcion.getStatusCode().value() == 409) {
-
-                    Notification.show(
-                            "La banda posee asaltantes activos y no puede darse de baja."
-                    );
-
-                } else {
-
-                    mostrarErrorOperacion(excepcion);
-                }
+                mostrarErrorOperacion(excepcion);
 
             } catch (ResourceAccessException excepcion) {
 
@@ -359,40 +350,7 @@ public class BandasView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-
-        int estado
-                = excepcion.getStatusCode().value();
-
-        if (estado == 401) {
-
-            Notification.show(
-                    "La sesión no es válida."
-            );
-
-        } else if (estado == 403) {
-
-            Notification.show(
-                    "No tiene permiso para realizar esta operación."
-            );
-
-        } else if (estado == 404) {
-
-            Notification.show(
-                    "No se encontró la banda solicitada."
-            );
-
-        } else if (estado == 409) {
-
-            Notification.show(
-                    "La operación no puede realizarse en el estado actual."
-            );
-
-        } else {
-
-            Notification.show(
-                    "No se pudo completar la operación."
-            );
-        }
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override

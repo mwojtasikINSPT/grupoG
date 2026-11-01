@@ -71,6 +71,27 @@ public class SesionUsuario {
         permisos.clear();
     }
 
+    /**
+     * Actualiza la credencial usada por las siguientes peticiones al backend.
+     * Debe invocarse únicamente después de que el cambio fue aceptado.
+     */
+    public void actualizarContrasena(String nuevaContrasena) {
+
+        if (!estaAutenticado()) {
+            throw new IllegalStateException(
+                    "No existe una sesión autenticada."
+            );
+        }
+
+        if (nuevaContrasena == null || nuevaContrasena.isBlank()) {
+            throw new IllegalArgumentException(
+                    "La nueva contraseña es obligatoria."
+            );
+        }
+
+        this.contrasena = nuevaContrasena;
+    }
+
     public boolean tieneRol(String rol) {
 
         if (!estaAutenticado()) {
