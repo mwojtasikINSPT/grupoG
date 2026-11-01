@@ -4,7 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -344,7 +344,7 @@ private void abrirFormularioEdicion(
 
     } catch (ResourceAccessException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se pueden consultar las entidades bancarias."
         );
         return;
@@ -486,7 +486,7 @@ private void abrirFormularioEdicion(
             dialogo.close();
             cargarSucursales();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Sucursal modificada correctamente."
             );
 
@@ -496,13 +496,13 @@ private void abrirFormularioEdicion(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -548,7 +548,7 @@ private void abrirFormularioNuevo() {
 
     } catch (ResourceAccessException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se pueden consultar las entidades bancarias."
         );
         return;
@@ -556,7 +556,7 @@ private void abrirFormularioNuevo() {
 
     if (entidadesActivas.isEmpty()) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No existen entidades bancarias activas."
         );
         return;
@@ -670,7 +670,7 @@ private void abrirFormularioNuevo() {
             dialogo.close();
             cargarSucursales();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Sucursal creada correctamente."
             );
 
@@ -680,13 +680,13 @@ private void abrirFormularioNuevo() {
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -780,7 +780,7 @@ private void abrirDialogoBaja(
             dialogo.close();
             cargarSucursales();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Sucursal dada de baja correctamente."
             );
 
@@ -790,13 +790,13 @@ private void abrirDialogoBaja(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -824,7 +824,7 @@ private void abrirDialogoBaja(
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
 /*
@@ -842,7 +842,7 @@ private void reactivarSucursal(
 
         cargarSucursales();
 
-        Notification.show(
+        NotificacionUtils.mostrarExito(
                 "Sucursal reactivada correctamente."
         );
 
@@ -852,13 +852,13 @@ private void reactivarSucursal(
 
     } catch (ResourceAccessException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se puede conectar con el backend."
         );
 
     } catch (IllegalArgumentException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 excepcion.getMessage()
         );
     }
@@ -900,7 +900,7 @@ private void reactivarSucursal(
                 EntidadBancariaDTO entidad = filtroEntidad.getValue();
 
                 if (entidad == null) {
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "Seleccione una entidad bancaria."
                     );
                     return;
@@ -935,7 +935,7 @@ private void reactivarSucursal(
                             ? " con el estado seleccionado"
                             : "";
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "La entidad bancaria seleccionada no tiene sucursales"
                                     + aclaracionEstado
                                     + "."
@@ -944,7 +944,7 @@ private void reactivarSucursal(
                 } else if (filtroDomicilio.getValue() != null
                         && !filtroDomicilio.getValue().isBlank()) {
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "No se encontraron sucursales cuyo domicilio coincida con: "
                                     + filtroDomicilio.getValue().trim()
                                     + "."
@@ -952,7 +952,7 @@ private void reactivarSucursal(
 
                 } else if (estado != null) {
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "No existen sucursales con el estado seleccionado."
                     );
                 }
@@ -963,19 +963,19 @@ private void reactivarSucursal(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(excepcion.getMessage());
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
@@ -989,13 +989,13 @@ private void reactivarSucursal(
 
         } catch (RestClientResponseException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pudieron cargar las entidades bancarias."
             );
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
         }

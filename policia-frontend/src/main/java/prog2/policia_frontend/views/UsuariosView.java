@@ -4,7 +4,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -356,25 +356,6 @@ add(
 private void abrirFormularioEdicion(
         UsuarioDTO usuario) {
 
-    List<RolDTO> rolesActivos;
-
-    try {
-
-        rolesActivos = obtenerRolesAsignables();
-
-    } catch (RestClientResponseException excepcion) {
-
-        mostrarErrorOperacion(excepcion);
-        return;
-
-    } catch (ResourceAccessException excepcion) {
-
-        Notification.show(
-                "No se puede consultar los roles."
-        );
-        return;
-    }
-
     Dialog dialogo = new Dialog();
 
     dialogo.setHeaderTitle(
@@ -400,35 +381,7 @@ private void abrirFormularioEdicion(
             "Dejar vacío para conservar la contraseña actual."
     );
 
-    Select<RolDTO> campoRol
-            = new Select<>();
-
-    campoRol.setLabel("Rol");
-    campoRol.setItemLabelGenerator(
-            RolDTO::getNombre
-    );
-    campoRol.setItems(rolesActivos);
-
-    /*
-     * Busca y selecciona el rol que actualmente
-     * posee el usuario.
-     */
-    RolDTO rolActual = rolesActivos.stream()
-            .filter(rol
-                    -> rol.getNombre() != null
-                    && rol.getNombre().equalsIgnoreCase(
-                            usuario.getRol()
-                    )
-            )
-            .findFirst()
-            .orElse(null);
-
-    if (rolActual != null) {
-        campoRol.setValue(rolActual);
-    }
-
     campoNombre.setRequiredIndicatorVisible(true);
-    campoRol.setRequiredIndicatorVisible(true);
 
     Button botonGuardar
             = new Button("Guardar cambios");
@@ -444,20 +397,12 @@ private void abrirFormularioEdicion(
         boolean nombreVacio
                 = campoNombre.getValue().isBlank();
 
-        boolean rolVacio
-                = campoRol.getValue() == null;
-
         campoNombre.setInvalid(nombreVacio);
         campoNombre.setErrorMessage(
                 "El nombre es obligatorio."
         );
 
-        campoRol.setInvalid(rolVacio);
-        campoRol.setErrorMessage(
-                "Debe seleccionar un rol activo."
-        );
-
-        if (nombreVacio || rolVacio) {
+        if (nombreVacio) {
             return;
         }
 
@@ -465,7 +410,7 @@ private void abrirFormularioEdicion(
                 = new UsuarioFormularioDTO(
                         campoNombre.getValue().trim(),
                         campoPassword.getValue(),
-                        campoRol.getValue().getNombre()
+                        null
                 );
 
         try {
@@ -478,7 +423,7 @@ private void abrirFormularioEdicion(
             dialogo.close();
             cargarUsuarios();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Usuario modificado correctamente."
             );
 
@@ -488,13 +433,13 @@ private void abrirFormularioEdicion(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -510,7 +455,6 @@ private void abrirFormularioEdicion(
             = new VerticalLayout(
                     campoNombre,
                     campoPassword,
-                    campoRol,
                     botones
             );
 
@@ -541,7 +485,7 @@ private void abrirFormularioNuevo() {
 
     } catch (ResourceAccessException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se puede consultar los roles."
         );
         return;
@@ -549,7 +493,7 @@ private void abrirFormularioNuevo() {
 
     if (rolesActivos.isEmpty()) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No existen roles activos disponibles."
         );
         return;
@@ -702,7 +646,7 @@ private void abrirFormularioNuevo() {
             dialogo.close();
             cargarUsuarios();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Usuario creado correctamente."
             );
 
@@ -712,13 +656,13 @@ private void abrirFormularioNuevo() {
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -806,7 +750,7 @@ private void abrirDialogoBaja(
             dialogo.close();
             cargarUsuarios();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Usuario dado de baja correctamente."
             );
 
@@ -816,13 +760,13 @@ private void abrirDialogoBaja(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -856,7 +800,7 @@ private void reactivarUsuario(
 
         cargarUsuarios();
 
-        Notification.show(
+        NotificacionUtils.mostrarExito(
                 "Usuario reactivado correctamente."
         );
 
@@ -866,13 +810,13 @@ private void reactivarUsuario(
 
     } catch (ResourceAccessException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se puede conectar con el backend."
         );
 
     } catch (IllegalArgumentException excepcion) {
 
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 excepcion.getMessage()
         );
     }
@@ -884,20 +828,8 @@ private void reactivarUsuario(
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
-
-    /**
-     * Devuelve los roles que el backend permite asignar a un usuario
-     * genérico. Los vigilantes se crean desde su módulo porque requieren edad.
-     */
-    private List<RolDTO> obtenerRolesAsignables() {
-
-        return rolClient.listar(true).stream()
-                .filter(rol -> rol.getNombre() == null
-                || !rol.getNombre().equalsIgnoreCase("VIGILANTE"))
-                .toList();
-    }
 
     /*
      * Cuando se abre la pantalla,
@@ -987,13 +919,13 @@ private Boolean obtenerEstadoSeleccionado() {
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
         }
@@ -1124,17 +1056,17 @@ private Boolean obtenerEstadoSeleccionado() {
                 );
                 dialogo.close();
                 cargarUsuarios();
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Vigilante modificado correctamente."
                 );
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
             } catch (IllegalArgumentException excepcion) {
-                Notification.show(excepcion.getMessage());
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
@@ -1199,17 +1131,17 @@ private Boolean obtenerEstadoSeleccionado() {
                 );
                 dialogo.close();
                 cargarUsuarios();
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Vigilante dado de baja correctamente."
                 );
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
             } catch (IllegalArgumentException excepcion) {
-                Notification.show(excepcion.getMessage());
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
@@ -1231,17 +1163,17 @@ private Boolean obtenerEstadoSeleccionado() {
                     vigilante.getCodigo()
             );
             cargarUsuarios();
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Vigilante reactivado correctamente."
             );
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
         } catch (IllegalArgumentException excepcion) {
-            Notification.show(excepcion.getMessage());
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 }

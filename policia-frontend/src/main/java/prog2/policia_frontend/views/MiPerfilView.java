@@ -4,7 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -122,17 +122,17 @@ public class MiPerfilView extends VerticalLayout
                 usuarioClient.cambiarPasswordPropia(actual, nueva);
                 sesionUsuario.actualizarContrasena(nueva);
                 dialogo.close();
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Contraseña modificada correctamente."
                 );
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorPassword(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
             } catch (IllegalArgumentException excepcion) {
-                Notification.show(excepcion.getMessage());
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
@@ -147,7 +147,7 @@ public class MiPerfilView extends VerticalLayout
 
     private void mostrarErrorPassword(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*

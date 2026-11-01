@@ -3,7 +3,7 @@ package prog2.policia_frontend.views;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -294,7 +294,7 @@ botonNuevoVigilante.addClickListener(
 
             cargarVigilantes();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Vigilante reactivado correctamente."
             );
 
@@ -304,13 +304,13 @@ botonNuevoVigilante.addClickListener(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -385,7 +385,7 @@ botonNuevoVigilante.addClickListener(
                 dialogo.close();
                 cargarVigilantes();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Vigilante dado de baja correctamente."
                 );
 
@@ -395,13 +395,13 @@ botonNuevoVigilante.addClickListener(
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -559,7 +559,7 @@ botonNuevoVigilante.addClickListener(
                 dialogo.close();
                 cargarVigilantes();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Vigilante modificado correctamente."
                 );
 
@@ -569,13 +569,13 @@ botonNuevoVigilante.addClickListener(
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -715,7 +715,7 @@ private void abrirFormularioNuevo() {
             dialogo.close();
             cargarVigilantes();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Vigilante creado correctamente."
             );
 
@@ -725,13 +725,13 @@ private void abrirFormularioNuevo() {
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -761,7 +761,7 @@ private void abrirFormularioNuevo() {
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
     /*
@@ -808,13 +808,13 @@ private void mostrarErrorOperacion(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
         }

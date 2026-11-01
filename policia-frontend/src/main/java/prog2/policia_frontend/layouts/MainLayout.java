@@ -6,7 +6,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
@@ -17,6 +16,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import java.util.Set;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import prog2.policia_frontend.views.AsaltantesView;
 import prog2.policia_frontend.views.AsaltosView;
 import prog2.policia_frontend.views.BandasView;
@@ -291,7 +291,7 @@ public class MainLayout extends AppLayout
                 PermisosApp.LECTURA
         )) {
 
-            Notification.show(
+            NotificacionUtils.mostrarAdvertencia(
                     "No tiene permiso para ingresar a esta sección."
             );
 
@@ -303,7 +303,7 @@ public class MainLayout extends AppLayout
                 && !sesionUsuario.tienePermiso(
                         PermisosApp.LECTURA_DATOS_PROPIOS)) {
 
-            Notification.show(
+            NotificacionUtils.mostrarAdvertencia(
                     "Esta sección está disponible para datos propios."
             );
             evento.rerouteTo(InicioView.class);

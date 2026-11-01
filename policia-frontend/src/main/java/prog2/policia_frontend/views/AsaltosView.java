@@ -7,7 +7,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -267,7 +267,7 @@ public class AsaltosView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pueden consultar los datos necesarios."
             );
             return;
@@ -275,7 +275,7 @@ public class AsaltosView
 
         if (sucursalesActivas.isEmpty()) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No existen sucursales activas."
             );
             return;
@@ -469,7 +469,7 @@ public class AsaltosView
                 dialogo.close();
                 cargarAsaltos();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         esCreacion
                                 ? "Asalto creado correctamente."
                                 : "Asalto modificado correctamente."
@@ -481,13 +481,13 @@ public class AsaltosView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -520,7 +520,7 @@ public class AsaltosView
                 AsaltanteDTO asaltante = filtroAsaltante.getValue();
 
                 if (asaltante == null) {
-                    Notification.show("Seleccione un asaltante.");
+                    NotificacionUtils.mostrarInformacion("Seleccione un asaltante.");
                     return;
                 }
 
@@ -533,7 +533,7 @@ public class AsaltosView
                 SucursalDTO sucursal = filtroSucursal.getValue();
 
                 if (sucursal == null) {
-                    Notification.show("Seleccione una sucursal.");
+                    NotificacionUtils.mostrarInformacion("Seleccione una sucursal.");
                     return;
                 }
 
@@ -554,7 +554,7 @@ public class AsaltosView
                         ? "El asaltante seleccionado"
                         : "La sucursal seleccionada";
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         recurso + " no tiene asaltos registrados."
                 );
             }
@@ -565,19 +565,19 @@ public class AsaltosView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(excepcion.getMessage());
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
@@ -599,7 +599,7 @@ public class AsaltosView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pudieron cargar asaltantes y sucursales."
             );
         }
@@ -607,7 +607,7 @@ public class AsaltosView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*

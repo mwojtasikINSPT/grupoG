@@ -6,7 +6,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -301,7 +301,7 @@ public class JuecesView
                 dialogo.close();
                 cargarJueces();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         esCreacion
                                 ? "Juez creado correctamente."
                                 : "Juez modificado correctamente."
@@ -313,11 +313,11 @@ public class JuecesView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show("No se puede conectar con el backend.");
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(excepcion.getMessage());
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
@@ -379,7 +379,7 @@ public class JuecesView
                 dialogo.close();
                 cargarJueces();
 
-                Notification.show("Juez dado de baja correctamente.");
+                NotificacionUtils.mostrarExito("Juez dado de baja correctamente.");
 
             } catch (RestClientResponseException excepcion) {
 
@@ -387,7 +387,7 @@ public class JuecesView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show("No se puede conectar con el backend.");
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             }
         });
 
@@ -411,7 +411,7 @@ public class JuecesView
             juezClient.reactivar(juez.getCodigo());
             cargarJueces();
 
-            Notification.show("Juez reactivado correctamente.");
+            NotificacionUtils.mostrarExito("Juez reactivado correctamente.");
 
         } catch (RestClientResponseException excepcion) {
 
@@ -419,7 +419,7 @@ public class JuecesView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -460,17 +460,17 @@ public class JuecesView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show("Debe iniciar sesión.");
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override

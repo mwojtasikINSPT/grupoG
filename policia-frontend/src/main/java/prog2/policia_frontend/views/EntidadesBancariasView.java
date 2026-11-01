@@ -5,7 +5,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -335,7 +335,7 @@ public class EntidadesBancariasView
                 dialogo.close();
                 cargarEntidades();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Entidad bancaria modificada correctamente."
                 );
 
@@ -345,13 +345,13 @@ public class EntidadesBancariasView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -435,7 +435,7 @@ public class EntidadesBancariasView
                 dialogo.close();
                 cargarEntidades();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Entidad bancaria dada de baja correctamente."
                 );
 
@@ -445,13 +445,13 @@ public class EntidadesBancariasView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -484,7 +484,7 @@ public class EntidadesBancariasView
 
             cargarEntidades();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Entidad bancaria reactivada correctamente."
             );
 
@@ -494,13 +494,13 @@ public class EntidadesBancariasView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -574,7 +574,7 @@ private void abrirFormularioNuevo() {
             dialogo.close();
             cargarEntidades();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Entidad bancaria creada correctamente."
             );
 
@@ -584,13 +584,13 @@ private void abrirFormularioNuevo() {
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     excepcion.getMessage()
             );
         }
@@ -619,7 +619,7 @@ private void abrirFormularioNuevo() {
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
     /*
@@ -684,13 +684,13 @@ private void mostrarErrorOperacion(
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
         }

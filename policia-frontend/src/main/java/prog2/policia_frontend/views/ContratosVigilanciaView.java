@@ -7,7 +7,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -361,7 +361,7 @@ public class ContratosVigilanciaView
                 dialogo.close();
                 cargarContratos();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Contrato cancelado correctamente."
                 );
 
@@ -370,13 +370,13 @@ public class ContratosVigilanciaView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -427,7 +427,7 @@ public class ContratosVigilanciaView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pueden consultar los datos necesarios."
             );
             return;
@@ -599,7 +599,7 @@ public class ContratosVigilanciaView
                 dialogo.close();
                 cargarContratos();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Contrato modificado correctamente."
                 );
 
@@ -609,13 +609,13 @@ public class ContratosVigilanciaView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -668,7 +668,7 @@ public class ContratosVigilanciaView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pueden consultar los datos necesarios."
             );
             return;
@@ -676,7 +676,7 @@ public class ContratosVigilanciaView
 
         if (vigilantesActivos.isEmpty()) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No existen vigilantes activos."
             );
             return;
@@ -684,7 +684,7 @@ public class ContratosVigilanciaView
 
         if (sucursalesActivas.isEmpty()) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No existen sucursales activas."
             );
             return;
@@ -808,7 +808,7 @@ public class ContratosVigilanciaView
                 dialogo.close();
                 cargarContratos();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Contrato creado correctamente."
                 );
 
@@ -818,13 +818,13 @@ public class ContratosVigilanciaView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -855,7 +855,7 @@ public class ContratosVigilanciaView
      */
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*
@@ -891,7 +891,7 @@ public class ContratosVigilanciaView
                         = filtroVigilanteExacto.getValue();
 
                 if (vigilante == null) {
-                    Notification.show("Seleccione un vigilante.");
+                    NotificacionUtils.mostrarInformacion("Seleccione un vigilante.");
                     return;
                 }
 
@@ -905,7 +905,7 @@ public class ContratosVigilanciaView
                         = filtroSucursalExacta.getValue();
 
                 if (sucursal == null) {
-                    Notification.show("Seleccione una sucursal.");
+                    NotificacionUtils.mostrarInformacion("Seleccione una sucursal.");
                     return;
                 }
 
@@ -944,7 +944,7 @@ public class ContratosVigilanciaView
                 if (nombreBuscado != null
                         && !nombreBuscado.isBlank()) {
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "No se encontraron contratos para un vigilante cuyo nombre coincida con: "
                                     + nombreBuscado.trim()
                                     + "."
@@ -952,13 +952,13 @@ public class ContratosVigilanciaView
 
                 } else if (estado != null) {
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "No existen contratos con el estado seleccionado."
                     );
 
                 } else {
 
-                    Notification.show(
+                    NotificacionUtils.mostrarInformacion(
                             "No existen contratos de vigilancia cargados."
                     );
                 }
@@ -974,7 +974,7 @@ public class ContratosVigilanciaView
                         ? " con el estado seleccionado"
                         : "";
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         recurso
                                 + " no tiene contratos de vigilancia"
                                 + aclaracionEstado
@@ -987,19 +987,19 @@ public class ContratosVigilanciaView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
 
         } catch (IllegalArgumentException excepcion) {
 
-            Notification.show(excepcion.getMessage());
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
@@ -1021,13 +1021,13 @@ public class ContratosVigilanciaView
 
         } catch (RestClientResponseException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pudieron cargar vigilantes y sucursales."
             );
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
         }

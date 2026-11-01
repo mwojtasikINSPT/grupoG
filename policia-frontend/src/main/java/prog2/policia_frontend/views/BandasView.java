@@ -6,7 +6,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -195,7 +195,7 @@ public class BandasView
             bandaClient.crear();
             cargarBandas();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Banda creada correctamente."
             );
 
@@ -205,7 +205,7 @@ public class BandasView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
         }
@@ -244,7 +244,7 @@ public class BandasView
                 dialogo.close();
                 cargarBandas();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         "Banda dada de baja correctamente."
                 );
 
@@ -253,7 +253,7 @@ public class BandasView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
             }
@@ -283,7 +283,7 @@ public class BandasView
 
             cargarBandas();
 
-            Notification.show(
+            NotificacionUtils.mostrarExito(
                     "Banda reactivada correctamente."
             );
 
@@ -293,7 +293,7 @@ public class BandasView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
         }
@@ -336,13 +336,13 @@ public class BandasView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
         }
@@ -350,7 +350,7 @@ public class BandasView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override

@@ -13,7 +13,7 @@ import com.vaadin.flow.router.Route;
 import prog2.policia_frontend.clients.AutenticacionClient;
 import prog2.policia_frontend.security.SesionUsuario;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import org.springframework.web.client.ResourceAccessException;
@@ -201,11 +201,11 @@ try {
     if (estado == 401) {
         formularioLogin.setError(true);
     } else if (estado == 403) {
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "El usuario no tiene permiso para ingresar."
         );
     } else {
-        Notification.show(
+        NotificacionUtils.mostrarInformacion(
                 "No se pudo iniciar sesión."
         );
     }
@@ -216,7 +216,7 @@ try {
      * Ocurre cuando el backend está apagado
      * o no se puede establecer conexión.
      */
-    Notification.show(
+    NotificacionUtils.mostrarInformacion(
             "No se puede conectar con el servidor."
     );
 
@@ -226,7 +226,7 @@ try {
         * Ocurre si el código no comienza
         * con ADM, INV o VIG.
         */
-       Notification.show(
+       NotificacionUtils.mostrarInformacion(
                excepcion.getMessage()
        );
 

@@ -6,7 +6,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -186,12 +186,12 @@ public class CasosJudicialesView extends VerticalLayout
             mostrarErrorOperacion(excepcion);
             return;
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se pueden consultar asaltos y jueces.");
+            NotificacionUtils.mostrarInformacion("No se pueden consultar asaltos y jueces.");
             return;
         }
 
         if (asaltos.isEmpty() || jueces.isEmpty()) {
-            Notification.show("Se necesita al menos un asalto y un juez activo.");
+            NotificacionUtils.mostrarInformacion("Se necesita al menos un asalto y un juez activo.");
             return;
         }
 
@@ -251,13 +251,13 @@ public class CasosJudicialesView extends VerticalLayout
                 }
                 dialogo.close();
                 cargarCasos();
-                Notification.show(creacion
+                NotificacionUtils.mostrarExito(creacion
                         ? "Caso judicial creado correctamente."
                         : "Caso judicial modificado correctamente.");
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show("No se puede conectar con el backend.");
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             }
         });
 
@@ -307,7 +307,7 @@ public class CasosJudicialesView extends VerticalLayout
             mostrarErrorOperacion(excepcion);
             return;
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se pueden consultar las sentencias.");
+            NotificacionUtils.mostrarInformacion("No se pueden consultar las sentencias.");
             return;
         }
 
@@ -372,11 +372,11 @@ public class CasosJudicialesView extends VerticalLayout
                         casoJudicialClient.listarSentencias(caso.getCodigo()));
                 cargarCasos();
                 dialogo.close();
-                Notification.show("Sentencia guardada correctamente.");
+                NotificacionUtils.mostrarExito("Sentencia guardada correctamente.");
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show("No se puede conectar con el backend.");
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             }
         });
 
@@ -416,11 +416,11 @@ public class CasosJudicialesView extends VerticalLayout
         try {
             casoJudicialClient.cerrar(caso.getCodigo());
             cargarCasos();
-            Notification.show("Caso judicial cerrado correctamente.");
+            NotificacionUtils.mostrarExito("Caso judicial cerrado correctamente.");
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -428,11 +428,11 @@ public class CasosJudicialesView extends VerticalLayout
         try {
             casoJudicialClient.reactivar(caso.getCodigo());
             cargarCasos();
-            Notification.show("Caso judicial reactivado correctamente.");
+            NotificacionUtils.mostrarExito("Caso judicial reactivado correctamente.");
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -444,14 +444,14 @@ public class CasosJudicialesView extends VerticalLayout
 
             if ("Por juez".equals(tipo)) {
                 if (filtroJuez.getValue() == null) {
-                    Notification.show("Seleccione un juez.");
+                    NotificacionUtils.mostrarInformacion("Seleccione un juez.");
                     return;
                 }
                 casos = casoJudicialClient.listarPorJuez(
                         filtroJuez.getValue().getCodigo());
             } else if ("Por asaltante".equals(tipo)) {
                 if (filtroAsaltante.getValue() == null) {
-                    Notification.show("Seleccione un asaltante.");
+                    NotificacionUtils.mostrarInformacion("Seleccione un asaltante.");
                     return;
                 }
                 casos = casoJudicialClient.listarPorAsaltante(
@@ -468,12 +468,12 @@ public class CasosJudicialesView extends VerticalLayout
 
             tabla.setItems(casos);
             if (!"Todos".equals(tipo) && casos.isEmpty()) {
-                Notification.show("No se encontraron casos judiciales.");
+                NotificacionUtils.mostrarInformacion("No se encontraron casos judiciales.");
             }
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -484,7 +484,7 @@ public class CasosJudicialesView extends VerticalLayout
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se pudieron cargar jueces y asaltantes.");
+            NotificacionUtils.mostrarInformacion("No se pudieron cargar jueces y asaltantes.");
         }
     }
 
@@ -498,7 +498,7 @@ public class CasosJudicialesView extends VerticalLayout
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     private boolean puedeEscribir() {

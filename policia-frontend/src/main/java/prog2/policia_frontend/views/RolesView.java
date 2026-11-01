@@ -6,7 +6,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -275,7 +275,7 @@ public class RolesView extends VerticalLayout
                 dialogo.close();
                 cargarRoles();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         esCreacion
                                 ? "Rol creado correctamente."
                                 : "Rol modificado correctamente."
@@ -284,9 +284,9 @@ public class RolesView extends VerticalLayout
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
             } catch (ResourceAccessException excepcion) {
-                Notification.show("No se puede conectar con el backend.");
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
-                Notification.show(excepcion.getMessage());
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
@@ -328,14 +328,14 @@ public class RolesView extends VerticalLayout
             if (existente.getNombre() != null
                     && existente.getNombre().equalsIgnoreCase(nombre)) {
 
-                Notification.show("Ya existe un rol con ese nombre.");
+                NotificacionUtils.mostrarInformacion("Ya existe un rol con ese nombre.");
                 return true;
             }
 
             if (existente.getPrefijo() != null
                     && existente.getPrefijo().equalsIgnoreCase(prefijo)) {
 
-                Notification.show("Ya existe un rol con ese prefijo.");
+                NotificacionUtils.mostrarInformacion("Ya existe un rol con ese prefijo.");
                 return true;
             }
         }
@@ -382,11 +382,11 @@ public class RolesView extends VerticalLayout
         try {
             rolClient.darDeBaja(rol.getCodigo());
             cargarRoles();
-            Notification.show("Rol dado de baja correctamente.");
+            NotificacionUtils.mostrarExito("Rol dado de baja correctamente.");
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -395,11 +395,11 @@ public class RolesView extends VerticalLayout
         try {
             rolClient.reactivar(rol.getCodigo());
             cargarRoles();
-            Notification.show("Rol reactivado correctamente.");
+            NotificacionUtils.mostrarExito("Rol reactivado correctamente.");
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -422,22 +422,22 @@ public class RolesView extends VerticalLayout
             tablaRoles.setItems(roles);
 
             if (roles.isEmpty()) {
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No existen roles con el estado seleccionado."
                 );
             }
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
-            Notification.show("Debe iniciar sesión.");
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     private String valorSeguro(String valor) {

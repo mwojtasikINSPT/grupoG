@@ -8,7 +8,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -269,7 +269,7 @@ public class AsaltantesView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se pueden consultar las bandas."
             );
             return;
@@ -391,7 +391,7 @@ public class AsaltantesView
                 dialogo.close();
                 cargarAsaltantes();
 
-                Notification.show(
+                NotificacionUtils.mostrarExito(
                         esCreacion
                                 ? "Asaltante creado correctamente."
                                 : "Asaltante modificado correctamente."
@@ -403,13 +403,13 @@ public class AsaltantesView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
 
             } catch (IllegalArgumentException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         excepcion.getMessage()
                 );
             }
@@ -464,7 +464,7 @@ public class AsaltantesView
                 dialogo.close();
                 cargarAsaltantes();
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "Asaltante dado de baja definitivamente."
                 );
 
@@ -474,7 +474,7 @@ public class AsaltantesView
 
             } catch (ResourceAccessException excepcion) {
 
-                Notification.show(
+                NotificacionUtils.mostrarInformacion(
                         "No se puede conectar con el backend."
                 );
             }
@@ -531,13 +531,13 @@ public class AsaltantesView
 
         } catch (ResourceAccessException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "No se puede conectar con el backend."
             );
 
         } catch (IllegalStateException excepcion) {
 
-            Notification.show(
+            NotificacionUtils.mostrarInformacion(
                     "Debe iniciar sesión."
             );
         }
@@ -545,7 +545,7 @@ public class AsaltantesView
 
     private void mostrarErrorOperacion(
             RestClientResponseException excepcion) {
-        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override

@@ -2,7 +2,7 @@ package prog2.policia_frontend.views;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.notification.Notification;
+import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -71,9 +71,9 @@ public class MisContratosView extends VerticalLayout
             String codigo = sesionUsuario.getUsuario().getCodigo();
             tabla.setItems(vigilanteClient.listarContratosPropios(codigo));
         } catch (RestClientResponseException excepcion) {
-            Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
+            NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
         } catch (ResourceAccessException excepcion) {
-            Notification.show("No se puede conectar con el backend.");
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 }
