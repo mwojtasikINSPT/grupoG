@@ -362,6 +362,7 @@ public class CasosJudicialesView extends VerticalLayout
 
             SentenciaAsaltanteDTO datos = new SentenciaAsaltanteDTO(
                     sentencia.getAsaltanteCodigo(), condenado, meses);
+            datos.setSentenciado(true);
             try {
                 if (modificacion) {
                     casoJudicialClient.modificarSentencia(caso.getCodigo(), datos);
