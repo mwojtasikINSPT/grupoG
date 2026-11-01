@@ -18,7 +18,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
-import prog2.policia_frontend.dtos.UsuarioDTO;
+import prog2.policia_frontend.security.ResultadoAutenticacion;
 
 /*
  * Pantalla utilizada para iniciar sesión
@@ -169,7 +169,7 @@ try {
      * Consulta al backend para comprobar
      * el código y la contraseña.
      */
-    UsuarioDTO usuario
+    ResultadoAutenticacion resultado
             = autenticacionClient.autenticar(
                     codigoIngresado,
                     contrasenaIngresada
@@ -180,7 +180,7 @@ try {
      * confirmado por el backend.
      */
     sesionUsuario.iniciarSesion(
-            usuario,
+            resultado,
             contrasenaIngresada
     );
 

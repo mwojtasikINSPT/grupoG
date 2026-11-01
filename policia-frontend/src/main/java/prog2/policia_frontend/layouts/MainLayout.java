@@ -24,10 +24,10 @@ import prog2.policia_frontend.views.CasosJudicialesView;
 import prog2.policia_frontend.views.ContratosVigilanciaView;
 import prog2.policia_frontend.views.EntidadesBancariasView;
 import prog2.policia_frontend.views.InicioView;
-import prog2.policia_frontend.views.InvestigadoresView;
 import prog2.policia_frontend.views.JuecesView;
 import prog2.policia_frontend.views.LoginView;
 import prog2.policia_frontend.views.MiPerfilView;
+import prog2.policia_frontend.views.MisContratosView;
 import prog2.policia_frontend.views.RolesView;
 import prog2.policia_frontend.views.SucursalesView;
 import prog2.policia_frontend.views.UsuariosView;
@@ -49,7 +49,6 @@ public class MainLayout extends AppLayout
                     UsuariosView.class,
                     RolesView.class,
                     VigilantesView.class,
-                    InvestigadoresView.class,
                     JuecesView.class,
                     EntidadesBancariasView.class,
                     SucursalesView.class,
@@ -144,6 +143,18 @@ public class MainLayout extends AppLayout
                 )
         );
 
+        if (sesionUsuario.tienePermiso(
+                PermisosApp.LECTURA_DATOS_PROPIOS)) {
+
+            menuGeneral.addItem(
+                    new SideNavItem(
+                            "Mis contratos",
+                            MisContratosView.class,
+                            VaadinIcon.FILE_TEXT.create()
+                    )
+            );
+        }
+
         VerticalLayout menu = new VerticalLayout(menuGeneral);
         menu.setPadding(false);
         menu.setSpacing(false);
@@ -179,11 +190,6 @@ public class MainLayout extends AppLayout
                             "Vigilantes",
                             VigilantesView.class,
                             VaadinIcon.SHIELD.create()
-                    ),
-                    new SideNavItem(
-                            "Investigadores",
-                            InvestigadoresView.class,
-                            VaadinIcon.SEARCH.create()
                     ),
                     new SideNavItem(
                             "Jueces",
@@ -283,6 +289,17 @@ public class MainLayout extends AppLayout
                     "No tiene permiso para ingresar a esta sección."
             );
 
+            evento.rerouteTo(InicioView.class);
+            return;
+        }
+
+        if (evento.getNavigationTarget().equals(MisContratosView.class)
+                && !sesionUsuario.tienePermiso(
+                        PermisosApp.LECTURA_DATOS_PROPIOS)) {
+
+            Notification.show(
+                    "Esta sección está disponible para datos propios."
+            );
             evento.rerouteTo(InicioView.class);
             return;
         }

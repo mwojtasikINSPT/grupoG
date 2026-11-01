@@ -26,6 +26,7 @@ import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.components.PaginadorGrid;
 
 /*
  * Pantalla utilizada para consultar
@@ -51,6 +52,8 @@ private final RolClient rolClient;
      */
     private final Grid<UsuarioDTO> tablaUsuarios
             = new Grid<>(UsuarioDTO.class, false);
+    private final PaginadorGrid<UsuarioDTO> paginadorUsuarios
+            = new PaginadorGrid<>(tablaUsuarios, 10);
     
     /*
  * Permite buscar coincidencias en el nombre.
@@ -171,7 +174,8 @@ add(
         titulo,
         botonNuevoUsuario,
         barraFiltros,
-        tablaUsuarios
+        tablaUsuarios,
+        paginadorUsuarios.getControles()
 );
     /*
      * La tabla utiliza el espacio
@@ -278,7 +282,7 @@ private void abrirFormularioEdicion(
 
     try {
 
-        rolesActivos = rolClient.listar(true);
+        rolesActivos = obtenerRolesAsignables();
 
     } catch (RestClientResponseException excepcion) {
 
@@ -450,7 +454,7 @@ private void abrirFormularioNuevo() {
          * Consulta solamente los roles activos,
          * porque no corresponde asignar un rol inactivo.
          */
-        rolesActivos = rolClient.listar(true);
+        rolesActivos = obtenerRolesAsignables();
 
     } catch (RestClientResponseException excepcion) {
 
@@ -786,6 +790,18 @@ private void mostrarErrorOperacion(
     }
 }
 
+    /**
+     * Devuelve los roles que el backend permite asignar a un usuario
+     * genérico. Los vigilantes se crean desde su módulo porque requieren edad.
+     */
+    private List<RolDTO> obtenerRolesAsignables() {
+
+        return rolClient.listar(true).stream()
+                .filter(rol -> rol.getNombre() == null
+                || !rol.getNombre().equalsIgnoreCase("VIGILANTE"))
+                .toList();
+    }
+
     /*
      * Cuando se abre la pantalla,
      * solicita los usuarios al backend.
@@ -826,7 +842,7 @@ private Boolean obtenerEstadoSeleccionado() {
         String nombreIngresado
                 = filtroNombre.getValue();
 
-tablaUsuarios.setItems(
+paginadorUsuarios.setItems(
         usuarioClient.listar(
                 estadoSeleccionado,
                 nombreIngresado

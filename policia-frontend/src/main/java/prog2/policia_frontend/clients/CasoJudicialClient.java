@@ -7,6 +7,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.CasoJudicialDTO;
+import prog2.policia_frontend.dtos.SentenciaAsaltanteDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
 /* Se comunica con los endpoints de casos judiciales. */
@@ -135,7 +136,6 @@ public class CasoJudicialClient {
                         codigo.trim().toUpperCase()
                 )
                 .headers(sesionUsuario::aplicarAutenticacion)
-                .body(new CasoJudicialDTO())
                 .retrieve()
                 .toBodilessEntity();
     }
@@ -154,6 +154,62 @@ public class CasoJudicialClient {
                 .body(CasoJudicialDTO.class);
     }
 
+    public List<SentenciaAsaltanteDTO> listarSentencias(
+            String casoCodigo) {
+
+        validarCodigo(casoCodigo, "caso judicial");
+
+        List<SentenciaAsaltanteDTO> sentencias = restClient.get()
+                .uri(
+                        "/casos-judiciales/{codigo}/sentencias",
+                        casoCodigo.trim().toUpperCase()
+                )
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve()
+                .body(new ParameterizedTypeReference
+                        <List<SentenciaAsaltanteDTO>>() {
+                });
+
+        return sentencias != null ? sentencias : List.of();
+    }
+
+    public void registrarSentencia(
+            String casoCodigo,
+            SentenciaAsaltanteDTO sentencia) {
+
+        validarCodigo(casoCodigo, "caso judicial");
+        validarSentencia(sentencia);
+
+        restClient.post()
+                .uri(
+                        "/casos-judiciales/{codigo}/sentencias",
+                        casoCodigo.trim().toUpperCase()
+                )
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .body(sentencia)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public void modificarSentencia(
+            String casoCodigo,
+            SentenciaAsaltanteDTO sentencia) {
+
+        validarCodigo(casoCodigo, "caso judicial");
+        validarSentencia(sentencia);
+
+        restClient.put()
+                .uri(
+                        "/casos-judiciales/{codigo}/sentencias/{asaltante}",
+                        casoCodigo.trim().toUpperCase(),
+                        sentencia.getAsaltanteCodigo().trim().toUpperCase()
+                )
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .body(sentencia)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
     private void validarCreacion(CasoJudicialDTO datos) {
 
         if (datos == null) {
@@ -170,19 +226,30 @@ public class CasoJudicialClient {
             );
         }
 
-        if (datos.getAsaltanteCodigos() == null
-                || datos.getAsaltanteCodigos().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "Debe seleccionar al menos un asaltante."
-            );
-        }
-
         if (datos.getJuezCodigo() == null
                 || datos.getJuezCodigo().isBlank()) {
 
             throw new IllegalArgumentException(
                     "Debe seleccionar un juez."
+            );
+        }
+    }
+
+    private void validarSentencia(SentenciaAsaltanteDTO sentencia) {
+
+        if (sentencia == null
+                || sentencia.getAsaltanteCodigo() == null
+                || sentencia.getAsaltanteCodigo().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe seleccionar un asaltante."
+            );
+        }
+
+        if (sentencia.getCondenado() == null
+                || sentencia.getTiempoCarcel() == null
+                || sentencia.getTiempoCarcel() < 0) {
+            throw new IllegalArgumentException(
+                    "Los datos de la sentencia no son válidos."
             );
         }
     }

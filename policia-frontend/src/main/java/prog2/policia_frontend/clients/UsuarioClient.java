@@ -101,7 +101,7 @@ public class UsuarioClient {
  * El usuario continúa guardado, pero pasa
  * a tener el estado inactivo.
  */
-public UsuarioDTO darDeBaja(
+public void darDeBaja(
         String codigo,
         String motivoBaja) {
 
@@ -122,7 +122,7 @@ public UsuarioDTO darDeBaja(
     BajaUsuarioDTO datosBaja
             = new BajaUsuarioDTO(motivoBaja);
 
-    return restClient.patch()
+    restClient.patch()
             .uri(
                     "/usuarios/{codigo}/baja",
                     codigo.trim().toUpperCase()
@@ -132,7 +132,7 @@ public UsuarioDTO darDeBaja(
             )
             .body(datosBaja)
             .retrieve()
-            .body(UsuarioDTO.class);
+            .toBodilessEntity();
 }
 
 /*

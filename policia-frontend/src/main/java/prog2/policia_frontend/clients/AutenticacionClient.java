@@ -1,6 +1,8 @@
 package prog2.policia_frontend.clients;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
+import prog2.policia_frontend.security.PermisosApp;
+import prog2.policia_frontend.security.ResultadoAutenticacion;
 
 /*
  * Comprueba las credenciales contra el backend y obtiene
@@ -26,7 +30,7 @@ public class AutenticacionClient {
                 .build();
     }
 
-    public UsuarioDTO autenticar(
+    public ResultadoAutenticacion autenticar(
             String codigo,
             String password) {
 
@@ -46,13 +50,10 @@ public class AutenticacionClient {
                 = codigo.trim().toUpperCase();
 
         UsuarioDTO usuario;
+        boolean accesoSoloPropio = false;
 
         try {
 
-            /*
-             * Es la ruta principal. No depende del prefijo,
-             * por lo que admite usuarios de roles nuevos.
-             */
             usuario = consultarUsuario(
                     "/usuarios/{codigo}",
                     codigoNormalizado,
@@ -61,34 +62,33 @@ public class AutenticacionClient {
 
         } catch (RestClientResponseException excepcion) {
 
-            /*
-             * Los vigilantes actuales solo tienen permiso para
-             * consultar sus propios datos por su ruta específica.
-             * Se conserva compatibilidad con los tres tipos viejos.
-             */
             int estado = excepcion.getStatusCode().value();
 
-            if ((estado == 403 || estado == 404)
-                    && esPrefijoAnterior(codigoNormalizado)) {
+            if (estado == 404) {
 
                 usuario = consultarUsuario(
-                        obtenerEndpointAnterior(codigoNormalizado),
+                        "/vigilantes/{codigo}",
                         codigoNormalizado,
                         password
                 );
+                accesoSoloPropio = true;
 
             } else {
                 throw excepcion;
             }
         }
 
-        cargarPermisosDelRol(
+        Set<String> permisos = cargarPermisosDelRol(
                 usuario,
                 codigoNormalizado,
                 password
         );
 
-        return usuario;
+        if (permisos.isEmpty() && accesoSoloPropio) {
+            permisos.add(PermisosApp.LECTURA_DATOS_PROPIOS);
+        }
+
+        return new ResultadoAutenticacion(usuario, permisos);
     }
 
     private UsuarioDTO consultarUsuario(
@@ -109,15 +109,17 @@ public class AutenticacionClient {
      * consultar los roles y completar sus permisos en la sesión.
      * Si no puede hacerlo, el login igualmente se conserva.
      */
-    private void cargarPermisosDelRol(
+    private Set<String> cargarPermisosDelRol(
             UsuarioDTO usuario,
             String codigo,
             String password) {
 
+        Set<String> permisos = new HashSet<>();
+
         if (usuario == null
                 || usuario.getRol() == null
                 || usuario.getRol().isBlank()) {
-            return;
+            return permisos;
         }
 
         try {
@@ -134,7 +136,7 @@ public class AutenticacionClient {
                     );
 
             if (roles == null) {
-                return;
+                return permisos;
             }
 
             roles.stream()
@@ -145,7 +147,11 @@ public class AutenticacionClient {
                             ))
                     .findFirst()
                     .ifPresent(rol
-                            -> usuario.setPermisos(rol.getPermisos()));
+                            -> {
+                        if (rol.getPermisos() != null) {
+                            permisos.addAll(rol.getPermisos());
+                        }
+                    });
 
         } catch (RestClientResponseException excepcion) {
 
@@ -153,25 +159,9 @@ public class AutenticacionClient {
              * No se interrumpe un login válido solamente porque
              * ese usuario no tenga permiso para listar roles.
              */
-        }
-    }
-
-    private boolean esPrefijoAnterior(String codigo) {
-        return codigo.startsWith("ADM")
-                || codigo.startsWith("INV")
-                || codigo.startsWith("VIG");
-    }
-
-    private String obtenerEndpointAnterior(String codigo) {
-
-        if (codigo.startsWith("ADM")) {
-            return "/administradores/{codigo}";
+            permisos.add(PermisosApp.LECTURA_DATOS_PROPIOS);
         }
 
-        if (codigo.startsWith("INV")) {
-            return "/investigadores/{codigo}";
-        }
-
-        return "/vigilantes/{codigo}";
+        return permisos;
     }
 }
