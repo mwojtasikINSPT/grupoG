@@ -34,6 +34,7 @@ import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.components.PaginadorGrid;
 
 /*
@@ -883,46 +884,7 @@ private void reactivarUsuario(
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-
-    int estado
-            = excepcion.getStatusCode().value();
-
-    if (estado == 400) {
-
-        Notification.show(
-                "Los datos enviados no son válidos."
-        );
-
-    } else if (estado == 401) {
-
-        Notification.show(
-                "La sesión no es válida."
-        );
-
-    } else if (estado == 403) {
-
-        Notification.show(
-                "No tiene permiso para realizar esta acción."
-        );
-
-    } else if (estado == 404) {
-
-        Notification.show(
-                "El usuario ya no existe."
-        );
-
-    } else if (estado == 409) {
-
-        Notification.show(
-                "La operación no puede realizarse en el estado actual."
-        );
-
-    } else {
-
-        Notification.show(
-                "No se pudo completar la operación."
-        );
-    }
+    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
     /**
@@ -1021,23 +983,7 @@ private Boolean obtenerEstadoSeleccionado() {
         paginadorUsuarios.setItems(todosLosUsuarios);
 
         } catch (RestClientResponseException excepcion) {
-
-            int estado
-                    = excepcion.getStatusCode().value();
-
-            if (estado == 401) {
-                Notification.show(
-                        "La sesión no es válida."
-                );
-            } else if (estado == 403) {
-                Notification.show(
-                        "No tiene permiso para consultar usuarios."
-                );
-            } else {
-                Notification.show(
-                        "No se pudieron consultar los usuarios."
-                );
-            }
+            mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
 

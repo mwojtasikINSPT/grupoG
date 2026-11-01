@@ -13,12 +13,12 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import prog2.policia_frontend.dtos.UsuarioDTO;
-import prog2.policia_frontend.dtos.RespuestaErrorDTO;
 import prog2.policia_frontend.clients.UsuarioClient;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.SesionUsuario;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla donde el usuario puede consultar
@@ -147,22 +147,7 @@ public class MiPerfilView extends VerticalLayout
 
     private void mostrarErrorPassword(
             RestClientResponseException excepcion) {
-
-        try {
-            RespuestaErrorDTO respuesta = excepcion.getResponseBodyAs(
-                    RespuestaErrorDTO.class
-            );
-            if (respuesta != null
-                    && respuesta.getMensaje() != null
-                    && !respuesta.getMensaje().isBlank()) {
-                Notification.show(respuesta.getMensaje());
-                return;
-            }
-        } catch (RuntimeException ignorada) {
-            // Se utiliza el mensaje general de abajo.
-        }
-
-        Notification.show("No se pudo modificar la contraseña.");
+        Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     /*

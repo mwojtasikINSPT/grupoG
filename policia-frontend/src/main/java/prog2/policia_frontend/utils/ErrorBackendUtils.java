@@ -1,0 +1,45 @@
+package prog2.policia_frontend.utils;
+
+import org.springframework.web.client.RestClientResponseException;
+import prog2.policia_frontend.dtos.RespuestaErrorDTO;
+
+/**
+ * Recupera el mensaje funcional enviado por el backend para evitar que las
+ * vistas oculten las reglas de negocio detrás de mensajes genéricos.
+ */
+public final class ErrorBackendUtils {
+
+    private ErrorBackendUtils() {
+    }
+
+    public static String obtenerMensaje(
+            RestClientResponseException excepcion) {
+
+        if (excepcion == null) {
+            return "No se pudo completar la operación.";
+        }
+
+        try {
+            RespuestaErrorDTO respuesta = excepcion.getResponseBodyAs(
+                    RespuestaErrorDTO.class
+            );
+
+            if (respuesta != null
+                    && respuesta.getMensaje() != null
+                    && !respuesta.getMensaje().isBlank()) {
+                return respuesta.getMensaje();
+            }
+        } catch (RuntimeException ignorada) {
+            // La respuesta no utiliza el formato uniforme del backend.
+        }
+
+        return switch (excepcion.getStatusCode().value()) {
+            case 400 -> "Los datos enviados no son válidos.";
+            case 401 -> "La sesión no es válida.";
+            case 403 -> "No tiene permiso para realizar esta operación.";
+            case 404 -> "No se encontró el recurso solicitado.";
+            case 409 -> "La operación no puede realizarse en el estado actual.";
+            default -> "No se pudo completar la operación.";
+        };
+    }
+}

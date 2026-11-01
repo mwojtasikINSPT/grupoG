@@ -26,6 +26,7 @@ import java.util.List;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para administrar sucursales.
@@ -823,46 +824,7 @@ private void abrirDialogoBaja(
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-
-    int estado
-            = excepcion.getStatusCode().value();
-
-    if (estado == 400) {
-
-        Notification.show(
-                "Los datos ingresados no son válidos."
-        );
-
-    } else if (estado == 401) {
-
-        Notification.show(
-                "La sesión no es válida."
-        );
-
-    } else if (estado == 403) {
-
-        Notification.show(
-                "No tiene permiso para realizar esta operación."
-        );
-
-    } else if (estado == 404) {
-
-        Notification.show(
-                "No se encontró el recurso solicitado."
-        );
-
-    } else if (estado == 409) {
-
-        Notification.show(
-                "La operación no puede realizarse en el estado actual."
-        );
-
-    } else {
-
-        Notification.show(
-                "No se pudo completar la operación."
-        );
-    }
+    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
 /*
@@ -997,28 +959,7 @@ private void reactivarSucursal(
             }
 
         } catch (RestClientResponseException excepcion) {
-
-            int estado
-                    = excepcion.getStatusCode().value();
-
-            if (estado == 401) {
-
-                Notification.show(
-                        "La sesión no es válida."
-                );
-
-            } else if (estado == 403) {
-
-                Notification.show(
-                        "No tiene permiso para consultar sucursales."
-                );
-
-            } else {
-
-                Notification.show(
-                        "No se pudieron consultar las sucursales."
-                );
-            }
+            mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
 

@@ -14,6 +14,7 @@ import prog2.policia_frontend.clients.VigilanteClient;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /**
  * Muestra al vigilante autenticado únicamente sus propios contratos.
@@ -70,10 +71,7 @@ public class MisContratosView extends VerticalLayout
             String codigo = sesionUsuario.getUsuario().getCodigo();
             tabla.setItems(vigilanteClient.listarContratosPropios(codigo));
         } catch (RestClientResponseException excepcion) {
-            int estado = excepcion.getStatusCode().value();
-            Notification.show(estado == 403
-                    ? "No tiene permiso para consultar estos contratos."
-                    : "No se pudieron consultar sus contratos.");
+            Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
         } catch (ResourceAccessException excepcion) {
             Notification.show("No se puede conectar con el backend.");
         }

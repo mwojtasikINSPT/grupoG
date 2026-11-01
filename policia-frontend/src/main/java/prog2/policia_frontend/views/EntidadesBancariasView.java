@@ -18,11 +18,11 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
-import prog2.policia_frontend.dtos.RespuestaErrorDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import com.vaadin.flow.component.dialog.Dialog;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.ErrorBackendUtils;
 
 /*
  * Pantalla utilizada para administrar
@@ -619,77 +619,7 @@ private void abrirFormularioNuevo() {
  */
 private void mostrarErrorOperacion(
         RestClientResponseException excepcion) {
-
-    int estado
-            = excepcion.getStatusCode().value();
-
-    if (estado == 400) {
-
-        Notification.show(
-                "Los datos ingresados no son válidos."
-        );
-
-    } else if (estado == 401) {
-
-        Notification.show(
-                "La sesión no es válida."
-        );
-
-    } else if (estado == 403) {
-
-        Notification.show(
-                "No tiene permiso para realizar esta operación."
-        );
-
-    } else if (estado == 404) {
-
-        Notification.show(
-                "La entidad bancaria no existe."
-        );
-
-    } else if (estado == 409) {
-
-        Notification.show(
-                obtenerMensajeBackend(
-                        excepcion,
-                        "La operación entra en conflicto con los datos existentes."
-                )
-        );
-
-    } else {
-
-        Notification.show(
-                "No se pudo completar la operación."
-        );
-    }
-}
-
-/*
- * Recupera el mensaje explicativo que el backend envía en su respuesta JSON.
- * Si la respuesta no tiene el formato esperado, conserva un texto seguro.
- */
-private String obtenerMensajeBackend(
-        RestClientResponseException excepcion,
-        String mensajeAlternativo) {
-
-    try {
-
-        RespuestaErrorDTO respuesta
-                = excepcion.getResponseBodyAs(
-                        RespuestaErrorDTO.class
-                );
-
-        String mensaje = respuesta != null
-                ? respuesta.getMensaje()
-                : null;
-
-        return mensaje == null || mensaje.isBlank()
-                ? mensajeAlternativo
-                : mensaje;
-
-    } catch (RuntimeException excepcionConversion) {
-        return mensajeAlternativo;
-    }
+    Notification.show(ErrorBackendUtils.obtenerMensaje(excepcion));
 }
 
     /*
@@ -750,28 +680,7 @@ private String obtenerMensajeBackend(
             );
 
         } catch (RestClientResponseException excepcion) {
-
-            int estado
-                    = excepcion.getStatusCode().value();
-
-            if (estado == 401) {
-
-                Notification.show(
-                        "La sesión no es válida."
-                );
-
-            } else if (estado == 403) {
-
-                Notification.show(
-                        "No tiene permiso para consultar entidades bancarias."
-                );
-
-            } else {
-
-                Notification.show(
-                        "No se pudieron consultar las entidades bancarias."
-                );
-            }
+            mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
 
