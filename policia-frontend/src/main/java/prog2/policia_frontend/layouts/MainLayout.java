@@ -71,7 +71,18 @@ public class MainLayout extends AppLayout
 
         this.sesionUsuario = sesionUsuario;
 
-        // Mantiene visible el menú lateral.
+        /*
+         * AppLayout convierte normalmente el drawer en un panel superpuesto
+         * cuando la ventana es angosta y lo cierra después de navegar.
+         * En este sistema la navegación debe permanecer fija, por eso se
+         * desactiva ese comportamiento responsive mediante la propiedad
+         * oficial del componente.
+         */
+        setPrimarySection(AppLayout.Section.DRAWER);
+        getElement().getStyle().set(
+                "--vaadin-app-layout-drawer-overlay",
+                "false"
+        );
         setDrawerOpened(true);
 
         crearEncabezado();
