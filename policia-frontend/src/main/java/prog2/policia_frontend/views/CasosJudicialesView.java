@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -87,7 +88,12 @@ public class CasosJudicialesView extends VerticalLayout
 
     private void configurarFiltros() {
         filtroEstado.setLabel("Estado");
-        filtroEstado.setItems("Todos", "Activos", "Cerrados");
+        filtroEstado.setItems(
+                "Todos",
+                "En trámite",
+                "Cerrados",
+                "Reabiertos por apelación"
+        );
         filtroEstado.setValue("Todos");
 
         filtroRelacion.setLabel("Buscar casos");
@@ -129,10 +135,15 @@ public class CasosJudicialesView extends VerticalLayout
                 -> Boolean.TRUE.equals(caso.getSentenciado())
                 ? "Completo" : "Pendiente")
                 .setHeader("Sentencias").setAutoWidth(true);
-        tabla.addColumn(caso
-                -> Boolean.TRUE.equals(caso.getActivo())
-                ? "Activo" : "Cerrado")
+        tabla.addColumn(this::obtenerEstadoVisible)
                 .setHeader("Estado").setAutoWidth(true);
+        tabla.addColumn(caso
+                -> caso.getMotivoReapertura() == null
+                || caso.getMotivoReapertura().isBlank()
+                ? "-"
+                : caso.getMotivoReapertura())
+                .setHeader("Motivo de reapertura")
+                .setAutoWidth(true);
 
         tabla.addComponentColumn(caso -> {
             Button botonSentencias = new Button(
@@ -142,19 +153,30 @@ public class CasosJudicialesView extends VerticalLayout
             }
 
             boolean activo = Boolean.TRUE.equals(caso.getActivo());
+            String estado = obtenerEstado(caso);
             Button botonModificar = new Button(
                     "Modificar", evento -> abrirFormulario(caso));
             botonModificar.setEnabled(activo);
 
-            Button botonEstado = new Button(
-                    activo ? "Cerrar" : "Reactivar");
-            botonEstado.addClickListener(evento -> {
-                if (activo) {
-                    confirmarCierre(caso);
-                } else {
-                    reactivarCaso(caso);
-                }
-            });
+            Button botonEstado = new Button();
+
+            if ("CERRADO".equals(estado)) {
+                botonEstado.setText("Reabrir por apelación");
+                botonEstado.addClickListener(
+                        evento -> abrirReapertura(caso)
+                );
+            } else if ("REABIERTO_POR_APELACION".equals(estado)) {
+                botonEstado.setText("Cerrar");
+                botonEstado.addClickListener(
+                        evento -> confirmarCierre(caso)
+                );
+            } else {
+                botonEstado.setText("Cierre automático");
+                botonEstado.setEnabled(false);
+                botonEstado.setTooltipText(
+                        "El caso se cierra cuando todas las participaciones se resuelven."
+                );
+            }
 
             return new HorizontalLayout(
                     botonSentencias, botonModificar, botonEstado);
@@ -437,21 +459,70 @@ public class CasosJudicialesView extends VerticalLayout
         }
     }
 
-    private void reactivarCaso(CasoJudicialDTO caso) {
+    private void abrirReapertura(CasoJudicialDTO caso) {
+        Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle(
+                "Reabrir " + caso.getCodigo() + " por apelación"
+        );
+
+        TextArea campoMotivo = new TextArea("Motivo de la apelación");
+        campoMotivo.setWidthFull();
+        campoMotivo.setMaxLength(500);
+        campoMotivo.setRequiredIndicatorVisible(true);
+
+        Button botonConfirmar = new Button("Reabrir caso");
+        Button botonCancelar = new Button(
+                "Cancelar",
+                evento -> dialogo.close()
+        );
+
+        botonConfirmar.addClickListener(evento -> {
+            boolean motivoVacio = campoMotivo.getValue().isBlank();
+            campoMotivo.setInvalid(motivoVacio);
+            campoMotivo.setErrorMessage(
+                    "Debe indicar el motivo de la apelación."
+            );
+
+            if (motivoVacio) {
+                return;
+            }
+
+            if (reactivarCaso(caso, campoMotivo.getValue().trim())) {
+                dialogo.close();
+            }
+        });
+
+        dialogo.add(
+                campoMotivo,
+                new HorizontalLayout(botonConfirmar, botonCancelar)
+        );
+        dialogo.open();
+    }
+
+    private boolean reactivarCaso(
+            CasoJudicialDTO caso,
+            String motivo) {
         try {
-            casoJudicialClient.reactivar(caso.getCodigo());
+            casoJudicialClient.reactivar(caso.getCodigo(), motivo);
             cargarCasos();
-            NotificacionUtils.mostrarExito("Caso judicial reactivado correctamente.");
+            NotificacionUtils.mostrarExito(
+                    "Caso judicial reabierto por apelación correctamente."
+            );
+            return true;
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+        } catch (IllegalArgumentException excepcion) {
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
+        return false;
     }
 
     private void cargarCasos() {
         try {
             Boolean estado = obtenerEstadoSeleccionado();
+            String estadoExacto = obtenerEstadoExactoSeleccionado();
             String tipo = filtroRelacion.getValue();
             List<CasoJudicialDTO> casos;
 
@@ -473,9 +544,10 @@ public class CasosJudicialesView extends VerticalLayout
                 casos = casoJudicialClient.listar(estado);
             }
 
-            if (!"Todos".equals(tipo) && estado != null) {
+            if (estadoExacto != null) {
                 casos = casos.stream()
-                        .filter(caso -> estado.equals(caso.getActivo()))
+                        .filter(caso -> estadoExacto.equals(
+                        obtenerEstado(caso)))
                         .toList();
             }
 
@@ -505,9 +577,37 @@ public class CasosJudicialesView extends VerticalLayout
 
     private Boolean obtenerEstadoSeleccionado() {
         return switch (filtroEstado.getValue()) {
-            case "Activos" -> true;
+            case "En trámite", "Reabiertos por apelación" -> true;
             case "Cerrados" -> false;
             default -> null;
+        };
+    }
+
+    private String obtenerEstadoExactoSeleccionado() {
+        return switch (filtroEstado.getValue()) {
+            case "En trámite" -> "EN_TRAMITE";
+            case "Cerrados" -> "CERRADO";
+            case "Reabiertos por apelación" -> "REABIERTO_POR_APELACION";
+            default -> null;
+        };
+    }
+
+    private String obtenerEstado(CasoJudicialDTO caso) {
+        if (caso.getEstado() != null && !caso.getEstado().isBlank()) {
+            return caso.getEstado();
+        }
+
+        return Boolean.TRUE.equals(caso.getActivo())
+                ? "EN_TRAMITE"
+                : "CERRADO";
+    }
+
+    private String obtenerEstadoVisible(CasoJudicialDTO caso) {
+        return switch (obtenerEstado(caso)) {
+            case "EN_TRAMITE" -> "En trámite";
+            case "REABIERTO_POR_APELACION" -> "Reabierto por apelación";
+            case "CERRADO" -> "Cerrado";
+            default -> obtenerEstado(caso);
         };
     }
 
