@@ -279,7 +279,17 @@ INSERT INTO contrato_vigilancia (id, fecha, con_arma, codigo, vigilante_id, sucu
 (25, '2026-10-22', true, 'CDV00025', 32, 9, true, 'SISTEMA', NOW()),
 (26, '2026-10-23', false, 'CDV00026', 33, 13, true, 'SISTEMA', NOW()),
 (27, '2026-10-24', true, 'CDV00027', 34, 18, true, 'SISTEMA', NOW()),
-(28, '2026-10-25', false, 'CDV00028', 35, 24, true, 'SISTEMA', NOW());
+(28, '2026-10-25', false, 'CDV00028', 35, 24, true, 'SISTEMA', NOW()),
+(29, '2026-11-10', true, 'CDV00029', 4, 1, true, 'SISTEMA', NOW()),
+(30, '2026-11-15', false, 'CDV00030', 5, 5, true, 'SISTEMA', NOW()),
+(31, '2026-11-20', true, 'CDV00031', 6, 8, true, 'SISTEMA', NOW()),
+(32, '2026-11-25', false, 'CDV00032', 7, 12, true, 'SISTEMA', NOW()),
+(33, '2026-11-30', true, 'CDV00033', 8, 16, true, 'SISTEMA', NOW()),
+(34, '2026-12-05', false, 'CDV00034', 9, 20, true, 'SISTEMA', NOW()),
+(35, '2026-12-10', true, 'CDV00035', 10, 24, true, 'SISTEMA', NOW()),
+(36, '2026-12-15', false, 'CDV00036', 11, 3, true, 'SISTEMA', NOW()),
+(37, '2026-12-20', true, 'CDV00037', 12, 7, true, 'SISTEMA', NOW()),
+(38, '2026-12-28', false, 'CDV00038', 13, 11, true, 'SISTEMA', NOW());
 
 
 -- =========================================================
