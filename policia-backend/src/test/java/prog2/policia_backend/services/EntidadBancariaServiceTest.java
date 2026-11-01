@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.services;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ class EntidadBancariaServiceTest {
     }
 
     // LISTAR
-
     @Test
     void listarTodasLasEntidades() {
         List<EntidadBancaria> entidades = new ArrayList<>();
@@ -64,8 +62,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.findAll()).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.listar(null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.listar(null);
 
         assertEquals(1, resultado.size());
         assertEquals("EBA00001", resultado.get(0).getCodigo());
@@ -79,8 +77,8 @@ class EntidadBancariaServiceTest {
         when(entidadRepository.findByActivo(true))
                 .thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.listar(true);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.listar(true);
 
         assertEquals(1, resultado.size());
         assertTrue(resultado.get(0).getActivo());
@@ -93,21 +91,20 @@ class EntidadBancariaServiceTest {
         when(entidadRepository.findByActivo(false))
                 .thenReturn(new ArrayList<EntidadBancaria>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.listar(false);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.listar(false);
 
         assertTrue(resultado.isEmpty());
     }
 
     // BUSCAR POR CODIGO
-
     @Test
     void buscarPorCodigoCorrectamente() {
         when(entidadRepository.findByCodigo("EBA00001"))
                 .thenReturn(Optional.of(crearEntidad()));
 
-        EntidadBancariaDTO resultado =
-                entidadService.buscarPorCodigo("EBA00001");
+        EntidadBancariaDTO resultado
+                = entidadService.buscarPorCodigo("EBA00001");
 
         assertEquals("EBA00001", resultado.getCodigo());
         assertEquals("Banco Nacional", resultado.getNombre());
@@ -129,7 +126,6 @@ class EntidadBancariaServiceTest {
     }
 
     // BUSCAR POR DOMICILIO
-
     @Test
     void buscarPorDomicilioEncuentraCoincidencias() {
         List<EntidadBancaria> entidades = new ArrayList<>();
@@ -137,8 +133,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorDomicilio("Corrientes", null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorDomicilio("Corrientes", null);
 
         assertEquals(1, resultado.size());
     }
@@ -150,8 +146,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(isNull(), anyString(), eq(false))).thenReturn(new ArrayList<>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorDomicilio("Corrientes", false);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorDomicilio("Corrientes", false);
 
         assertTrue(resultado.isEmpty());
     }
@@ -160,14 +156,13 @@ class EntidadBancariaServiceTest {
     void buscarPorDomicilioSinCoincidencias() {
         when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(new ArrayList<>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorDomicilio("Rosario", null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorDomicilio("Rosario", null);
 
         assertTrue(resultado.isEmpty());
     }
 
     // BUSCAR POR NOMBRE
-
     @Test
     void buscarPorNombreEncuentraCoincidencias() {
         List<EntidadBancaria> entidades = new ArrayList<>();
@@ -175,8 +170,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorNombre("nacional", null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorNombre("nacional", null);
 
         assertEquals(1, resultado.size());
     }
@@ -188,8 +183,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(anyString(), isNull(), eq(false))).thenReturn(new ArrayList<>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorNombre("nacional", false);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorNombre("nacional", false);
 
         assertTrue(resultado.isEmpty());
     }
@@ -198,14 +193,13 @@ class EntidadBancariaServiceTest {
     void buscarPorNombreSinCoincidencias() {
         when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(new ArrayList<>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarPorNombre("Provincial", null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarPorNombre("Provincial", null);
 
         assertTrue(resultado.isEmpty());
     }
 
     // GUARDAR
-
     @Test
     void guardarEntidadCorrectamente() {
         when(entidadRepository.save(any(EntidadBancaria.class)))
@@ -224,8 +218,8 @@ class EntidadBancariaServiceTest {
                     }
                 });
 
-        EntidadBancariaDTO resultado =
-                entidadService.guardar(crearDTO());
+        EntidadBancariaDTO resultado
+                = entidadService.guardar(crearDTO());
 
         assertNotNull(resultado);
         assertEquals("EBA00001", resultado.getCodigo());
@@ -237,7 +231,6 @@ class EntidadBancariaServiceTest {
     }
 
     // ACTUALIZAR
-
     @Test
     void actualizarNombreCorrectamente() {
         EntidadBancaria entidad = crearEntidad();
@@ -251,8 +244,8 @@ class EntidadBancariaServiceTest {
         EntidadBancariaDTO dto = new EntidadBancariaDTO();
         dto.setNombre("Banco Provincial");
 
-        EntidadBancariaDTO resultado =
-                entidadService.actualizar("EBA00001", dto);
+        EntidadBancariaDTO resultado
+                = entidadService.actualizar("EBA00001", dto);
 
         assertEquals("Banco Provincial", resultado.getNombre());
         verify(entidadRepository).save(entidad);
@@ -271,8 +264,8 @@ class EntidadBancariaServiceTest {
         EntidadBancariaDTO dto = new EntidadBancariaDTO();
         dto.setDomicilioCentral("Avenida Santa Fe 456");
 
-        EntidadBancariaDTO resultado =
-                entidadService.actualizar("EBA00001", dto);
+        EntidadBancariaDTO resultado
+                = entidadService.actualizar("EBA00001", dto);
 
         assertEquals("Avenida Santa Fe 456",
                 resultado.getDomicilioCentral());
@@ -314,8 +307,57 @@ class EntidadBancariaServiceTest {
         }
     }
 
-    // ELIMINAR
+    @Test
+    void guardarRechazaNombreDuplicado() {
+        when(entidadRepository.existsByNombreIgnoreCase("Banco Nacional"))
+                .thenReturn(true);
 
+        assertThrows(OperacionNoPermitidaException.class,
+                () -> entidadService.guardar(crearDTO()));
+
+        verify(entidadRepository, never()).save(any(EntidadBancaria.class));
+    }
+
+    @Test
+    void actualizarRechazaNombreDeOtraEntidad() {
+        EntidadBancaria entidad = crearEntidad();
+
+        when(entidadRepository.findByCodigo("EBA00001"))
+                .thenReturn(Optional.of(entidad));
+
+        when(entidadRepository.existsByNombreIgnoreCaseAndIdNot("Banco Provincial", 1L))
+                .thenReturn(true);
+
+        EntidadBancariaDTO dto = new EntidadBancariaDTO();
+        dto.setNombre("Banco Provincial");
+
+        assertThrows(OperacionNoPermitidaException.class,
+                () -> entidadService.actualizar("EBA00001", dto));
+
+        assertEquals("Banco Nacional", entidad.getNombre());
+        verify(entidadRepository, never()).save(any(EntidadBancaria.class));
+    }
+
+    @Test
+    void actualizarPermiteConservarNombrePropio() {
+        EntidadBancaria entidad = crearEntidad();
+
+        when(entidadRepository.findByCodigo("EBA00001"))
+                .thenReturn(Optional.of(entidad));
+
+        when(entidadRepository.save(entidad))
+                .thenReturn(entidad);
+
+        EntidadBancariaDTO dto = new EntidadBancariaDTO();
+        dto.setNombre("Banco Nacional");
+
+        EntidadBancariaDTO resultado = entidadService.actualizar("EBA00001", dto);
+
+        assertEquals("Banco Nacional", resultado.getNombre());
+        verify(entidadRepository).save(entidad);
+    }
+
+    // ELIMINAR
     @Test
     void eliminarEntidadCorrectamente() {
         EntidadBancaria entidad = crearEntidad();
@@ -419,7 +461,6 @@ class EntidadBancariaServiceTest {
     }
 
     // REACTIVAR
-
     @Test
     void reactivarEntidadCorrectamente() {
         EntidadBancaria entidad = crearEntidad();
@@ -432,8 +473,8 @@ class EntidadBancariaServiceTest {
         when(entidadRepository.save(any(EntidadBancaria.class)))
                 .thenReturn(entidad);
 
-        EntidadBancariaDTO resultado =
-                entidadService.reactivar("EBA00001");
+        EntidadBancariaDTO resultado
+                = entidadService.reactivar("EBA00001");
 
         assertTrue(entidad.isActivo());
         assertNull(entidad.getMotivoBaja());
@@ -470,7 +511,6 @@ class EntidadBancariaServiceTest {
     }
 
     // BUSCAR CON FILTROS
-
     @Test
     void buscarConFiltrosPorNombre() {
         List<EntidadBancaria> entidades = new ArrayList<>();
@@ -478,8 +518,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarConFiltros("Nacional", null, null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarConFiltros("Nacional", null, null);
 
         assertEquals(1, resultado.size());
     }
@@ -491,8 +531,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarConFiltros(null, "Corrientes", null);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarConFiltros(null, "Corrientes", null);
 
         assertEquals(1, resultado.size());
     }
@@ -504,8 +544,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(isNull(), isNull(), eq(true))).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarConFiltros(null, null, true);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarConFiltros(null, null, true);
 
         assertEquals(1, resultado.size());
     }
@@ -517,8 +557,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(anyString(), anyString(), eq(true))).thenReturn(entidades);
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarConFiltros("Nacional", "Corrientes", true);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarConFiltros("Nacional", "Corrientes", true);
 
         assertEquals(1, resultado.size());
     }
@@ -530,8 +570,8 @@ class EntidadBancariaServiceTest {
 
         when(entidadRepository.buscarConFiltros(anyString(), isNull(), eq(true))).thenReturn(new ArrayList<>());
 
-        List<EntidadBancariaDTO> resultado =
-                entidadService.buscarConFiltros("Provincial", null, true);
+        List<EntidadBancariaDTO> resultado
+                = entidadService.buscarConFiltros("Provincial", null, true);
 
         assertTrue(resultado.isEmpty());
     }

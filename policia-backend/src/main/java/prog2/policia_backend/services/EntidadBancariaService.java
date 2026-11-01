@@ -15,6 +15,7 @@ import prog2.policia_backend.exceptions.EntidadInactivaException;
 import prog2.policia_backend.exceptions.EntidadYaActivaException;
 import prog2.policia_backend.exceptions.EntidadYaInactivaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
@@ -83,6 +84,10 @@ public class EntidadBancariaService {
     public EntidadBancariaDTO guardar(EntidadBancariaDTO dto) {
         EntidadBancaria entidad = convertirAEntidad(dto);
 
+        if (entidadBancariaRepository.existsByNombreIgnoreCase(entidad.getNombre())) {
+            throw new OperacionNoPermitidaException("Ya existe una entidad bancaria con ese nombre");
+        }
+
         entidad = entidadBancariaRepository.save(entidad);
 
         entidad.setCodigo(GeneradorCodigo.generar("EBA", entidad.getId()));
@@ -101,7 +106,13 @@ public class EntidadBancariaService {
             throw new EntidadInactivaException();
         }
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            entidad.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+            String nombre = NormalizadorTexto.normalizarParaGuardar(dto.getNombre());
+
+            if (entidadBancariaRepository.existsByNombreIgnoreCaseAndIdNot(nombre, entidad.getId())) {
+                throw new OperacionNoPermitidaException("Ya existe una entidad bancaria con ese nombre");
+            }
+
+            entidad.setNombre(nombre);
         }
         if (dto.getDomicilioCentral() != null && !dto.getDomicilioCentral().isBlank()) {
             entidad.setDomicilioCentral(NormalizadorTexto.normalizarParaGuardar(dto.getDomicilioCentral()));

@@ -235,4 +235,40 @@ class EntidadBancariaRepositoryTest {
         assertEquals(1, resultado.size());
         assertFalse(resultado.get(0).isActivo());
     }
+
+    @Test
+    void existeEntidadConNombreIgnorandoMayusculas() {
+        boolean existe = entidadBancariaRepository.existsByNombreIgnoreCase("banco nacional");
+
+        assertTrue(existe);
+    }
+
+    @Test
+    void noExisteEntidadConNombreDiferente() {
+        boolean existe = entidadBancariaRepository.existsByNombreIgnoreCase("Banco Provincial");
+
+        assertFalse(existe);
+    }
+
+    @Test
+    void detectarNombreDuplicadoExcluyendoEntidadActual() {
+        EntidadBancaria otra = new EntidadBancaria();
+        otra.setCodigo("EB00002");
+        otra.setNombre("Banco Provincial");
+        otra.setDomicilioCentral("Cordoba");
+        otra.setActivo(true);
+
+        otra = entidadBancariaRepository.saveAndFlush(otra);
+
+        boolean existe = entidadBancariaRepository.existsByNombreIgnoreCaseAndIdNot("Banco Nacional", otra.getId());
+
+        assertTrue(existe);
+    }
+
+    @Test
+    void permitirConservarNombrePropio() {
+        boolean existe = entidadBancariaRepository.existsByNombreIgnoreCaseAndIdNot("Banco Nacional", entidad.getId());
+
+        assertFalse(existe);
+    }
 }

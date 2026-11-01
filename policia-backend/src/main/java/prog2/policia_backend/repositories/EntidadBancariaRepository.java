@@ -18,6 +18,10 @@ public interface EntidadBancariaRepository extends JpaRepository<EntidadBancaria
 
     List<EntidadBancaria> findByNombreContainingIgnoreCase(String nombre);
 
+    boolean existsByNombreIgnoreCase(String nombre);
+
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
+
     //List<EntidadBancaria> findByDomicilioCentralContainingIgnoreCase(String domicilio);
     @Query("""
     SELECT e FROM EntidadBancaria e
