@@ -42,13 +42,7 @@ public class SesionUsuario {
         return usuario;
     }
 
-/*
- * Coloca las credenciales del usuario conectado
- * en una petición dirigida al backend.
- *
- * De esta manera, las vistas y los clientes
- * no necesitan obtener directamente la contraseña.
- */
+
     public void aplicarAutenticacion(
             HttpHeaders encabezados) {
 
