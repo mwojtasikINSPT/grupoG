@@ -8,8 +8,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -32,10 +30,10 @@ import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar asaltantes.
- * Por ahora se accede escribiendo /asaltantes.
  */
 @Route(
         value = "asaltantes",
@@ -138,10 +136,6 @@ public class AsaltantesView
                     evento -> verCasos(asaltante)
             );
 
-            /*
-             * Un permiso de lectura permite consultar los asaltantes,
-             * pero no modificar sus datos, estado ni banda asignada.
-             */
             if (!puedeEscribir()) {
                 return botonVerCasos;
             }
@@ -196,8 +190,7 @@ public class AsaltantesView
         }).setHeader("Acciones")
                 .setAutoWidth(true);
 
-        tabla.setWidthFull();
-        tabla.setAllRowsVisible(true);
+        tabla.setSizeFull();
         tabla.addThemeVariants(
                 GridVariant.LUMO_COMPACT
         );
@@ -215,7 +208,7 @@ public class AsaltantesView
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de asaltantes"
+                "Asaltantes"
         );
 
         Button botonBuscar = new Button(
@@ -262,12 +255,10 @@ public class AsaltantesView
                 tabla,
                 paginador.getControles()
         );
+
+        expand(tabla);
     }
 
-    /*
-     * Utiliza el mismo formulario para crear o modificar.
-     * Limpiar la banda actual solicita su desvinculación.
-     */
     private void abrirFormulario(
             AsaltanteDTO asaltante) {
 
@@ -381,10 +372,6 @@ public class AsaltantesView
                                     : null
                     );
 
-            /*
-             * Si antes tenía banda y ahora el campo está vacío,
-             * se informa expresamente que debe desvincularse.
-             */
             boolean quitarBanda
                     = !esCreacion
                     && asaltante.getBandaCodigo() != null
@@ -529,10 +516,6 @@ public class AsaltantesView
         };
     }
 
-    /*
-     * Comprueba el permiso exigido para crear, modificar,
-     * dar de baja o cambiar la banda de un asaltante.
-     */
     private boolean puedeEscribir() {
 
         return sesionUsuario.tienePermiso(

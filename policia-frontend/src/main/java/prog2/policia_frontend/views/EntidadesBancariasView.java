@@ -1,12 +1,10 @@
-
 package prog2.policia_frontend.views;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -16,16 +14,18 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import java.util.List;
 import java.util.Map;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
-import com.vaadin.flow.component.dialog.Dialog;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar
@@ -48,6 +48,9 @@ public class EntidadesBancariasView
                     EntidadBancariaDTO.class,
                     false
             );
+
+    private final PaginadorGrid<EntidadBancariaDTO> paginadorEntidades
+            = new PaginadorGrid<>(tabla, 10);
 
     /*
      * Permite elegir si el texto escrito
@@ -129,7 +132,7 @@ public class EntidadesBancariasView
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de entidades bancarias"
+                "Entidades Bancarias"
         );
 
         HorizontalLayout filtros
@@ -152,11 +155,11 @@ public class EntidadesBancariasView
         setSizeFull();
 
         add(
-                
-        titulo,
-        botonNuevaEntidad,
-        filtros,
-        tabla
+                titulo,
+                botonNuevaEntidad,
+                filtros,
+                tabla,
+                paginadorEntidades.getControles()
         );
 
         expand(tabla);
@@ -689,13 +692,13 @@ private void mostrarErrorOperacion(
                 domicilio = texto;
             }
 
-            tabla.setItems(
-                    entidadClient.listar(
-                            obtenerEstado(),
-                            nombre,
-                            domicilio
-                    )
+            List<EntidadBancariaDTO> entidades = entidadClient.listar(
+                    obtenerEstado(),
+                    nombre,
+                    domicilio
             );
+
+            paginadorEntidades.setItems(entidades);
 
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);

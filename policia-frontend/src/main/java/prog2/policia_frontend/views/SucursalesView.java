@@ -171,7 +171,7 @@ public class SucursalesView
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de sucursales"
+                "Sucursales"
         );
 
         HorizontalLayout filtros

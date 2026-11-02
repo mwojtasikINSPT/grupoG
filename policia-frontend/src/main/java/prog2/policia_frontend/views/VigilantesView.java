@@ -1,33 +1,34 @@
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import java.util.List;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.VigilanteClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.VigilanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.PasswordField;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar vigilantes.
- * Por ahora se accede escribiendo /vigilantes.
  */
 @Route(
         value = "vigilantes",
@@ -44,17 +45,17 @@ public class VigilantesView
     private final Grid<VigilanteDTO> tabla
             = new Grid<>(VigilanteDTO.class, false);
 
+    private final PaginadorGrid<VigilanteDTO> paginadorVigilantes
+            = new PaginadorGrid<>(tabla, 10);
+
     private final TextField filtroNombre
             = new TextField("Buscar por nombre");
 
     private final Select<String> filtroEstado
             = new Select<>();
-    /*
- * Abre el formulario para registrar
- * un vigilante nuevo.
- */
-private final Button botonNuevoVigilante
-        = new Button("Nuevo vigilante");
+
+    private final Button botonNuevoVigilante
+            = new Button("Nuevo vigilante");
 
     public VigilantesView(
             VigilanteClient vigilanteClient,
@@ -64,8 +65,8 @@ private final Button botonNuevoVigilante
         this.sesionUsuario = sesionUsuario;
 
         configurarFiltros();
-        configurarTabla();
         configurarVista();
+        configurarTabla();
     }
 
     /*
@@ -137,10 +138,6 @@ private final Button botonNuevoVigilante
          */
         tabla.addComponentColumn(vigilante -> {
 
-            /*
-             * Un usuario con permiso de lectura puede ver
-             * los datos, pero no recibe botones que los cambien.
-             */
             if (!puedeEscribir()) {
                 return new Span("Solo lectura");
             }
@@ -184,10 +181,6 @@ private final Button botonNuevoVigilante
                     vigilante.getMotivoBaja()
             )) {
 
-                /*
-                 * Una persona dada de baja por
-                 * fallecimiento no puede reactivarse.
-                 */
                 botonEstado.setText("No reactivable");
                 botonEstado.setEnabled(false);
 
@@ -222,25 +215,22 @@ private final Button botonNuevoVigilante
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de vigilantes"
+                "Vigilantes"
         );
 
-        com.vaadin.flow.component.button.Button botonBuscar
-                = new com.vaadin.flow.component.button.Button(
-                        "Buscar",
-                        evento -> cargarVigilantes()
-                );
+        Button botonBuscar = new Button(
+                "Buscar",
+                evento -> cargarVigilantes()
+        );
 
-        com.vaadin.flow.component.button.Button botonLimpiar
-                = new com.vaadin.flow.component.button.Button(
-                        "Limpiar",
-                        evento -> {
-
-                            filtroNombre.clear();
-                            filtroEstado.setValue("Todos");
-                            cargarVigilantes();
-                        }
-                );
+        Button botonLimpiar = new Button(
+                "Limpiar",
+                evento -> {
+                    filtroNombre.clear();
+                    filtroEstado.setValue("Todos");
+                    cargarVigilantes();
+                }
+        );
 
         HorizontalLayout filtros
                 = new HorizontalLayout(
@@ -254,35 +244,26 @@ private final Button botonNuevoVigilante
                 HorizontalLayout.Alignment.END
         );
         
-botonNuevoVigilante.addClickListener(
-        evento -> abrirFormularioNuevo()
-);
+        botonNuevoVigilante.addClickListener(
+                evento -> abrirFormularioNuevo()
+        );
 
-        /*
-         * El alta solamente se ofrece a quienes poseen
-         * el permiso de escritura.
-         */
         botonNuevoVigilante.setVisible(
                 puedeEscribir()
         );
         setSizeFull();
 
         add(
-                
-        titulo,
-        botonNuevoVigilante,
-        filtros,
-        tabla
-);
+                titulo,
+                botonNuevoVigilante,
+                filtros,
+                tabla,
+                paginadorVigilantes.getControles()
+        );
         
         expand(tabla);
     }
     
-    
-    /*
-     * Reactiva un vigilante inactivo,
-     * siempre que el backend lo permita.
-     */
     private void reactivarVigilante(
             VigilanteDTO vigilante) {
 
@@ -316,10 +297,6 @@ botonNuevoVigilante.addClickListener(
         }
     }
 
-    /*
-     * Solicita el motivo antes de dar
-     * de baja lógica a un vigilante.
-     */
     private void abrirDialogoBaja(
             VigilanteDTO vigilante) {
 
@@ -423,10 +400,6 @@ botonNuevoVigilante.addClickListener(
         dialogo.open();
     }
 
-    /*
-     * Abre un formulario con los datos actuales
-     * de un vigilante activo.
-     */
     private void abrirFormularioEdicion(
             VigilanteDTO vigilante) {
 
@@ -533,10 +506,6 @@ botonNuevoVigilante.addClickListener(
                 return;
             }
 
-            /*
-             * Si no se escribió una contraseña nueva,
-             * se envía null para conservar la actual.
-             */
             String passwordParaEnviar
                     = nuevaPassword.isBlank()
                             ? null
@@ -599,175 +568,151 @@ botonNuevoVigilante.addClickListener(
         dialogo.open();
     }
 
-    /*
-     * Abre el formulario para registrar
-     * un vigilante nuevo.
-     */
-private void abrirFormularioNuevo() {
+    private void abrirFormularioNuevo() {
 
-    Dialog dialogo = new Dialog();
+        Dialog dialogo = new Dialog();
 
-    dialogo.setHeaderTitle(
-            "Nuevo vigilante"
-    );
-
-    TextField campoNombre
-            = new TextField("Nombre");
-
-    NumberField campoEdad
-            = new NumberField("Edad");
-
-    PasswordField campoPassword
-            = new PasswordField("Contraseña");
-
-    campoNombre.setRequiredIndicatorVisible(true);
-    campoEdad.setRequiredIndicatorVisible(true);
-    campoPassword.setRequiredIndicatorVisible(true);
-
-    /*
-     * La edad debe ser un número entero
-     * comprendido entre 18 y 65.
-     */
-    campoEdad.setMin(18);
-    campoEdad.setMax(65);
-    campoEdad.setStep(1);
-    campoEdad.setStepButtonsVisible(true);
-
-    /*
-     * Evita mostrar la contraseña mientras
-     * el administrativo la escribe.
-     */
-    campoPassword.setRevealButtonVisible(false);
-
-    campoNombre.setWidthFull();
-    campoEdad.setWidthFull();
-    campoPassword.setWidthFull();
-
-    Button botonGuardar
-            = new Button("Guardar");
-
-    Button botonCancelar
-            = new Button(
-                    "Cancelar",
-                    evento -> dialogo.close()
-            );
-
-    botonGuardar.addClickListener(evento -> {
-
-        boolean nombreVacio
-                = campoNombre.getValue().isBlank();
-
-        Double edadIngresada
-                = campoEdad.getValue();
-
-        boolean edadInvalida
-                = edadIngresada == null
-                || edadIngresada < 18
-                || edadIngresada > 65
-                || edadIngresada
-                        != Math.floor(edadIngresada);
-
-        String password
-                = campoPassword.getValue();
-
-        boolean passwordInvalida
-                = password == null
-                || password.length() < 4
-                || password.length() > 20;
-
-        campoNombre.setInvalid(nombreVacio);
-        campoNombre.setErrorMessage(
-                "El nombre es obligatorio."
+        dialogo.setHeaderTitle(
+                "Nuevo vigilante"
         );
 
-        campoEdad.setInvalid(edadInvalida);
-        campoEdad.setErrorMessage(
-                "La edad debe ser un número entero entre 18 y 65."
-        );
+        TextField campoNombre
+                = new TextField("Nombre");
 
-        campoPassword.setInvalid(passwordInvalida);
-        campoPassword.setErrorMessage(
-                "La contraseña debe tener entre 4 y 20 caracteres."
-        );
+        NumberField campoEdad
+                = new NumberField("Edad");
 
-        /*
-         * Si algún dato no es válido,
-         * no se envía el formulario.
-         */
-        if (nombreVacio
-                || edadInvalida
-                || passwordInvalida) {
+        PasswordField campoPassword
+                = new PasswordField("Contraseña");
 
-            return;
-        }
+        campoNombre.setRequiredIndicatorVisible(true);
+        campoEdad.setRequiredIndicatorVisible(true);
+        campoPassword.setRequiredIndicatorVisible(true);
 
-        VigilanteDTO datos
-                = new VigilanteDTO(
-                        campoNombre.getValue().trim(),
-                        password,
-                        edadIngresada.intValue()
+        campoEdad.setMin(18);
+        campoEdad.setMax(65);
+        campoEdad.setStep(1);
+        campoEdad.setStepButtonsVisible(true);
+
+        campoPassword.setRevealButtonVisible(false);
+
+        campoNombre.setWidthFull();
+        campoEdad.setWidthFull();
+        campoPassword.setWidthFull();
+
+        Button botonGuardar
+                = new Button("Guardar");
+
+        Button botonCancelar
+                = new Button(
+                        "Cancelar",
+                        evento -> dialogo.close()
                 );
 
-        try {
+        botonGuardar.addClickListener(evento -> {
 
-            vigilanteClient.crear(datos);
+            boolean nombreVacio
+                    = campoNombre.getValue().isBlank();
 
-            dialogo.close();
-            cargarVigilantes();
+            Double edadIngresada
+                    = campoEdad.getValue();
 
-            NotificacionUtils.mostrarExito(
-                    "Vigilante creado correctamente."
+            boolean edadInvalida
+                    = edadIngresada == null
+                    || edadIngresada < 18
+                    || edadIngresada > 65
+                    || edadIngresada
+                            != Math.floor(edadIngresada);
+
+            String password
+                    = campoPassword.getValue();
+
+            boolean passwordInvalida
+                    = password == null
+                    || password.length() < 4
+                    || password.length() > 20;
+
+            campoNombre.setInvalid(nombreVacio);
+            campoNombre.setErrorMessage(
+                    "El nombre es obligatorio."
             );
 
-        } catch (RestClientResponseException excepcion) {
-
-            mostrarErrorOperacion(excepcion);
-
-        } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
+            campoEdad.setInvalid(edadInvalida);
+            campoEdad.setErrorMessage(
+                    "La edad debe ser un número entero entre 18 y 65."
             );
 
-        } catch (IllegalArgumentException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    excepcion.getMessage()
-            );
-        }
-    });
-
-    HorizontalLayout botones
-            = new HorizontalLayout(
-                    botonGuardar,
-                    botonCancelar
+            campoPassword.setInvalid(passwordInvalida);
+            campoPassword.setErrorMessage(
+                    "La contraseña debe tener entre 4 y 20 caracteres."
             );
 
-    VerticalLayout formulario
-            = new VerticalLayout(
-                    campoNombre,
-                    campoEdad,
-                    campoPassword,
-                    botones
-            );
+            if (nombreVacio
+                    || edadInvalida
+                    || passwordInvalida) {
 
-    dialogo.add(formulario);
-    dialogo.open();
-}
+                return;
+            }
 
-/*
- * Convierte las respuestas de error
- * del backend en mensajes comprensibles.
- */
-private void mostrarErrorOperacion(
-        RestClientResponseException excepcion) {
-    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
-}
+            VigilanteDTO datos
+                    = new VigilanteDTO(
+                            campoNombre.getValue().trim(),
+                            password,
+                            edadIngresada.intValue()
+                    );
 
-    /*
-     * Centraliza la comprobación usada por esta pantalla.
-     * Así no repetimos el nombre del permiso en varios lugares.
-     */
+            try {
+
+                vigilanteClient.crear(datos);
+
+                dialogo.close();
+                cargarVigilantes();
+
+                NotificacionUtils.mostrarExito(
+                        "Vigilante creado correctamente."
+                );
+
+            } catch (RestClientResponseException excepcion) {
+
+                mostrarErrorOperacion(excepcion);
+
+            } catch (ResourceAccessException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        "No se puede conectar con el backend."
+                );
+
+            } catch (IllegalArgumentException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        excepcion.getMessage()
+                );
+            }
+        });
+
+        HorizontalLayout botones
+                = new HorizontalLayout(
+                        botonGuardar,
+                        botonCancelar
+                );
+
+        VerticalLayout formulario
+                = new VerticalLayout(
+                        campoNombre,
+                        campoEdad,
+                        campoPassword,
+                        botones
+                );
+
+        dialogo.add(formulario);
+        dialogo.open();
+    }
+
+    private void mostrarErrorOperacion(
+            RestClientResponseException excepcion) {
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
+    }
+
     private boolean puedeEscribir() {
 
         return sesionUsuario.tienePermiso(
@@ -775,10 +720,6 @@ private void mostrarErrorOperacion(
         );
     }
 
-    /*
-     * Convierte la opción de la pantalla
-     * al valor que espera el backend.
-     */
     private Boolean obtenerEstado() {
 
         return switch (filtroEstado.getValue()) {
@@ -789,19 +730,16 @@ private void mostrarErrorOperacion(
         };
     }
 
-    /*
-     * Consulta el backend y carga la tabla.
-     */
     private void cargarVigilantes() {
 
         try {
 
-            tabla.setItems(
-                    vigilanteClient.listar(
-                            obtenerEstado(),
-                            filtroNombre.getValue()
-                    )
+            List<VigilanteDTO> vigilantes = vigilanteClient.listar(
+                    obtenerEstado(),
+                    filtroNombre.getValue()
             );
+
+            paginadorVigilantes.setItems(vigilantes);
 
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
@@ -820,10 +758,6 @@ private void mostrarErrorOperacion(
         }
     }
 
-    /*
-     * Carga los datos cada vez que
-     * se ingresa en esta dirección.
-     */
     @Override
     public void beforeEnter(
             BeforeEnterEvent evento) {

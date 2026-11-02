@@ -144,7 +144,7 @@ public class RolesView extends VerticalLayout
 
     private void configurarVista() {
 
-        H2 titulo = new H2("Administración de roles");
+        H2 titulo = new H2("Roles");
 
         Button botonNuevo = new Button(
                 "Nuevo rol",

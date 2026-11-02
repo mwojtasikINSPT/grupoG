@@ -7,7 +7,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -24,6 +23,7 @@ import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.AsaltoClient;
 import prog2.policia_frontend.clients.SucursalClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.dtos.AsaltoDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
@@ -31,10 +31,10 @@ import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar asaltos.
- * Por ahora se accede escribiendo /asaltos.
  */
 @Route(
         value = "asaltos",
@@ -52,6 +52,9 @@ public class AsaltosView
 
     private final Grid<AsaltoDTO> tabla
             = new Grid<>(AsaltoDTO.class, false);
+
+    private final PaginadorGrid<AsaltoDTO> paginadorAsaltos
+            = new PaginadorGrid<>(tabla, 10);
 
     private final Button botonNuevo
             = new Button("Nuevo asalto");
@@ -154,10 +157,6 @@ public class AsaltosView
 
         tabla.addComponentColumn(asalto -> {
 
-            /*
-             * El permiso de lectura permite consultar el asalto,
-             * pero modificarlo requiere permiso de escritura.
-             */
             if (!puedeEscribir()) {
                 return new Span("Solo lectura");
             }
@@ -180,7 +179,7 @@ public class AsaltosView
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de asaltos"
+                "Asaltos"
         );
 
         Button botonActualizar = new Button(
@@ -229,16 +228,13 @@ public class AsaltosView
                         botonActualizar
                 ),
                 filtros,
-                tabla
+                tabla,
+                paginadorAsaltos.getControles()
         );
 
         expand(tabla);
     }
 
-    /*
-     * Crea o modifica un asalto. La fecha queda
-     * bloqueada al modificar porque el backend no la cambia.
-     */
     private void abrirFormulario(
             AsaltoDTO asalto) {
 
@@ -441,10 +437,6 @@ public class AsaltosView
                                 participantesActivosOriginales
                         );
 
-                /*
-                 * Null significa que no se modifica la relación.
-                 * Una lista vacía significa quitar a todos.
-                 */
                 datos.setAsaltantesCodigos(
                         participantesModificados
                                 ? codigosSeleccionados
@@ -546,7 +538,7 @@ public class AsaltosView
                 asaltos = asaltoClient.listar();
             }
 
-            tabla.setItems(asaltos);
+            paginadorAsaltos.setItems(asaltos);
 
             if (!"Todos".equals(tipoBusqueda) && asaltos.isEmpty()) {
 
@@ -610,10 +602,6 @@ public class AsaltosView
         NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
-    /*
-     * Centraliza la comprobación necesaria para crear o
-     * modificar un asalto y sus relaciones.
-     */
     private boolean puedeEscribir() {
 
         return sesionUsuario.tienePermiso(
