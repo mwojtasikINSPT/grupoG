@@ -7,7 +7,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -23,6 +22,7 @@ import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.ContratoVigilanciaClient;
 import prog2.policia_frontend.clients.SucursalClient;
 import prog2.policia_frontend.clients.VigilanteClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.dtos.VigilanteDTO;
@@ -30,11 +30,11 @@ import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para consultar y administrar
  * los contratos de vigilancia.
- * Por ahora se accede escribiendo /contratos-vigilancia.
  */
 @Route(
         value = "contratos-vigilancia",
@@ -52,6 +52,9 @@ public class ContratosVigilanciaView
 
     private final Grid<ContratoVigilanciaDTO> tabla
             = new Grid<>(ContratoVigilanciaDTO.class, false);
+
+    private final PaginadorGrid<ContratoVigilanciaDTO> paginadorContratos
+            = new PaginadorGrid<>(tabla, 10);
 
     private final TextField filtroVigilante
             = new TextField("Buscar por vigilante");
@@ -311,7 +314,8 @@ public class ContratosVigilanciaView
                 titulo,
                 botonNuevoContrato,
                 filtros,
-                tabla
+                tabla,
+                paginadorContratos.getControles()
         );
 
         expand(tabla);
@@ -973,7 +977,7 @@ public class ContratosVigilanciaView
                         .toList();
             }
 
-            tabla.setItems(contratos);
+            paginadorContratos.setItems(contratos);
 
             if ("General".equals(tipoBusqueda)
                     && contratos.isEmpty()) {

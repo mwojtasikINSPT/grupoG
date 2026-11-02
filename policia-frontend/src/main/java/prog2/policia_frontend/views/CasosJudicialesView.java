@@ -7,7 +7,6 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -25,6 +24,7 @@ import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.AsaltoClient;
 import prog2.policia_frontend.clients.CasoJudicialClient;
 import prog2.policia_frontend.clients.JuezClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.dtos.AsaltoDTO;
 import prog2.policia_frontend.dtos.CasoJudicialDTO;
@@ -34,6 +34,7 @@ import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /**
  * Administra los casos judiciales y las sentencias individuales de sus
@@ -52,6 +53,10 @@ public class CasosJudicialesView extends VerticalLayout
 
     private final Grid<CasoJudicialDTO> tabla
             = new Grid<>(CasoJudicialDTO.class, false);
+
+    private final PaginadorGrid<CasoJudicialDTO> paginadorCasos
+            = new PaginadorGrid<>(tabla, 10);
+
     private final Select<String> filtroEstado = new Select<>();
     private final Select<String> filtroRelacion = new Select<>();
     private final Select<JuezDTO> filtroJuez = new Select<>();
@@ -185,7 +190,7 @@ public class CasosJudicialesView extends VerticalLayout
     }
 
     private void configurarVista() {
-        H2 titulo = new H2("Administración de casos judiciales");
+        H2 titulo = new H2("Casos Judiciales");
         Button botonNuevo = new Button(
                 "Nuevo caso", evento -> abrirFormulario(null));
         botonNuevo.setVisible(puedeEscribir());
@@ -205,7 +210,14 @@ public class CasosJudicialesView extends VerticalLayout
         filtros.setAlignItems(HorizontalLayout.Alignment.END);
 
         setSizeFull();
-        add(titulo, botonVolver, botonNuevo, filtros, tabla);
+        add(
+                titulo, 
+                botonVolver, 
+                botonNuevo, 
+                filtros, 
+                tabla,
+                paginadorCasos.getControles()
+        );
         expand(tabla);
     }
 
@@ -551,7 +563,7 @@ public class CasosJudicialesView extends VerticalLayout
                         .toList();
             }
 
-            tabla.setItems(casos);
+            paginadorCasos.setItems(casos);
             if (!"Todos".equals(tipo) && casos.isEmpty()) {
                 NotificacionUtils.mostrarInformacion("No se encontraron casos judiciales.");
             }

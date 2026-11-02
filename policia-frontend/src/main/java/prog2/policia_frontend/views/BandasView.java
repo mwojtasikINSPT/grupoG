@@ -5,8 +5,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Span;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -18,16 +16,17 @@ import java.util.List;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.BandaClient;
-import prog2.policia_frontend.dtos.BandaDTO;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
+import prog2.policia_frontend.dtos.BandaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar bandas.
- * Por ahora se accede escribiendo /bandas.
  */
 @Route(
         value = "bandas",
@@ -43,6 +42,9 @@ public class BandasView
 
     private final Grid<BandaDTO> tabla
             = new Grid<>(BandaDTO.class, false);
+
+    private final PaginadorGrid<BandaDTO> paginadorBandas
+            = new PaginadorGrid<>(tabla, 10);
 
     private final Select<String> filtroEstado
             = new Select<>();
@@ -103,10 +105,6 @@ public class BandasView
                     evento -> mostrarIntegrantes(banda)
             );
 
-            /*
-             * La consulta continúa disponible con permiso de lectura,
-             * pero cambiar el estado requiere permiso de escritura.
-             */
             if (!puedeEscribir()) {
                 return botonIntegrantes;
             }
@@ -200,7 +198,7 @@ public class BandasView
     private void configurarVista() {
 
         H2 titulo = new H2(
-                "Administración de bandas"
+                "Bandas"
         );
 
         Button botonBuscar = new Button(
@@ -242,16 +240,13 @@ public class BandasView
                 titulo,
                 botonNueva,
                 filtros,
-                tabla
+                tabla,
+                paginadorBandas.getControles()
         );
 
         expand(tabla);
     }
 
-    /*
-     * No se abre un formulario porque una banda
-     * nueva todavía no posee datos para ingresar.
-     */
     private void crearBanda() {
 
         try {
@@ -373,10 +368,6 @@ public class BandasView
         };
     }
 
-    /*
-     * Centraliza el permiso necesario para crear,
-     * dar de baja o reactivar una banda.
-     */
     private boolean puedeEscribir() {
 
         return sesionUsuario.tienePermiso(
@@ -388,11 +379,11 @@ public class BandasView
 
         try {
 
-            tabla.setItems(
-                    bandaClient.listar(
-                            obtenerEstado()
-                    )
+            List<BandaDTO> bandas = bandaClient.listar(
+                    obtenerEstado()
             );
+
+            paginadorBandas.setItems(bandas);
 
         } catch (RestClientResponseException excepcion) {
 

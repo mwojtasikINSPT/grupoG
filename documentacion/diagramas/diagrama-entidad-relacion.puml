@@ -1,0 +1,153 @@
+@startdot
+graph DER_POLICIAL {
+  graph [overlap=false, splines=polyline, outputorder=edgesfirst,
+         bgcolor="#101010", margin=0.25, pad=0.25, dpi=170];
+  node [fontname="Arial", fontsize=9, fontcolor="white", color="#98A8BF", penwidth=1.2];
+  edge [fontname="Arial", fontsize=8, fontcolor="white", color="#B8C1CC", penwidth=1.1];
+
+  // Entidades
+  node [shape=box, style="filled", fillcolor="#1D2A3B", width=1.45, height=0.42];
+  ROL [pos="1.5,9!", label="ROL"];
+  ROL_PERMISO [pos="4.4,9!", label="ROL_PERMISO", peripheries=2];
+  USUARIO [pos="7.4,9!", label="USUARIO"];
+  USUARIO_GENERICO [pos="11.0,10!", label="USUARIO_GENERICO"];
+  VIGILANTE [pos="11.0,8!", label="VIGILANTE"];
+  ENTIDAD_BANCARIA [pos="1.5,5!", label="ENTIDAD_BANCARIA"];
+  SUCURSAL [pos="6.0,5!", label="SUCURSAL"];
+  CONTRATO_VIGILANCIA [pos="10.7,5!", label="CONTRATO_VIGILANCIA"];
+  BANDA [pos="1.2,0!", label="BANDA"];
+  ASALTANTE [pos="4.5,0!", label="ASALTANTE"];
+  ASALTO [pos="8.0,0!", label="ASALTO"];
+  JUEZ [pos="11.0,0!", label="JUEZ"];
+  CASO_JUDICIAL [pos="14.5,0!", label="CASO_JUDICIAL"];
+  SENTENCIA_ASALTANTE [pos="18.3,0!", label="SENTENCIA_ASALTANTE"];
+
+  // Relaciones
+  /*
+  node [shape=diamond, style="filled", fillcolor="#203A2A", color="#87A68E", width=1.25, height=0.58];
+  DEFINE_PERMISOS [pos="2.95,9!", label="DEFINE\nPERMISOS", peripheries=2];
+  ASIGNA_ROL [pos="5.9,9!", label="ASIGNA\nROL"];
+  TIPO_USUARIO [pos="9.1,9!", label="d", width=0.42, height=0.42];
+  POSEE [pos="3.75,5!", label="POSEE"];
+  CONTRATA [pos="8.35,5!", label="CONTRATA"];
+  CUMPLE [pos="11.0,6.5!", label="CUMPLE"];
+  AGRUPA [pos="2.85,0!", label="AGRUPA"];
+  PARTICIPA [pos="6.25,0!", label="PARTICIPA"];
+  OCURRE_EN [pos="7.0,2.5!", label="OCURRE\nEN"];
+  INTERVIENE [pos="12.75,0!", label="INTERVIENE"];
+  ORIGINA [pos="11.25,2.3!", label="ORIGINA"];
+  CONTIENE [pos="16.4,0!", label="CONTIENE"];
+  RECIBE [pos="11.5,-2.1!", label="RECIBE\nRESULTADO"];
+  */
+
+  // Atributos
+  /*
+  node [shape=ellipse, style="filled", fillcolor="#332A12", color="#B9A15C", width=1.35, height=0.32];
+  rol_id [pos="0.0,10.25!", label="id_rol (PK)"];
+  rol_codigo [pos="0.0,9.75!", label="codigo"];
+  rol_nombre [pos="0.0,9.25!", label="nombre"];
+  rol_prefijo [pos="0.0,8.75!", label="prefijo"];
+  rol_descripcion [pos="0.0,8.25!", label="descripcion"];
+  rol_activo [pos="1.5,7.9!", label="activo"];
+  permiso [pos="4.4,10.25!", label="permiso (PK)"];
+  usuario_id [pos="6.2,10.5!", label="id_usuario (PK)"];
+  usuario_codigo [pos="7.4,10.7!", label="codigo"];
+  usuario_nombre [pos="8.6,10.5!", label="nombre"];
+  usuario_password [pos="6.2,7.55!", label="password"];
+  usuario_activo [pos="7.4,7.35!", label="activo"];
+  usuario_motivo [pos="8.6,7.55!", label="motivo_baja"];
+  vigilante_edad [pos="12.8,8!", label="edad"];
+  entidad_id [pos="0.0,6.35!", label="id_entidad (PK)"];
+  entidad_codigo [pos="0.0,5.85!", label="codigo"];
+  entidad_nombre [pos="0.0,5.35!", label="nombre"];
+  entidad_domicilio [pos="0.0,4.85!", label="domicilio_central"];
+  entidad_activo [pos="0.0,4.35!", label="activo"];
+  entidad_motivo [pos="1.5,3.8!", label="motivo_baja"];
+  sucursal_id [pos="4.8,6.35!", label="id_sucursal (PK)"];
+  sucursal_codigo [pos="6.0,6.55!", label="codigo"];
+  sucursal_domicilio [pos="7.2,6.35!", label="domicilio"];
+  sucursal_empleados [pos="4.8,3.65!", label="cant_empleados"];
+  sucursal_activo [pos="6.0,3.45!", label="activo"];
+  sucursal_motivo [pos="7.2,3.65!", label="motivo_cierre"];
+  contrato_id [pos="9.2,6.45!", label="id_contrato (PK)"];
+  contrato_codigo [pos="10.7,6.75!", label="codigo"];
+  contrato_fecha [pos="12.2,6.45!", label="fecha"];
+  contrato_arma [pos="9.2,3.55!", label="con_arma"];
+  contrato_activo [pos="10.7,3.25!", label="activo"];
+  contrato_motivo [pos="12.2,3.55!", label="motivo_baja"];
+  banda_id [pos="0.0,1.25!", label="id_banda (PK)"];
+  banda_codigo [pos="0.0,0.75!", label="codigo"];
+  banda_cantidad [pos="0.0,0.25!", label="cant_miembros"];
+  banda_activo [pos="0.0,-0.25!", label="activo"];
+  asaltante_id [pos="3.2,1.55!", label="id_asaltante (PK)"];
+  asaltante_codigo [pos="4.5,1.75!", label="codigo"];
+  asaltante_nombre [pos="5.8,1.55!", label="nombre"];
+  asaltante_activo [pos="3.2,-1.55!", label="activo"];
+  asaltante_motivo [pos="4.5,-1.75!", label="motivo_baja"];
+  asalto_id [pos="7.0,1.45!", label="id_asalto (PK)"];
+  asalto_codigo [pos="8.0,1.7!", label="codigo"];
+  asalto_fecha [pos="9.0,1.45!", label="fecha"];
+  juez_id [pos="10.0,1.45!", label="id_juez (PK)"];
+  juez_codigo [pos="11.0,1.75!", label="codigo"];
+  juez_nombre [pos="12.0,1.45!", label="nombre"];
+  juez_desde [pos="10.0,-1.45!", label="juez_desde"];
+  juez_activo [pos="11.0,-1.7!", label="activo"];
+  juez_motivo [pos="12.0,-1.45!", label="motivo_baja"];
+  caso_id [pos="13.1,1.55!", label="id_caso (PK)"];
+  caso_codigo [pos="14.5,1.8!", label="codigo"];
+  caso_sentenciado [pos="15.9,1.55!", label="sentenciado"];
+  caso_activo [pos="13.1,-1.55!", label="activo"];
+  caso_estado [pos="14.5,-1.8!", label="estado"];
+  caso_reapertura [pos="15.9,-1.55!", label="motivo_reapertura"];
+  sentencia_id [pos="17.0,1.55!", label="id_sentencia (PK)"];
+  sentencia_sentenciado [pos="18.3,1.8!", label="sentenciado"];
+  sentencia_condenado [pos="19.6,1.55!", label="condenado"];
+  sentencia_tiempo [pos="17.0,-1.55!", label="tiempo_carcel"];
+  sentencia_estado [pos="18.3,-1.8!", label="estado"];
+
+  // Conexiones de atributos
+  ROL -- {rol_id rol_codigo rol_nombre rol_prefijo rol_descripcion rol_activo};
+  ROL_PERMISO -- permiso;
+  USUARIO -- {usuario_id usuario_codigo usuario_nombre usuario_password usuario_activo usuario_motivo};
+  VIGILANTE -- vigilante_edad;
+  ENTIDAD_BANCARIA -- {entidad_id entidad_codigo entidad_nombre entidad_domicilio entidad_activo entidad_motivo};
+  SUCURSAL -- {sucursal_id sucursal_codigo sucursal_domicilio sucursal_empleados sucursal_activo sucursal_motivo};
+  CONTRATO_VIGILANCIA -- {contrato_id contrato_codigo contrato_fecha contrato_arma contrato_activo contrato_motivo};
+  BANDA -- {banda_id banda_codigo banda_cantidad banda_activo};
+  ASALTANTE -- {asaltante_id asaltante_codigo asaltante_nombre asaltante_activo asaltante_motivo};
+  ASALTO -- {asalto_id asalto_codigo asalto_fecha};
+  JUEZ -- {juez_id juez_codigo juez_nombre juez_desde juez_activo juez_motivo};
+  CASO_JUDICIAL -- {caso_id caso_codigo caso_sentenciado caso_activo caso_estado caso_reapertura};
+  SENTENCIA_ASALTANTE -- {sentencia_id sentencia_sentenciado sentencia_condenado sentencia_tiempo sentencia_estado};
+
+  // Relaciones y cardinalidades
+  ROL -- DEFINE_PERMISOS [label="1"];
+  DEFINE_PERMISOS -- ROL_PERMISO [label="N"];
+  ROL -- ASIGNA_ROL [label="1"];
+  ASIGNA_ROL -- USUARIO [label="N"];
+  USUARIO -- TIPO_USUARIO;
+  TIPO_USUARIO -- USUARIO_GENERICO;
+  TIPO_USUARIO -- VIGILANTE;
+  ENTIDAD_BANCARIA -- POSEE [label="1"];
+  POSEE -- SUCURSAL [label="N"];
+  SUCURSAL -- CONTRATA [label="1"];
+  CONTRATA -- CONTRATO_VIGILANCIA [label="N"];
+  VIGILANTE -- CUMPLE [label="1"];
+  CUMPLE -- CONTRATO_VIGILANCIA [label="N"];
+  BANDA -- AGRUPA [label="0..1"];
+  AGRUPA -- ASALTANTE [label="0..N"];
+  ASALTANTE -- PARTICIPA [label="N"];
+  PARTICIPA -- ASALTO [label="N"];
+  SUCURSAL -- OCURRE_EN [label="1"];
+  OCURRE_EN -- ASALTO [label="N"];
+  JUEZ -- INTERVIENE [label="1"];
+  INTERVIENE -- CASO_JUDICIAL [label="N"];
+  ASALTO -- ORIGINA [label="1"];
+  ORIGINA -- CASO_JUDICIAL [label="0..1"];
+  CASO_JUDICIAL -- CONTIENE [label="1"];
+  CONTIENE -- SENTENCIA_ASALTANTE [label="N"];
+  ASALTANTE -- RECIBE [label="1"];
+  RECIBE -- SENTENCIA_ASALTANTE [label="N"];
+  */
+}
+@enddot

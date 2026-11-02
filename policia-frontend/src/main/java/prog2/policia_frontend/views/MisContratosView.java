@@ -2,22 +2,24 @@ package prog2.policia_frontend.views;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import prog2.policia_frontend.utils.NotificacionUtils;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import java.util.List;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.VigilanteClient;
+import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
 /**
- * Muestra al vigilante autenticado únicamente sus propios contratos.
+ * Muestra al vigilante autenticado únicamente sus propios contratos con paginación de 10 elementos.
  */
 @Route(value = "mis-contratos", layout = MainLayout.class)
 @PageTitle("Mis contratos | Sistema Policial")
@@ -29,6 +31,9 @@ public class MisContratosView extends VerticalLayout
     private final Grid<ContratoVigilanciaDTO> tabla
             = new Grid<>(ContratoVigilanciaDTO.class, false);
 
+    private final PaginadorGrid<ContratoVigilanciaDTO> paginadorContratos
+            = new PaginadorGrid<>(tabla, 10);
+
     public MisContratosView(
             VigilanteClient vigilanteClient,
             SesionUsuario sesionUsuario) {
@@ -38,7 +43,11 @@ public class MisContratosView extends VerticalLayout
 
         configurarTabla();
         setSizeFull();
-        add(new H2("Mis contratos de vigilancia"), tabla);
+        add(
+                new H2("Mis contratos de vigilancia"), 
+                tabla, 
+                paginadorContratos.getControles()
+        );
         expand(tabla);
     }
 
@@ -69,7 +78,8 @@ public class MisContratosView extends VerticalLayout
 
         try {
             String codigo = sesionUsuario.getUsuario().getCodigo();
-            tabla.setItems(vigilanteClient.listarContratosPropios(codigo));
+            List<ContratoVigilanciaDTO> contratos = vigilanteClient.listarContratosPropios(codigo);
+            paginadorContratos.setItems(contratos);
         } catch (RestClientResponseException excepcion) {
             NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
         } catch (ResourceAccessException excepcion) {

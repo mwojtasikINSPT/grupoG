@@ -1,0 +1,29 @@
+@startdot
+graph G {
+  graph [overlap=false, splines=polyline, outputorder=edgesfirst, bgcolor="#101010", margin=0.25, pad=0.25, dpi=170];
+  node [fontname="Arial", fontsize=9, fontcolor="white", color="#98A8BF", penwidth=1.2];
+  A [shape=box, pos="1,1!", label="A"];
+  B [shape=ellipse, pos="2,1!", label="B"];
+  A -- B;
+  C [shape=ellipse, pos="3,1!", label="C"];
+  D [shape=ellipse, pos="4,1!", label="D"];
+  A -- {C D};
+  E [shape=diamond, pos="5,-2.1!", label="E\nDOS"];
+  D -- E [label="0..1"];
+  F [shape=box, pos="6,0!", label="F"];
+  ROL [pos="1.5,9!", label="ROL"];
+  ROL_PERMISO [pos="4.4,9!", label="ROL_PERMISO", peripheries=2];
+  USUARIO [pos="7.4,9!", label="USUARIO"];
+  USUARIO_GENERICO [pos="11.0,10!", label="USUARIO_GENERICO"];
+  VIGILANTE [pos="11.0,8!", label="VIGILANTE"];
+  ENTIDAD_BANCARIA [pos="1.5,5!", label="ENTIDAD_BANCARIA"];
+  SUCURSAL [pos="6.0,5!", label="SUCURSAL"];
+  CONTRATO_VIGILANCIA [pos="10.7,5!", label="CONTRATO_VIGILANCIA"];
+  BANDA [pos="1.2,0!", label="BANDA"];
+  ASALTANTE [pos="4.5,0!", label="ASALTANTE"];
+  ASALTO [pos="8.0,0!", label="ASALTO"];
+  JUEZ [pos="11.0,0!", label="JUEZ"];
+  CASO_JUDICIAL [pos="14.5,0!", label="CASO_JUDICIAL"];
+  SENTENCIA_ASALTANTE [pos="18.3,0!", label="SENTENCIA_ASALTANTE"];
+}
+@enddot
