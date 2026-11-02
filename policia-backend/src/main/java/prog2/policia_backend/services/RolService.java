@@ -10,12 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.RolDTO;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.RolExistenteException;
 import prog2.policia_backend.exceptions.RolYaActivoException;
 import prog2.policia_backend.exceptions.RolYaInactivoException;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
@@ -24,6 +26,7 @@ import prog2.policia_backend.utils.NormalizadorTexto;
 public class RolService {
 
     private final RolRepository rolRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public List<RolDTO> listar(Boolean activo) {
         List<Rol> roles;
@@ -101,6 +104,10 @@ public class RolService {
 
         if (!rol.getActivo()) {
             throw new RolYaInactivoException();
+        }
+
+        if (usuarioRepository.existsByRol_IdAndActivoTrue(rol.getId())) {
+            throw new OperacionNoPermitidaException("No se puede dar de baja un rol con usuarios activos asignados");
         }
 
         rol.setActivo(false);

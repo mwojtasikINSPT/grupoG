@@ -14,6 +14,7 @@ import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.repositories.UsuarioRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,11 +24,13 @@ class RolServiceTest {
 
     private RolRepository rolRepository;
     private RolService rolService;
+    private UsuarioRepository usuarioRepository;
 
     @BeforeEach
     void setUp() {
         rolRepository = mock(RolRepository.class);
-        rolService = new RolService(rolRepository);
+        usuarioRepository = mock(UsuarioRepository.class);
+        rolService = new RolService(rolRepository, usuarioRepository);
     }
 
     private Set<Permiso> crearPermisos() {
