@@ -38,304 +38,264 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
  * Estructura general de todas las pantallas privadas.
  */
 public class MainLayout extends AppLayout
-        implements BeforeEnterObserver {
-
-    /*
-     * Pantallas que muestran información administrativa general.
-     * Para ingresar en ellas no alcanza con conocer la dirección:
-     * la sesión debe poseer el permiso LECTURA.
-     */
-    private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS
-            = Set.of(
-                    UsuariosView.class,
-                    RolesView.class,
-                    VigilantesView.class,
-                    JuecesView.class,
-                    EntidadesBancariasView.class,
-                    SucursalesView.class,
-                    ContratosVigilanciaView.class,
-                    BandasView.class,
-                    AsaltantesView.class,
-                    AsaltosView.class,
-                    CasosJudicialesView.class
-            );
-
-    private final SesionUsuario sesionUsuario;
-
-    /*
-     * Este texto mostrará el nombre y el rol
-     * del usuario que inició sesión.
-     */
-    private final Span datosUsuario = new Span();
-
-    public MainLayout(SesionUsuario sesionUsuario) {
-
-        this.sesionUsuario = sesionUsuario;
+                implements BeforeEnterObserver {
 
         /*
-         * AppLayout convierte normalmente el drawer en un panel superpuesto
-         * cuando la ventana es angosta y lo cierra después de navegar.
-         * En este sistema la navegación debe permanecer fija, por eso se
-         * desactiva ese comportamiento responsive mediante la propiedad
-         * oficial del componente.
+         * Pantallas que muestran información administrativa general.
+         * Para ingresar en ellas no alcanza con conocer la dirección:
+         * la sesión debe poseer el permiso LECTURA.
          */
-       setPrimarySection(AppLayout.Section.NAVBAR);
-       
-        crearEncabezado();
-        crearMenuLateral();
-    }
+        private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS = Set.of(
+                        UsuariosView.class,
+                        RolesView.class,
+                        VigilantesView.class,
+                        JuecesView.class,
+                        EntidadesBancariasView.class,
+                        SucursalesView.class,
+                        ContratosVigilanciaView.class,
+                        BandasView.class,
+                        AsaltantesView.class,
+                        AsaltosView.class,
+                        CasosJudicialesView.class);
 
-    /*
-     * Crea la barra superior de la aplicación.
-     */
-    private void crearEncabezado() {
-
-        H2 titulo = new H2(
-                "Sistema de Gestión Policial"
-        );
-
-        Button botonCerrarSesion = new Button(
-                "Cerrar sesión"
-        );
-        //crea el boton cerrar secion, ycuando le hagan click ejecuta el metodo
-        botonCerrarSesion.addClickListener(
-                evento -> cerrarSesion()
-        );
-           
-        //FILA!!!
-        HorizontalLayout encabezado
-                = new HorizontalLayout();
-        //sus datos
-        encabezado.setWidthFull();
-        encabezado.setAlignItems(
-                HorizontalLayout.Alignment.CENTER
-        );
-        
+        private final SesionUsuario sesionUsuario;
 
         /*
-         * Hace que el título ocupe el espacio disponible
-         * y empuja los datos del usuario hacia la derecha.
+         * Este texto mostrará el nombre y el rol
+         * del usuario que inició sesión.
          */
-       DrawerToggle botonMenu = new DrawerToggle();
-botonMenu.setAriaLabel("Mostrar u ocultar el menú");
-botonMenu.setTooltipText("Mostrar u ocultar el menú");
+        private final Span datosUsuario = new Span();
 
-// Quita el margen propio del H2 para que el título quede pegado al botón
-titulo.getStyle().set("margin", "0");
+        public MainLayout(SesionUsuario sesionUsuario) {
 
-encabezado.expand(titulo);
+                this.sesionUsuario = sesionUsuario;
 
-encabezado.add(
-        botonMenu,
-        titulo,
-        datosUsuario,
-        botonCerrarSesion
-);
+                /*
+                 * AppLayout convierte normalmente el drawer en un panel superpuesto
+                 * cuando la ventana es angosta y lo cierra después de navegar.
+                 * En este sistema la navegación debe permanecer fija, por eso se
+                 * desactiva ese comportamiento responsive mediante la propiedad
+                 * oficial del componente.
+                 */
+                setPrimarySection(AppLayout.Section.NAVBAR);
 
-addToNavbar(encabezado);
-    }
-
-    /*
-     * Crea el menú lateral fijo.
-     */
-    private void crearMenuLateral() {
-
-        /*
-         * SideNav es el menú lateral oficial de Vaadin. Resalta
-         * automáticamente la opción correspondiente a la vista actual.
-         */
-        SideNav menuGeneral = new SideNav("General");
-
-        menuGeneral.addItem(
-                new SideNavItem(
-                        "Inicio",
-                        InicioView.class,
-                        VaadinIcon.HOME.create()
-                ),
-                new SideNavItem(
-                        "Mi perfil",
-                        MiPerfilView.class,
-                        VaadinIcon.USER.create()
-                )
-        );
-
-        if (sesionUsuario.tienePermiso(
-                PermisosApp.LECTURA_DATOS_PROPIOS)) {
-
-            menuGeneral.addItem(
-                    new SideNavItem(
-                            "Mis contratos",
-                            MisContratosView.class,
-                            VaadinIcon.FILE_TEXT.create()
-                    )
-            );
-        }
-
-        VerticalLayout menu = new VerticalLayout(menuGeneral);
-        menu.setPadding(false);
-        menu.setSpacing(false);
-        menu.setWidthFull();
-
-        /*
-         * Las secciones administrativas solo se agregan cuando existe
-         * permiso de lectura. Los nuevos roles funcionan igual porque
-         * la decisión depende del permiso, no del nombre del rol.
-         */
-        if (sesionUsuario.tienePermiso(PermisosApp.LECTURA)) {
-
-            SideNav menuAdministracion
-                    = new SideNav("Administración");
-
-            menuAdministracion.addItem(
-                    new SideNavItem(
-                            "Usuarios",
-                            UsuariosView.class,
-                            VaadinIcon.USERS.create()
-                    ),
-                    new SideNavItem(
-                            "Roles",
-                            RolesView.class,
-                            VaadinIcon.KEY.create()
-                    )
-            );
-
-            SideNav menuPersonal = new SideNav("Personal");
-
-            menuPersonal.addItem(
-                    new SideNavItem(
-                            "Jueces",
-                            JuecesView.class,
-                            VaadinIcon.GAVEL.create()
-                    )
-            );
-
-            SideNav menuBancos = new SideNav("Actividad bancaria");
-
-            menuBancos.addItem(
-                    new SideNavItem(
-                            "Entidades bancarias",
-                            EntidadesBancariasView.class,
-                            VaadinIcon.BUILDING.create()
-                    ),
-                    new SideNavItem(
-                            "Sucursales",
-                            SucursalesView.class,
-                            VaadinIcon.BRIEFCASE.create()
-                    ),
-                    new SideNavItem(
-                            "Contratos",
-                            ContratosVigilanciaView.class,
-                            VaadinIcon.FILE_TEXT.create()
-                    )
-            );
-
-            SideNav menuInvestigacion
-                    = new SideNav("Investigación policial");
-
-            menuInvestigacion.addItem(
-                    new SideNavItem(
-                            "Bandas",
-                            BandasView.class,
-                            VaadinIcon.GROUP.create()
-                    ),
-                    new SideNavItem(
-                            "Asaltantes",
-                            AsaltantesView.class,
-                            VaadinIcon.WARNING.create()
-                    ),
-                    new SideNavItem(
-                            "Asaltos",
-                            AsaltosView.class,
-                            VaadinIcon.SAFE.create()
-                    ),
-                    new SideNavItem(
-                            "Casos judiciales",
-                            CasosJudicialesView.class,
-                            VaadinIcon.SCALE.create()
-                    )
-            );
-
-            menu.add(
-                    menuAdministracion,
-                    menuPersonal,
-                    menuBancos,
-                    menuInvestigacion
-            );
+                crearEncabezado();
+                crearMenuLateral();
         }
 
         /*
-         * Scroller también es un componente oficial de Vaadin y permite
-         * recorrer el menú cuando la pantalla no tiene suficiente altura.
+         * Crea la barra superior de la aplicación.
          */
-        Scroller desplazamiento = new Scroller(menu);
-        desplazamiento.setSizeFull();
+        private void crearEncabezado() {
 
-        addToDrawer(desplazamiento);
-    }
+                H2 titulo = new H2(
+                                "Sistema de Gestión Policial");
 
-    /*
-     * Antes de mostrar una pantalla privada,
-     * comprueba que exista un usuario autenticado.
-     */
-    @Override
-    public void beforeEnter(BeforeEnterEvent evento) {
+                Button botonCerrarSesion = new Button(
+                                "Cerrar sesión");
+                // crea el boton cerrar secion, ycuando le hagan click ejecuta el metodo
+                botonCerrarSesion.addClickListener(
+                                evento -> cerrarSesion());
 
-        if (!sesionUsuario.estaAutenticado()) {
+                // FILA!!!
+                HorizontalLayout encabezado = new HorizontalLayout();
+                // sus datos
+                encabezado.setWidthFull();
+                encabezado.setAlignItems(
+                                HorizontalLayout.Alignment.CENTER);
 
-            evento.rerouteTo(LoginView.class);
-            return;
+                /*
+                 * Hace que el título ocupe el espacio disponible
+                 * y empuja los datos del usuario hacia la derecha.
+                 */
+                DrawerToggle botonMenu = new DrawerToggle();
+                botonMenu.setAriaLabel("Mostrar u ocultar el menú");
+                botonMenu.setTooltipText("Mostrar u ocultar el menú");
+
+                // Quita el margen propio del H2 para que el título quede pegado al botón
+                titulo.getStyle().set("margin", "0");
+
+                encabezado.expand(titulo);
+
+                encabezado.add(
+                                botonMenu,
+                                titulo,
+                                datosUsuario,
+                                botonCerrarSesion);
+
+                addToNavbar(encabezado);
         }
 
         /*
-         * También controla el ingreso manual por URL. Ocultar un enlace
-         * mejora la interfaz, pero por sí solo no impide la navegación.
+         * Crea el menú lateral fijo.
          */
-        if (VISTAS_ADMINISTRATIVAS.contains(
-                evento.getNavigationTarget()
-        ) && !sesionUsuario.tienePermiso(
-                PermisosApp.LECTURA
-        )) {
+        private void crearMenuLateral() {
 
-            NotificacionUtils.mostrarAdvertencia(
-                    "No tiene permiso para ingresar a esta sección."
-            );
+                /*
+                 * SideNav es el menú lateral oficial de Vaadin. Resalta
+                 * automáticamente la opción correspondiente a la vista actual.
+                 */
+                SideNav menuGeneral = new SideNav("General");
 
-            evento.rerouteTo(InicioView.class);
-            return;
+                menuGeneral.addItem(
+                                new SideNavItem(
+                                                "Inicio",
+                                                InicioView.class,
+                                                VaadinIcon.HOME.create()),
+                                new SideNavItem(
+                                                "Mi perfil",
+                                                MiPerfilView.class,
+                                                VaadinIcon.USER.create()));
+
+                if (sesionUsuario.tienePermiso(
+                                PermisosApp.LECTURA_DATOS_PROPIOS)) {
+
+                        menuGeneral.addItem(
+                                        new SideNavItem(
+                                                        "Mis contratos",
+                                                        MisContratosView.class,
+                                                        VaadinIcon.FILE_TEXT.create()));
+                }
+
+                VerticalLayout menu = new VerticalLayout(menuGeneral);
+                menu.setPadding(false);
+                menu.setSpacing(false);
+                menu.setWidthFull();
+
+                /*
+                 * Las secciones administrativas solo se agregan cuando existe
+                 * permiso de lectura. Los nuevos roles funcionan igual porque
+                 * la decisión depende del permiso, no del nombre del rol.
+                 */
+                if (sesionUsuario.tienePermiso(PermisosApp.LECTURA)) {
+
+                        SideNav menuAdministracion = new SideNav("Administración");
+
+                        menuAdministracion.addItem(
+                                        new SideNavItem(
+                                                        "Usuarios",
+                                                        UsuariosView.class,
+                                                        VaadinIcon.USERS.create()),
+                                        new SideNavItem(
+                                                        "Roles",
+                                                        RolesView.class,
+                                                        VaadinIcon.KEY.create()));
+
+                        SideNav menuPersonal = new SideNav("Personal");
+
+                        menuPersonal.addItem(
+                                        new SideNavItem(
+                                                        "Jueces",
+                                                        JuecesView.class,
+                                                        VaadinIcon.GAVEL.create()));
+
+                        SideNav menuBancos = new SideNav("Actividad bancaria");
+
+                        menuBancos.addItem(
+                                        new SideNavItem(
+                                                        "Entidades bancarias",
+                                                        EntidadesBancariasView.class,
+                                                        VaadinIcon.BUILDING.create()),
+                                        new SideNavItem(
+                                                        "Sucursales",
+                                                        SucursalesView.class,
+                                                        VaadinIcon.BRIEFCASE.create()),
+                                        new SideNavItem(
+                                                        "Contratos",
+                                                        ContratosVigilanciaView.class,
+                                                        VaadinIcon.FILE_TEXT.create()));
+
+                        SideNav menuInvestigacion = new SideNav("Investigación policial");
+
+                        menuInvestigacion.addItem(
+                                        new SideNavItem(
+                                                        "Bandas",
+                                                        BandasView.class,
+                                                        VaadinIcon.GROUP.create()),
+                                        new SideNavItem(
+                                                        "Asaltantes",
+                                                        AsaltantesView.class,
+                                                        VaadinIcon.WARNING.create()),
+                                        new SideNavItem(
+                                                        "Asaltos",
+                                                        AsaltosView.class,
+                                                        VaadinIcon.SAFE.create()),
+                                        new SideNavItem(
+                                                        "Casos judiciales",
+                                                        CasosJudicialesView.class,
+                                                        VaadinIcon.SCALE.create()));
+
+                        menu.add(
+                                        menuAdministracion,
+                                        menuPersonal,
+                                        menuBancos,
+                                        menuInvestigacion);
+                }
+
+                /*
+                 * Scroller también es un componente oficial de Vaadin y permite
+                 * recorrer el menú cuando la pantalla no tiene suficiente altura.
+                 */
+                Scroller desplazamiento = new Scroller(menu);
+                desplazamiento.setSizeFull();
+
+                addToDrawer(desplazamiento);
         }
 
-        if (evento.getNavigationTarget().equals(MisContratosView.class)
-                && !sesionUsuario.tienePermiso(
-                        PermisosApp.LECTURA_DATOS_PROPIOS)) {
+        /*
+         * Antes de mostrar una pantalla privada,
+         * comprueba que exista un usuario autenticado.
+         */
+        @Override
+        public void beforeEnter(BeforeEnterEvent evento) {
 
-            NotificacionUtils.mostrarAdvertencia(
-                    "Esta sección está disponible para datos propios."
-            );
-            evento.rerouteTo(InicioView.class);
-            return;
+                if (!sesionUsuario.estaAutenticado()) {
+
+                        evento.rerouteTo(LoginView.class);
+                        return;
+                }
+
+                /*
+                 * También controla el ingreso manual por URL. Ocultar un enlace
+                 * mejora la interfaz, pero por sí solo no impide la navegación.
+                 */
+                if (VISTAS_ADMINISTRATIVAS.contains(
+                                evento.getNavigationTarget())
+                                && !sesionUsuario.tienePermiso(
+                                                PermisosApp.LECTURA)) {
+
+                        NotificacionUtils.mostrarAdvertencia(
+                                        "No tiene permiso para ingresar a esta sección.");
+
+                        evento.rerouteTo(InicioView.class);
+                        return;
+                }
+
+                if (evento.getNavigationTarget().equals(MisContratosView.class)
+                                && !sesionUsuario.tienePermiso(
+                                                PermisosApp.LECTURA_DATOS_PROPIOS)) {
+
+                        NotificacionUtils.mostrarAdvertencia(
+                                        "Esta sección está disponible para datos propios.");
+                        evento.rerouteTo(InicioView.class);
+                        return;
+                }
+
+                String nombre = sesionUsuario.getUsuario().getNombre();
+
+                String rol = sesionUsuario.getUsuario().getRol();
+
+                datosUsuario.setText(
+                                nombre + " - " + rol);
         }
 
-        String nombre
-                = sesionUsuario.getUsuario().getNombre();
-
-        String rol
-                = sesionUsuario.getUsuario().getRol();
-
-        datosUsuario.setText(
-                nombre + " - " + rol
-        );
-    }
-    
-    /*
-     * Borra los datos de la sesión
-     * y regresa al login.
-     */
-    private void cerrarSesion() {
-
-        sesionUsuario.cerrarSesion();
-
-        UI.getCurrent().navigate(
-                LoginView.class
-        );
-    }
+        /*
+         * Borra los datos de la sesión
+         * y regresa al login.
+         */
+        private void cerrarSesion() {
+                sesionUsuario.cerrarSesion();
+                UI.getCurrent().getSession().close();
+                UI.getCurrent().getPage().setLocation("/login");
+        }
 }
