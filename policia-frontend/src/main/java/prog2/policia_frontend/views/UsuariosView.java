@@ -365,6 +365,8 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
             RolDTO rolSeleccionado = campoRol.getValue();
 
             try {
+                String codigoCreado;
+
                 if (rolVigilante) {
                     VigilanteDTO datosVigilante = new VigilanteDTO(
                             campoNombre.getValue().trim(),
@@ -372,7 +374,8 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
                             campoFechaNacimiento.getValue()
                     );
 
-                    vigilanteClient.crear(datosVigilante);
+                    VigilanteDTO creado = vigilanteClient.crear(datosVigilante);
+                    codigoCreado = creado.getCodigo();
                 } else {
                     UsuarioFormularioDTO datosUsuario = new UsuarioFormularioDTO(
                             campoNombre.getValue().trim(),
@@ -381,13 +384,14 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
                             campoFechaNacimiento.getValue()
                     );
 
-                    usuarioClient.crear(datosUsuario);
+                    UsuarioDTO creado = usuarioClient.crear(datosUsuario);
+                    codigoCreado = creado.getCodigo();
                 }
 
                 dialogo.close();
                 cargarUsuarios();
 
-                NotificacionUtils.mostrarExito("Usuario creado correctamente.");
+                NotificacionUtils.mostrarExito("Usuario creado correctamente. Código: " + codigoCreado);
 
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
