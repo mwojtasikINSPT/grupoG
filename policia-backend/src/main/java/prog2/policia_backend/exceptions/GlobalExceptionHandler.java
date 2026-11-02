@@ -1,6 +1,5 @@
 package prog2.policia_backend.exceptions;
 
-import java.lang.System.Logger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -50,7 +49,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         CasoSinCondenaConCarcelException.class,
         CasoCondenadoSinCarcelException.class,
-        OperacionNoPermitidaException.class
+        OperacionNoPermitidaException.class,
+        EdadInvalidaException.class
     })
     public ResponseEntity<Map<String, String>> manejarError400(RuntimeException ex) {
         return crearRespuesta(HttpStatus.BAD_REQUEST, ex.getClass().getSimpleName(), ex.getMessage());
@@ -78,7 +78,6 @@ public class GlobalExceptionHandler {
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
         DatosCondenaInvalidosException.class,
-        EdadInvalidaException.class,
         EntidadBancariaConSucursalesException.class,
         EntidadInactivaException.class,
         EntidadYaActivaException.class,

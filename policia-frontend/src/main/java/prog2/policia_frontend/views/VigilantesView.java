@@ -8,16 +8,21 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.VigilanteClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.VigilanteDTO;
@@ -112,23 +117,30 @@ public class VigilantesView
                 .setAutoWidth(true);
 
         tabla.addColumn(
+                vigilante -> vigilante.getFechaNacimiento() != null
+                ? vigilante.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : ""
+        ).setHeader("Fecha de nacimiento")
+                .setAutoWidth(true);
+        
+        tabla.addColumn(
                 VigilanteDTO::getRol
         ).setHeader("Rol")
                 .setAutoWidth(true);
 
-        tabla.addColumn(vigilante ->
-                Boolean.TRUE.equals(
+        tabla.addColumn(vigilante
+                -> Boolean.TRUE.equals(
                         vigilante.getActivo()
                 )
-                        ? "Activo"
-                        : "Inactivo"
+                ? "Activo"
+                : "Inactivo"
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
-        tabla.addColumn(vigilante ->
-                vigilante.getMotivoBaja() != null
-                        ? vigilante.getMotivoBaja()
-                        : "-"
+        tabla.addColumn(vigilante
+                -> vigilante.getMotivoBaja() != null
+                ? vigilante.getMotivoBaja()
+                : "-"
         ).setHeader("Motivo de baja")
                 .setAutoWidth(true);
 
@@ -156,7 +168,7 @@ public class VigilantesView
 
                 botonModificar.addClickListener(
                         evento
-                                -> abrirFormularioEdicion(vigilante)
+                        -> abrirFormularioEdicion(vigilante)
                 );
 
             } else {
@@ -174,7 +186,7 @@ public class VigilantesView
 
                 botonEstado.addClickListener(
                         evento
-                                -> abrirDialogoBaja(vigilante)
+                        -> abrirDialogoBaja(vigilante)
                 );
 
             } else if ("FALLECIMIENTO".equals(
@@ -194,7 +206,7 @@ public class VigilantesView
 
                 botonEstado.addClickListener(
                         evento
-                                -> reactivarVigilante(vigilante)
+                        -> reactivarVigilante(vigilante)
                 );
             }
 
@@ -205,7 +217,7 @@ public class VigilantesView
 
         }).setHeader("Acciones")
                 .setAutoWidth(true);
-        
+
         tabla.setSizeFull();
     }
 
@@ -243,7 +255,7 @@ public class VigilantesView
         filtros.setAlignItems(
                 HorizontalLayout.Alignment.END
         );
-        
+
         botonNuevoVigilante.addClickListener(
                 evento -> abrirFormularioNuevo()
         );
@@ -260,10 +272,10 @@ public class VigilantesView
                 tabla,
                 paginadorVigilantes.getControles()
         );
-        
+
         expand(tabla);
     }
-    
+
     private void reactivarVigilante(
             VigilanteDTO vigilante) {
 
@@ -304,7 +316,7 @@ public class VigilantesView
 
         dialogo.setHeaderTitle(
                 "Dar de baja "
-                        + vigilante.getCodigo()
+                + vigilante.getCodigo()
         );
 
         Select<String> campoMotivo
@@ -407,14 +419,14 @@ public class VigilantesView
 
         dialogo.setHeaderTitle(
                 "Modificar "
-                        + vigilante.getCodigo()
+                + vigilante.getCodigo()
         );
 
         TextField campoNombre
                 = new TextField("Nombre");
 
-        NumberField campoEdad
-                = new NumberField("Edad");
+        DatePicker campoFechaNacimiento
+                = new DatePicker("Fecha de nacimiento");
 
         PasswordField campoPassword
                 = new PasswordField(
@@ -423,15 +435,12 @@ public class VigilantesView
 
         campoNombre.setValue(
                 vigilante.getNombre() != null
-                        ? vigilante.getNombre()
-                        : ""
+                ? vigilante.getNombre()
+                : ""
         );
 
-        if (vigilante.getEdad() != null) {
-
-            campoEdad.setValue(
-                    vigilante.getEdad().doubleValue()
-            );
+        if (vigilante.getFechaNacimiento() != null) {
+            campoFechaNacimiento.setValue(vigilante.getFechaNacimiento());
         }
 
         campoPassword.setPlaceholder(
@@ -441,15 +450,13 @@ public class VigilantesView
         campoPassword.setRevealButtonVisible(false);
 
         campoNombre.setRequiredIndicatorVisible(true);
-        campoEdad.setRequiredIndicatorVisible(true);
+        campoFechaNacimiento.setRequiredIndicatorVisible(true);
 
-        campoEdad.setMin(18);
-        campoEdad.setMax(65);
-        campoEdad.setStep(1);
-        campoEdad.setStepButtonsVisible(true);
+        campoFechaNacimiento.setMin(LocalDate.now().minusYears(66).plusDays(1));
+        campoFechaNacimiento.setMax(LocalDate.now().minusYears(18));
 
         campoNombre.setWidthFull();
-        campoEdad.setWidthFull();
+        campoFechaNacimiento.setWidthFull();
         campoPassword.setWidthFull();
 
         Button botonGuardar
@@ -466,15 +473,8 @@ public class VigilantesView
             boolean nombreVacio
                     = campoNombre.getValue().isBlank();
 
-            Double edadIngresada
-                    = campoEdad.getValue();
-
-            boolean edadInvalida
-                    = edadIngresada == null
-                    || edadIngresada < 18
-                    || edadIngresada > 65
-                    || edadIngresada
-                            != Math.floor(edadIngresada);
+            LocalDate fechaIngresada = campoFechaNacimiento.getValue();
+            boolean fechaInvalida = fechaIngresada == null || fechaIngresada.isAfter(LocalDate.now().minusYears(18)) || !fechaIngresada.isAfter(LocalDate.now().minusYears(66));
 
             String nuevaPassword
                     = campoPassword.getValue();
@@ -489,10 +489,8 @@ public class VigilantesView
                     "El nombre es obligatorio."
             );
 
-            campoEdad.setInvalid(edadInvalida);
-            campoEdad.setErrorMessage(
-                    "La edad debe ser un número entero entre 18 y 65."
-            );
+            campoFechaNacimiento.setInvalid(fechaInvalida);
+            campoFechaNacimiento.setErrorMessage("La edad debe estar entre 18 y 65 años.");
 
             campoPassword.setInvalid(passwordInvalida);
             campoPassword.setErrorMessage(
@@ -500,7 +498,7 @@ public class VigilantesView
             );
 
             if (nombreVacio
-                    || edadInvalida
+                    || fechaInvalida
                     || passwordInvalida) {
 
                 return;
@@ -508,14 +506,14 @@ public class VigilantesView
 
             String passwordParaEnviar
                     = nuevaPassword.isBlank()
-                            ? null
-                            : nuevaPassword;
+                    ? null
+                    : nuevaPassword;
 
             VigilanteDTO datos
                     = new VigilanteDTO(
                             campoNombre.getValue().trim(),
                             passwordParaEnviar,
-                            edadIngresada.intValue()
+                            fechaIngresada
                     );
 
             try {
@@ -559,7 +557,7 @@ public class VigilantesView
         VerticalLayout formulario
                 = new VerticalLayout(
                         campoNombre,
-                        campoEdad,
+                        campoFechaNacimiento,
                         campoPassword,
                         botones
                 );
@@ -579,25 +577,23 @@ public class VigilantesView
         TextField campoNombre
                 = new TextField("Nombre");
 
-        NumberField campoEdad
-                = new NumberField("Edad");
+        DatePicker campoFechaNacimiento
+                = new DatePicker("Fecha de nacimiento");
 
         PasswordField campoPassword
                 = new PasswordField("Contraseña");
 
         campoNombre.setRequiredIndicatorVisible(true);
-        campoEdad.setRequiredIndicatorVisible(true);
+        campoFechaNacimiento.setRequiredIndicatorVisible(true);
         campoPassword.setRequiredIndicatorVisible(true);
 
-        campoEdad.setMin(18);
-        campoEdad.setMax(65);
-        campoEdad.setStep(1);
-        campoEdad.setStepButtonsVisible(true);
+        campoFechaNacimiento.setMin(LocalDate.now().minusYears(66).plusDays(1));
+        campoFechaNacimiento.setMax(LocalDate.now().minusYears(18));
 
         campoPassword.setRevealButtonVisible(false);
 
         campoNombre.setWidthFull();
-        campoEdad.setWidthFull();
+        campoFechaNacimiento.setWidthFull();
         campoPassword.setWidthFull();
 
         Button botonGuardar
@@ -614,15 +610,8 @@ public class VigilantesView
             boolean nombreVacio
                     = campoNombre.getValue().isBlank();
 
-            Double edadIngresada
-                    = campoEdad.getValue();
-
-            boolean edadInvalida
-                    = edadIngresada == null
-                    || edadIngresada < 18
-                    || edadIngresada > 65
-                    || edadIngresada
-                            != Math.floor(edadIngresada);
+            LocalDate fechaIngresada = campoFechaNacimiento.getValue();
+            boolean fechaInvalida = fechaIngresada == null || fechaIngresada.isAfter(LocalDate.now().minusYears(18)) || !fechaIngresada.isAfter(LocalDate.now().minusYears(66));
 
             String password
                     = campoPassword.getValue();
@@ -637,10 +626,8 @@ public class VigilantesView
                     "El nombre es obligatorio."
             );
 
-            campoEdad.setInvalid(edadInvalida);
-            campoEdad.setErrorMessage(
-                    "La edad debe ser un número entero entre 18 y 65."
-            );
+            campoFechaNacimiento.setInvalid(fechaInvalida);
+            campoFechaNacimiento.setErrorMessage("La edad debe estar entre 18 y 65 años.");
 
             campoPassword.setInvalid(passwordInvalida);
             campoPassword.setErrorMessage(
@@ -648,7 +635,7 @@ public class VigilantesView
             );
 
             if (nombreVacio
-                    || edadInvalida
+                    || fechaInvalida
                     || passwordInvalida) {
 
                 return;
@@ -658,7 +645,7 @@ public class VigilantesView
                     = new VigilanteDTO(
                             campoNombre.getValue().trim(),
                             password,
-                            edadIngresada.intValue()
+                            fechaIngresada
                     );
 
             try {
@@ -699,7 +686,7 @@ public class VigilantesView
         VerticalLayout formulario
                 = new VerticalLayout(
                         campoNombre,
-                        campoEdad,
+                        campoFechaNacimiento,
                         campoPassword,
                         botones
                 );
@@ -724,9 +711,12 @@ public class VigilantesView
 
         return switch (filtroEstado.getValue()) {
 
-            case "Activos" -> true;
-            case "Inactivos" -> false;
-            default -> null;
+            case "Activos" ->
+                true;
+            case "Inactivos" ->
+                false;
+            default ->
+                null;
         };
     }
 

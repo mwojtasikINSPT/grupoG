@@ -1,6 +1,7 @@
 package prog2.policia_backend.integration;
 
 import java.util.EnumSet;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ class VigilanteIntegrationTest {
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword(passwordEncoder.encode("clave123"));
-        vigilante.setEdad(30);
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
         vigilante.setRol(rol);
         vigilante.setActivo(true);
 
@@ -117,9 +118,9 @@ class VigilanteIntegrationTest {
                 {
                     "nombre": "pedro gomez",
                     "password": "clave456",
-                    "edad": 25
+                    "fechaNacimiento": "%s"
                 }
-                """;
+                """.formatted(LocalDate.now().minusYears(25));
 
         mockMvc.perform(post("/api/vigilantes")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -138,9 +139,9 @@ class VigilanteIntegrationTest {
         String json = """
                 {
                     "nombre": "pedro lopez",
-                    "edad": 35
+                    "fechaNacimiento": "%s"
                 }
-                """;
+                """.formatted(LocalDate.now().minusYears(35));
 
         mockMvc.perform(put("/api/vigilantes/VIG00001")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -163,9 +164,9 @@ class VigilanteIntegrationTest {
                 {
                     "nombre": "Pedro Gomez",
                     "password": "clave456",
-                    "edad": 17
+                    "fechaNacimiento": "%s"
                 }
-                """;
+                """.formatted(LocalDate.now().minusYears(17));
 
         mockMvc.perform(post("/api/vigilantes")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -222,9 +223,9 @@ class VigilanteIntegrationTest {
                 {
                     "nombre": "Pedro Gomez",
                     "password": "clave456",
-                    "edad": 25
+                    "fechaNacimiento": "%s"
                 }
-                """;
+                """.formatted(LocalDate.now().minusYears(25));
 
         mockMvc.perform(post("/api/vigilantes")
                 .contentType(MediaType.APPLICATION_JSON)

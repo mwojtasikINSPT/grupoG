@@ -89,12 +89,13 @@ class UsuarioEscrituraControllerTest {
         UsuarioDetails usuario = crearUsuario("ADM00001", Set.of(Permiso.ESCRITURA));
 
         String json = """
-            {
-                "nombre": "Juan Perez",
-                "password": "clave123",
-                "rol": "ADMINISTRADOR"
-            }
-            """;
+        {
+            "nombre": "Juan Perez",
+            "password": "clave123",
+            "rol": "ADMINISTRADOR",
+            "fechaNacimiento": "1995-05-20"
+        }
+        """;
 
         mockMvc.perform(post("/api/usuarios")
                 .with(SecurityMockMvcRequestPostProcessors.user(usuario))

@@ -15,7 +15,4 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 public class Vigilante extends Usuario {
 
-    @Min(18)
-    @Max(65)
-    private int edad;
 }

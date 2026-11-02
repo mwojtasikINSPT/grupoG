@@ -1,5 +1,8 @@
 package prog2.policia_backend.models;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,4 +49,15 @@ public abstract class Usuario extends EntidadAuditable {
 
     @Enumerated(EnumType.STRING)
     private MotivoBajaPersona motivoBaja;
+
+    @Column(nullable = false)
+    private LocalDate fechaNacimiento;
+
+    public int getEdad() {
+        if (fechaNacimiento == null) {
+            return 0;
+        }
+
+        return Period.between(fechaNacimiento, LocalDate.now()).getYears();
+    }
 }

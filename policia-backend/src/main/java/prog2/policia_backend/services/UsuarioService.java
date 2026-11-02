@@ -29,6 +29,7 @@ import prog2.policia_backend.models.UsuarioGenerico;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
+import prog2.policia_backend.utils.ValidadorEdad;
 
 @Service
 @RequiredArgsConstructor
@@ -125,9 +126,11 @@ public class UsuarioService {
 
         Rol rol = obtenerRol(nombreRol);
 
+        ValidadorEdad.validar(dto.getFechaNacimiento(), 18, Integer.MAX_VALUE);
         UsuarioGenerico usuario = new UsuarioGenerico();
 
         usuario.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        usuario.setFechaNacimiento(dto.getFechaNacimiento());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setRol(rol);
         usuario.setActivo(true);
@@ -154,6 +157,11 @@ public class UsuarioService {
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             usuario.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
+        }
+
+        if (dto.getFechaNacimiento() != null) {
+            ValidadorEdad.validar(dto.getFechaNacimiento(), 18, Integer.MAX_VALUE);
+            usuario.setFechaNacimiento(dto.getFechaNacimiento());
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
@@ -231,6 +239,11 @@ public class UsuarioService {
         dto.setId(usuario.getId());
         dto.setCodigo(usuario.getCodigo());
         dto.setNombre(usuario.getNombre());
+        dto.setFechaNacimiento(usuario.getFechaNacimiento());
+
+        if (usuario.getFechaNacimiento() != null) {
+            dto.setEdad(usuario.getEdad());
+        }
         dto.setRol(usuario.getRol().getNombre());
         dto.setActivo(usuario.isActivo());
 

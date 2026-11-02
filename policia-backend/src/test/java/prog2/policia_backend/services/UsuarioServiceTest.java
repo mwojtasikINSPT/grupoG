@@ -1,5 +1,6 @@
 package prog2.policia_backend.services;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -298,14 +299,16 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByCodigo(anyString()))
                 .thenReturn(false);
 
-        UsuarioDTO resultado = usuarioService.guardar(
-                crearDTO("Juan Perez", "ADMINISTRADOR")
-        );
+        UsuarioDTO dto = crearDTO("Juan Perez", "ADMINISTRADOR");
+        dto.setFechaNacimiento(LocalDate.now().minusYears(30));
+
+        UsuarioDTO resultado = usuarioService.guardar(dto);
 
         assertNotNull(resultado);
         assertNotNull(resultado.getCodigo());
         assertEquals("Juan Perez", resultado.getNombre());
         assertTrue(resultado.getActivo());
+        assertEquals(30, resultado.getEdad());
 
         verify(usuarioRepository, times(2)).save(any(Usuario.class));
         verify(passwordEncoder).encode("clave123");

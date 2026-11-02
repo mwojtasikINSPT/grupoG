@@ -55,84 +55,61 @@ INSERT INTO entidad_bancaria (id, nombre, domicilio_central, activo, codigo, cre
 -- VIGILANTES
 -- =========================================================
 
-INSERT INTO usuario (id, activo, fecha_creacion, rol_id, codigo, creado_por, nombre, password) VALUES
-(1, true, NOW(), 3, 'VIG00001', 'SISTEMA', 'Pedro Ramirez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(2, true, NOW(), 3, 'VIG00002', 'SISTEMA', 'Laura Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(3, true, NOW(), 3, 'VIG00003', 'SISTEMA', 'Martin Gonzalez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(4, true, NOW(), 3, 'VIG00004', 'SISTEMA', 'Sofia Acosta', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(5, true, NOW(), 3, 'VIG00005', 'SISTEMA', 'Diego Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(6, true, NOW(), 3, 'VIG00006', 'SISTEMA', 'Carolina Silva', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(7, true, NOW(), 3, 'VIG00007', 'SISTEMA', 'Hernan Torres', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(8, true, NOW(), 3, 'VIG00008', 'SISTEMA', 'Luciana Castro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(9, true, NOW(), 3, 'VIG00009', 'SISTEMA', 'Gustavo Medina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(10, true, NOW(), 3, 'VIG00010', 'SISTEMA', 'Valeria Moreno', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(11, true, NOW(), 3, 'VIG00011', 'SISTEMA', 'Nicolas Cabrera', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(12, true, NOW(), 3, 'VIG00012', 'SISTEMA', 'Camila Suarez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(13, true, NOW(), 3, 'VIG00013', 'SISTEMA', 'Federico Molina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(14, true, NOW(), 3, 'VIG00014', 'SISTEMA', 'Agustina Rojas', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(15, true, NOW(), 3, 'VIG00015', 'SISTEMA', 'Marcos Benitez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(26, true, NOW(), 3, 'VIG00016', 'SISTEMA', 'Lucas Herrera', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(27, true, NOW(), 3, 'VIG00017', 'SISTEMA', 'Valentina Lopez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(28, true, NOW(), 3, 'VIG00018', 'SISTEMA', 'Matias Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(29, true, NOW(), 3, 'VIG00019', 'SISTEMA', 'Julieta Castro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(30, true, NOW(), 3, 'VIG00020', 'SISTEMA', 'Tomas Medina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(31, true, NOW(), 3, 'VIG00021', 'SISTEMA', 'Martina Rojas', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(32, true, NOW(), 3, 'VIG00022', 'SISTEMA', 'Facundo Perez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(33, true, NOW(), 3, 'VIG00023', 'SISTEMA', 'Agustina Torres', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(34, true, NOW(), 3, 'VIG00024', 'SISTEMA', 'Nicolas Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(35, true, NOW(), 3, 'VIG00025', 'SISTEMA', 'Florencia Diaz', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
+INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
+(1, true, NOW(), '1996-04-15', 3, 'VIG00001', 'SISTEMA', 'Pedro Ramirez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(2, true, NOW(), '1998-07-22', 3, 'VIG00002', 'SISTEMA', 'Laura Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(3, true, NOW(), '1992-03-10', 3, 'VIG00003', 'SISTEMA', 'Martin Gonzalez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(4, true, NOW(), '2000-09-18', 3, 'VIG00004', 'SISTEMA', 'Sofia Acosta', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(5, true, NOW(), '1989-11-05', 3, 'VIG00005', 'SISTEMA', 'Diego Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(6, true, NOW(), '1995-06-12', 3, 'VIG00006', 'SISTEMA', 'Carolina Silva', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(7, true, NOW(), '1987-02-25', 3, 'VIG00007', 'SISTEMA', 'Hernan Torres', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(8, true, NOW(), '1999-12-03', 3, 'VIG00008', 'SISTEMA', 'Luciana Castro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(9, true, NOW(), '1985-08-14', 3, 'VIG00009', 'SISTEMA', 'Gustavo Medina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(10, true, NOW(), '1993-05-29', 3, 'VIG00010', 'SISTEMA', 'Valeria Moreno', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(11, true, NOW(), '1997-01-17', 3, 'VIG00011', 'SISTEMA', 'Nicolas Cabrera', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(12, true, NOW(), '2001-10-08', 3, 'VIG00012', 'SISTEMA', 'Camila Suarez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(13, true, NOW(), '1990-04-21', 3, 'VIG00013', 'SISTEMA', 'Federico Molina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(14, true, NOW(), '1998-11-30', 3, 'VIG00014', 'SISTEMA', 'Agustina Rojas', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(15, true, NOW(), '1988-07-09', 3, 'VIG00015', 'SISTEMA', 'Marcos Benitez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(26, true, NOW(), '1994-02-16', 3, 'VIG00016', 'SISTEMA', 'Lucas Herrera', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(27, true, NOW(), '2002-06-24', 3, 'VIG00017', 'SISTEMA', 'Valentina Lopez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(28, true, NOW(), '1991-09-13', 3, 'VIG00018', 'SISTEMA', 'Matias Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(29, true, NOW(), '1999-03-27', 3, 'VIG00019', 'SISTEMA', 'Julieta Castro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(30, true, NOW(), '1995-12-11', 3, 'VIG00020', 'SISTEMA', 'Tomas Medina', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(31, true, NOW(), '2003-05-19', 3, 'VIG00021', 'SISTEMA', 'Martina Rojas', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(32, true, NOW(), '1993-08-06', 3, 'VIG00022', 'SISTEMA', 'Facundo Perez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(33, true, NOW(), '2000-01-28', 3, 'VIG00023', 'SISTEMA', 'Agustina Torres', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(34, true, NOW(), '1996-10-04', 3, 'VIG00024', 'SISTEMA', 'Nicolas Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(35, true, NOW(), '1997-07-15', 3, 'VIG00025', 'SISTEMA', 'Florencia Diaz', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 
-
-INSERT INTO vigilante (id, edad) VALUES
-(1, 32),
-(2, 28),
-(3, 41),
-(4, 35),
-(5, 30),
-(6, 27),
-(7, 45),
-(8, 33),
-(9, 39),
-(10, 26),
-(11, 34),
-(12, 29),
-(13, 42),
-(14, 31),
-(15, 37),
-(26, 36),
-(27, 29),
-(28, 41),
-(29, 32),
-(30, 27),
-(31, 38),
-(32, 44),
-(33, 30),
-(34, 35),
-(35, 33);
+INSERT INTO vigilante (id) VALUES
+(1), (2), (3), (4), (5),
+(6), (7), (8), (9), (10),
+(11), (12), (13), (14), (15),
+(26), (27), (28), (29), (30),
+(31), (32), (33), (34), (35);
 
 -- =========================================================
 -- INVESTIGADORES
 -- =========================================================
 
-INSERT INTO usuario (id, activo, fecha_creacion, rol_id, codigo, creado_por, nombre, password) VALUES
-(16, true, NOW(), 2, 'INV00001', 'SISTEMA', 'Lionel Messi', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(17, true, NOW(), 2, 'INV00002', 'SISTEMA', 'Angel Di Maria', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(18, true, NOW(), 2, 'INV00003', 'SISTEMA', 'Emiliano Martinez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(19, true, NOW(), 2, 'INV00004', 'SISTEMA', 'Julian Alvarez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(20, true, NOW(), 2, 'INV00005', 'SISTEMA', 'Rodrigo De Paul', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(21, true, NOW(), 2, 'INV00006', 'SISTEMA', 'Enzo Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
-
+INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
+(16, true, NOW(), '1987-06-24', 2, 'INV00001', 'SISTEMA', 'Lionel Messi', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(17, true, NOW(), '1988-02-14', 2, 'INV00002', 'SISTEMA', 'Angel Di Maria', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(18, true, NOW(), '1992-09-02', 2, 'INV00003', 'SISTEMA', 'Emiliano Martinez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(19, true, NOW(), '2000-01-31', 2, 'INV00004', 'SISTEMA', 'Julian Alvarez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(20, true, NOW(), '1994-05-24', 2, 'INV00005', 'SISTEMA', 'Rodrigo De Paul', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(21, true, NOW(), '2001-01-17', 2, 'INV00006', 'SISTEMA', 'Enzo Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 
 -- =========================================================
 -- ADMINISTRADORES
 -- =========================================================
 
-INSERT INTO usuario (id, activo, fecha_creacion, rol_id, codigo, creado_por, nombre, password) VALUES
-(22, true, NOW(), 1, 'ADM00001', 'SISTEMA', 'Charly Garcia', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(23, true, NOW(), 1, 'ADM00002', 'SISTEMA', 'Fito Paez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(24, true, NOW(), 1, 'ADM00003', 'SISTEMA', 'Gustavo Cerati', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(25, true, NOW(), 1, 'ADM00004', 'SISTEMA', 'Andres Calamaro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
-
+INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
+(22, true, NOW(), '1951-10-23', 1, 'ADM00001', 'SISTEMA', 'Charly Garcia', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(23, true, NOW(), '1963-03-13', 1, 'ADM00002', 'SISTEMA', 'Fito Paez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(24, true, NOW(), '1959-08-11', 1, 'ADM00003', 'SISTEMA', 'Gustavo Cerati', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(25, true, NOW(), '1961-08-22', 1, 'ADM00004', 'SISTEMA', 'Andres Calamaro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 INSERT INTO usuario_generico (id) VALUES
 (16),
 (17),

@@ -1,18 +1,17 @@
 package prog2.policia_frontend.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Datos de un usuario recibidos desde el backend. La contraseña nunca forma
- * parte de la respuesta.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UsuarioDTO {
 
     private Long id;
     private String codigo;
     private String nombre;
+    private LocalDate fechaNacimiento;
+    private Integer edad;
     private String rol;
     private String motivoBaja;
     private Boolean activo;
@@ -23,7 +22,7 @@ public class UsuarioDTO {
 
     public UsuarioDTO() {
     }
-    
+
     public Long getId() {
         return id;
     }
@@ -46,6 +45,22 @@ public class UsuarioDTO {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public Integer getEdad() {
+        return edad;
+    }
+
+    public void setEdad(Integer edad) {
+        this.edad = edad;
     }
 
     public String getRol() {

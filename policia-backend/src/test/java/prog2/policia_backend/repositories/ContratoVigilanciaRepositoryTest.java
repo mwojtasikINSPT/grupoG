@@ -66,7 +66,7 @@ class ContratoVigilanciaRepositoryTest {
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("password123");
-        vigilante.setEdad(30);
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
         vigilante.setRol(rol);
         vigilante.setActivo(true);
         vigilante = vigilanteRepository.saveAndFlush(vigilante);

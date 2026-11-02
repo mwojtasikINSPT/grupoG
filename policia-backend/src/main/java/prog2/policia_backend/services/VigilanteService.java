@@ -1,19 +1,17 @@
 package prog2.policia_backend.services;
 
 import java.time.LocalDate;
-
-import lombok.RequiredArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.VigilanteDTO;
-import prog2.policia_backend.exceptions.EdadInvalidaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.PersonaNoReactivableException;
@@ -29,9 +27,10 @@ import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.VigilanteRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
+import prog2.policia_backend.utils.ValidadorEdad;
 
 @Service
-@RequiredArgsConstructor // inyecto atrb final
+@RequiredArgsConstructor
 public class VigilanteService {
 
     private final VigilanteRepository vigilanteRepository;
@@ -40,7 +39,6 @@ public class VigilanteService {
     private final RolRepository rolRepository;
 
     public List<VigilanteDTO> listar(Boolean activo) {
-
         List<Vigilante> vigilantes;
 
         if (activo == null) {
@@ -94,7 +92,6 @@ public class VigilanteService {
     }
 
     public VigilanteDTO actualizar(String codigo, VigilanteDTO dto) {
-
         Vigilante vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
@@ -105,9 +102,9 @@ public class VigilanteService {
             vigilante.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         }
 
-        if (dto.getEdad() != null) {
-            validarEdad(dto.getEdad());
-            vigilante.setEdad(dto.getEdad());
+        if (dto.getFechaNacimiento() != null) {
+            ValidadorEdad.validar(dto.getFechaNacimiento(), 18, 65);
+            vigilante.setFechaNacimiento(dto.getFechaNacimiento());
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
@@ -118,7 +115,6 @@ public class VigilanteService {
     }
 
     public void eliminar(String codigo, VigilanteDTO dto) {
-
         Vigilante vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
@@ -129,9 +125,7 @@ public class VigilanteService {
             throw new MotivoBajaObligatorioException();
         }
 
-        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(),
-                LocalDate.now())) {
-
+        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(vigilante.getId(), LocalDate.now())) {
             throw new VigilanteConContratoFuturoException();
         }
 
@@ -142,7 +136,6 @@ public class VigilanteService {
     }
 
     public VigilanteDTO reactivar(String codigo) {
-
         Vigilante vigilante = obtenerVigilante(codigo);
 
         if (vigilante.isActivo()) {
@@ -167,8 +160,13 @@ public class VigilanteService {
         dto.setId(vigilante.getId());
         dto.setCodigo(vigilante.getCodigo());
         dto.setNombre(vigilante.getNombre());
-        dto.setPassword(null); // El password nunca devolvemos
-        dto.setEdad(vigilante.getEdad());
+        dto.setPassword(null);
+        dto.setFechaNacimiento(vigilante.getFechaNacimiento());
+
+        if (vigilante.getFechaNacimiento() != null) {
+            dto.setEdad(vigilante.getEdad());
+        }
+
         dto.setRol(vigilante.getRol().getNombre());
         dto.setActivo(vigilante.isActivo());
         dto.setMotivoBaja(vigilante.getMotivoBaja());
@@ -185,8 +183,9 @@ public class VigilanteService {
 
         vigilante.setCodigo(dto.getCodigo());
         vigilante.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
-        validarEdad(dto.getEdad());
-        vigilante.setEdad(dto.getEdad());
+
+        ValidadorEdad.validar(dto.getFechaNacimiento(), 18, 65);
+        vigilante.setFechaNacimiento(dto.getFechaNacimiento());
 
         Optional<Rol> resultado = rolRepository.findByNombre("VIGILANTE");
 
@@ -220,7 +219,6 @@ public class VigilanteService {
         return List.of(convertirADTO(vigilante));
     }
 
-    // -------Aux---------
     private Vigilante obtenerVigilante(String codigo) {
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
@@ -231,12 +229,6 @@ public class VigilanteService {
         }
 
         return resultado.get();
-    }
-
-    private void validarEdad(Integer edad) {
-        if (edad == null || edad < 18 || edad > 65) {
-            throw new EdadInvalidaException();
-        }
     }
 
     private String generarCodigoDisponible() {

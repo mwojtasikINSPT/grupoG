@@ -27,6 +27,7 @@ public class VigilanteController {
     private final VigilanteService vigilanteService;
     private final ContratoVigilanciaService contratoVigilanciaService;
 
+    @PreAuthorize("hasAnyAuthority('LECTURA', 'LECTURA_DATOS_PROPIOS')")
     @GetMapping
     public ResponseEntity<List<VigilanteDTO>> listar(@RequestParam(required = false) Boolean activo,
             @RequestParam(required = false) String nombre, Authentication authentication) {

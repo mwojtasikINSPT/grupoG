@@ -56,7 +56,7 @@ class VigilanteServiceTest {
         vigilante.setId(1L);
         vigilante.setCodigo(codigo);
         vigilante.setNombre(nombre);
-        vigilante.setEdad(edad);
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(edad));
         vigilante.setPassword("encoded");
         vigilante.setRol(crearRol());
         vigilante.setActivo(activo);
@@ -68,7 +68,9 @@ class VigilanteServiceTest {
         VigilanteDTO dto = new VigilanteDTO();
 
         dto.setNombre(nombre);
-        dto.setEdad(edad);
+        if (edad != null) {
+            dto.setFechaNacimiento(LocalDate.now().minusYears(edad));
+        }
         dto.setPassword(password);
 
         return dto;
@@ -319,12 +321,13 @@ class VigilanteServiceTest {
                 .thenReturn(vigilante);
 
         VigilanteDTO dto = new VigilanteDTO();
-        dto.setEdad(40);
+        dto.setFechaNacimiento(LocalDate.now().minusYears(40));
 
         VigilanteDTO resultado
                 = vigilanteService.actualizar("VIG00001", dto);
 
         assertEquals(40, resultado.getEdad());
+        assertEquals(dto.getFechaNacimiento(), resultado.getFechaNacimiento());
     }
 
     @Test
@@ -383,7 +386,7 @@ class VigilanteServiceTest {
                 .thenReturn(Optional.of(vigilante));
 
         VigilanteDTO dto = new VigilanteDTO();
-        dto.setEdad(70);
+        dto.setFechaNacimiento(LocalDate.now().minusYears(70));
 
         try {
             vigilanteService.actualizar("VIG00001", dto);

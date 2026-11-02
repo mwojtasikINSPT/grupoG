@@ -1,6 +1,7 @@
 package prog2.policia_frontend.views;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -9,20 +10,24 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.RolClient;
 import prog2.policia_frontend.clients.UsuarioClient;
 import prog2.policia_frontend.clients.VigilanteClient;
@@ -37,75 +42,28 @@ import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
-/*
- * Pantalla utilizada para consultar
- * los usuarios genéricos registrados.
- */
 @Route(value = "usuarios", layout = MainLayout.class)
 @PageTitle("Usuarios | Sistema Policial")
-public class UsuariosView extends VerticalLayout
-        implements BeforeEnterObserver {
+public class UsuariosView extends VerticalLayout implements BeforeEnterObserver {
 
     private final UsuarioClient usuarioClient;
     private final VigilanteClient vigilanteClient;
-    private final SesionUsuario sesionUsuario;
-    /*
-     * Permite consultar los roles disponibles
-     * para crear o modificar usuarios.
-     */
     private final RolClient rolClient;
+    private final SesionUsuario sesionUsuario;
 
-    /*
-     * Tabla que mostrará los usuarios.
-     *
-     * false evita que Vaadin genere
-     * columnas automáticamente.
-     */
-    private final Grid<UsuarioDTO> tablaUsuarios
-            = new Grid<>(UsuarioDTO.class, false);
-    private final PaginadorGrid<UsuarioDTO> paginadorUsuarios
-            = new PaginadorGrid<>(tablaUsuarios, 10);
+    private final Grid<UsuarioDTO> tablaUsuarios = new Grid<>(UsuarioDTO.class, false);
+    private final PaginadorGrid<UsuarioDTO> paginadorUsuarios = new PaginadorGrid<>(tablaUsuarios, 10);
+    private final Map<String, VigilanteDTO> vigilantesPorCodigo = new HashMap<>();
 
-    /*
-     * Conserva los datos específicos de los vigilantes, especialmente la
-     * edad, mientras se muestran dentro de la tabla general de usuarios.
-     */
-    private final Map<String, VigilanteDTO> vigilantesPorCodigo
-            = new HashMap<>();
+    private final TextField filtroNombre = new TextField("Buscar por nombre");
+    private final Select<String> filtroEstado = new Select<>();
+    private final Select<RolDTO> filtroRol = new Select<>();
 
-    /*
-     * Permite buscar coincidencias en el nombre.
-     */
-    private final TextField filtroNombre
-            = new TextField("Buscar por nombre");
+    private final Button botonBuscar = new Button("Buscar");
+    private final Button botonNuevoUsuario = new Button("Nuevo usuario");
+    private final Button botonLimpiar = new Button("Limpiar");
 
-    /*
-     * Permite mostrar todos, activos o inactivos.
-     */
-    private final Select<String> filtroEstado
-            = new Select<>();
-
-    /*
-     * Permite filtrar los usuarios por su tipo (Rol).
-     */
-    private final Select<RolDTO> filtroRol
-            = new Select<>();
-
-    private final Button botonBuscar
-            = new Button("Buscar");
-
-    private final Button botonNuevoUsuario
-            = new Button("Nuevo usuario");
-
-    private final Button botonLimpiar
-            = new Button("Limpiar");
-
-    public UsuariosView(
-            UsuarioClient usuarioClient,
-            VigilanteClient vigilanteClient,
-            RolClient rolClient,
-            SesionUsuario sesionUsuario) {
-
+    public UsuariosView(UsuarioClient usuarioClient, VigilanteClient vigilanteClient, RolClient rolClient, SesionUsuario sesionUsuario) {
         this.usuarioClient = usuarioClient;
         this.vigilanteClient = vigilanteClient;
         this.rolClient = rolClient;
@@ -116,561 +74,312 @@ public class UsuariosView extends VerticalLayout
         configurarTabla();
     }
 
-    /*
-     * Configura los campos utilizados
-     * para filtrar la tabla.
-     */
     private void configurarFiltros() {
-
-        filtroNombre.setPlaceholder(
-                "Ejemplo: Laura"
-        );
-
+        filtroNombre.setPlaceholder("Ejemplo: Laura");
         filtroNombre.setClearButtonVisible(true);
 
         filtroEstado.setLabel("Estado");
-        filtroEstado.setItems(
-                "Todos",
-                "Activos",
-                "Inactivos"
-        );
+        filtroEstado.setItems("Todos", "Activos", "Inactivos");
         filtroEstado.setValue("Todos");
 
         filtroRol.setLabel("Tipo de usuario");
         filtroRol.setItemLabelGenerator(RolDTO::getNombre);
         filtroRol.setPlaceholder("Todos los roles");
 
-        /*
-         * Ejecuta la búsqueda utilizando
-         * los valores escritos por el usuario.
-         */
-        botonBuscar.addClickListener(
-                evento -> cargarUsuarios()
-        );
+        botonBuscar.addClickListener(evento -> cargarUsuarios());
 
-        /*
-         * Borra los filtros y vuelve a cargar
-         * todos los usuarios.
-         */
         botonLimpiar.addClickListener(evento -> {
-
             filtroNombre.clear();
             filtroEstado.setValue("Todos");
             filtroRol.clear();
-
             cargarUsuarios();
         });
     }
 
-    /*
-     * Organiza los componentes de la pantalla.
-     */
     private void configurarVista() {
+        H2 titulo = new H2("Usuarios");
 
-        H2 titulo = new H2(
-                "Usuarios"
+        HorizontalLayout barraFiltros = new HorizontalLayout(
+                filtroNombre, filtroEstado, filtroRol, botonBuscar, botonLimpiar
         );
 
-        /*
-         * Coloca los filtros y botones
-         * en una misma fila.
-         */
-        HorizontalLayout barraFiltros
-                = new HorizontalLayout(
-                        filtroNombre,
-                        filtroEstado,
-                        filtroRol,
-                        botonBuscar,
-                        botonLimpiar
-                );
-
-        /*
-         * Alinea los botones con la parte inferior
-         * de los campos de búsqueda.
-         */
-        barraFiltros.setAlignItems(
-                HorizontalLayout.Alignment.END
-        );
+        barraFiltros.setAlignItems(HorizontalLayout.Alignment.END);
 
         setSizeFull();
-        botonNuevoUsuario.addClickListener(
-                evento -> abrirFormularioNuevo()
-        );
+
+        botonNuevoUsuario.addClickListener(evento -> abrirFormularioNuevo());
         botonNuevoUsuario.setVisible(puedeEscribir());
 
-        add(
-                titulo,
-                botonNuevoUsuario,
-                barraFiltros,
-                tablaUsuarios,
-                paginadorUsuarios.getControles()
-        );
+        add(titulo, botonNuevoUsuario, barraFiltros, tablaUsuarios, paginadorUsuarios.getControles());
     }
 
     private void configurarTabla() {
+        tablaUsuarios.addColumn(UsuarioDTO::getCodigo).setHeader("Código").setAutoWidth(true);
+        tablaUsuarios.addColumn(UsuarioDTO::getNombre).setHeader("Nombre").setAutoWidth(true);
+        tablaUsuarios.addColumn(UsuarioDTO::getEdad).setHeader("Edad").setAutoWidth(true);
+        tablaUsuarios.addColumn(usuario -> usuario.getFechaNacimiento() != null
+                ? usuario.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "").setHeader("Fecha de nacimiento").setAutoWidth(true);
+        tablaUsuarios.addColumn(UsuarioDTO::getRol).setHeader("Rol").setAutoWidth(true);
 
-        tablaUsuarios.addColumn(
-                UsuarioDTO::getCodigo
-        ).setHeader("Código")
-                .setAutoWidth(true);
+        tablaUsuarios.addColumn(usuario -> Boolean.TRUE.equals(usuario.getActivo()) ? "Activo" : "Inactivo")
+                .setHeader("Estado").setAutoWidth(true);
 
-        tablaUsuarios.addColumn(
-                UsuarioDTO::getNombre
-        ).setHeader("Nombre")
-                .setAutoWidth(true);
-
-        tablaUsuarios.addColumn(
-                UsuarioDTO::getRol
-        ).setHeader("Rol")
-                .setAutoWidth(true);
-
-        tablaUsuarios.addColumn(usuario ->
-                Boolean.TRUE.equals(
-                        usuario.getActivo()
-                )
-                        ? "Activo"
-                        : "Inactivo"
-        ).setHeader("Estado")
-                .setAutoWidth(true);
-
-        /*
-         * Muestra las acciones disponibles
-         * para cada usuario.
-         */
         tablaUsuarios.addComponentColumn(usuario -> {
-
             if (!puedeEscribir()) {
                 return new Span("Solo lectura");
             }
 
-            /*
-             * El vigilante aparece en el listado general porque también es
-             * un usuario, pero su edad se gestiona en la vista específica.
-             */
             if (esVigilante(usuario)) {
-
-                VigilanteDTO vigilante
-                        = vigilantesPorCodigo.get(usuario.getCodigo());
+                VigilanteDTO vigilante = vigilantesPorCodigo.get(usuario.getCodigo());
 
                 if (vigilante == null) {
                     return new Span("Datos no disponibles");
                 }
 
-                Button botonModificar
-                        = new Button("Modificar");
+                Button botonModificar = new Button("Modificar");
+                boolean activo = Boolean.TRUE.equals(vigilante.getActivo());
 
-                botonModificar.setEnabled(
-                        Boolean.TRUE.equals(vigilante.getActivo())
-                );
-
-                botonModificar.addClickListener(evento ->
-                        abrirFormularioEdicionVigilante(vigilante)
-                );
+                botonModificar.setEnabled(activo);
+                botonModificar.addClickListener(evento -> abrirFormularioEdicionVigilante(vigilante));
 
                 Button botonEstado = new Button();
 
-                if (Boolean.TRUE.equals(vigilante.getActivo())) {
-
+                if (activo) {
                     botonEstado.setText("Dar de baja");
-                    botonEstado.addClickListener(evento ->
-                            abrirDialogoBajaVigilante(vigilante)
-                    );
-
-                } else if ("FALLECIMIENTO".equals(
-                        vigilante.getMotivoBaja())) {
-
+                    botonEstado.addClickListener(evento -> abrirDialogoBajaVigilante(vigilante));
+                } else if ("FALLECIMIENTO".equals(vigilante.getMotivoBaja())) {
                     botonEstado.setText("No reactivable");
                     botonEstado.setEnabled(false);
-                    botonEstado.setTooltipText(
-                            "El motivo de baja fue fallecimiento."
-                    );
-
+                    botonEstado.setTooltipText("El motivo de baja fue fallecimiento.");
                 } else {
-
                     botonEstado.setText("Reactivar");
-                    botonEstado.addClickListener(evento ->
-                            reactivarVigilante(vigilante)
-                    );
+                    botonEstado.addClickListener(evento -> reactivarVigilante(vigilante));
                 }
 
-                return new HorizontalLayout(
-                        botonModificar,
-                        botonEstado
-                );
+                return new HorizontalLayout(botonModificar, botonEstado);
             }
 
-            Button botonModificar
-                    = new Button("Modificar");
-
-            botonModificar.addClickListener(
-                    evento -> abrirFormularioEdicion(usuario)
-            );
-
-            /*
-             * Un usuario inactivo debe reactivarse
-             * antes de modificar sus datos.
-             */
-            botonModificar.setEnabled(
-                    Boolean.TRUE.equals(usuario.getActivo())
-            );
+            Button botonModificar = new Button("Modificar");
+            botonModificar.setEnabled(Boolean.TRUE.equals(usuario.getActivo()));
+            botonModificar.addClickListener(evento -> abrirFormularioEdicion(usuario));
 
             if (!Boolean.TRUE.equals(usuario.getActivo())) {
-
-                botonModificar.setTooltipText(
-                        "Debe reactivar el usuario antes de modificarlo."
-                );
+                botonModificar.setTooltipText("Debe reactivar el usuario antes de modificarlo.");
             }
 
             Button botonEstado = new Button();
 
             if (Boolean.TRUE.equals(usuario.getActivo())) {
-
                 botonEstado.setText("Dar de baja");
-
-                botonEstado.addClickListener(
-                        evento -> abrirDialogoBaja(usuario)
-                );
-
+                botonEstado.addClickListener(evento -> abrirDialogoBaja(usuario));
             } else {
-
                 botonEstado.setText("Reactivar");
-
-                botonEstado.addClickListener(
-                        evento -> reactivarUsuario(usuario)
-                );
+                botonEstado.addClickListener(evento -> reactivarUsuario(usuario));
             }
 
-            return new HorizontalLayout(
-                    botonModificar,
-                    botonEstado
-            );
+            return new HorizontalLayout(botonModificar, botonEstado);
+        }).setHeader("Acciones").setAutoWidth(true);
 
-        }).setHeader("Acciones")
-                .setAutoWidth(true);
-
-        /*
-         * La tabla solo recibe diez elementos por página. Ajustar su altura
-         * a esas filas mantiene siempre visible el paginador inferior.
-         */
         tablaUsuarios.setWidthFull();
         tablaUsuarios.setAllRowsVisible(true);
-        tablaUsuarios.addThemeVariants(
-                GridVariant.LUMO_COMPACT
-        );
+        tablaUsuarios.addThemeVariants(GridVariant.LUMO_COMPACT);
     }
 
-    /*
-     * Abre el formulario con los datos actuales
-     * del usuario que se desea modificar.
-     */
-    private void abrirFormularioEdicion(
-            UsuarioDTO usuario) {
+    private DatePicker crearCampoFechaNacimiento() {
+        DatePicker campo = new DatePicker("Fecha de nacimiento");
+        campo.setRequiredIndicatorVisible(true);
+        campo.setMax(LocalDate.now());
+        campo.setWidthFull();
+        return campo;
+    }
 
+    private boolean fechaNacimientoInvalida(LocalDate fecha, boolean vigilante) {
+        if (fecha == null || fecha.isAfter(LocalDate.now())) {
+            return true;
+        }
+
+        int edad = Period.between(fecha, LocalDate.now()).getYears();
+
+        if (edad < 18) {
+            return true;
+        }
+
+        return vigilante && edad > 65;
+    }
+
+    private void validarCampoFecha(DatePicker campo, boolean vigilante) {
+        boolean invalida = fechaNacimientoInvalida(campo.getValue(), vigilante);
+
+        campo.setInvalid(invalida);
+        campo.setErrorMessage(vigilante
+                ? "El vigilante debe tener entre 18 y 65 años."
+                : "El usuario debe tener al menos 18 años.");
+    }
+
+    private void abrirFormularioEdicion(UsuarioDTO usuario) {
         Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Modificar usuario " + usuario.getCodigo());
 
-        dialogo.setHeaderTitle(
-                "Modificar usuario "
-                        + usuario.getCodigo()
-        );
-
-        TextField campoNombre
-                = new TextField("Nombre");
-
-        campoNombre.setValue(
-                usuario.getNombre() != null
-                        ? usuario.getNombre()
-                        : ""
-        );
-
-        PasswordField campoPassword
-                = new PasswordField(
-                        "Nueva contraseña"
-                );
-
-        campoPassword.setHelperText(
-                "Dejar vacío para conservar la contraseña actual."
-        );
-
+        TextField campoNombre = new TextField("Nombre");
+        campoNombre.setValue(usuario.getNombre() != null ? usuario.getNombre() : "");
         campoNombre.setRequiredIndicatorVisible(true);
+        campoNombre.setWidthFull();
 
-        Button botonGuardar
-                = new Button("Guardar cambios");
+        DatePicker campoFechaNacimiento = crearCampoFechaNacimiento();
 
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
+        if (usuario.getFechaNacimiento() != null) {
+            campoFechaNacimiento.setValue(usuario.getFechaNacimiento());
+        }
+
+        PasswordField campoPassword = new PasswordField("Nueva contraseña");
+        campoPassword.setHelperText("Dejar vacío para conservar la contraseña actual.");
+        campoPassword.setWidthFull();
+
+        Button botonGuardar = new Button("Guardar cambios");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonGuardar.addClickListener(evento -> {
+            boolean nombreVacio = campoNombre.getValue().isBlank();
+            String nuevaPassword = campoPassword.getValue();
+            boolean passwordInvalida = !nuevaPassword.isBlank()
+                    && (nuevaPassword.length() < 4 || nuevaPassword.length() > 20);
 
-            boolean nombreVacio
-                    = campoNombre.getValue().isBlank();
-
-            String nuevaPassword
-                    = campoPassword.getValue();
-
-            boolean passwordInvalida
-                    = !nuevaPassword.isBlank()
-                    && (nuevaPassword.length() < 4
-                    || nuevaPassword.length() > 20);
+            validarCampoFecha(campoFechaNacimiento, false);
 
             campoNombre.setInvalid(nombreVacio);
-            campoNombre.setErrorMessage(
-                    "El nombre es obligatorio."
-            );
+            campoNombre.setErrorMessage("El nombre es obligatorio.");
 
             campoPassword.setInvalid(passwordInvalida);
-            campoPassword.setErrorMessage(
-                    "La contraseña debe tener entre 4 y 20 caracteres."
-            );
+            campoPassword.setErrorMessage("La contraseña debe tener entre 4 y 20 caracteres.");
 
-            if (nombreVacio || passwordInvalida) {
+            if (nombreVacio || passwordInvalida || campoFechaNacimiento.isInvalid()) {
                 return;
             }
 
-            String passwordParaEnviar
-                    = nuevaPassword.isBlank()
-                            ? null
-                            : nuevaPassword;
+            String passwordParaEnviar = nuevaPassword.isBlank() ? null : nuevaPassword;
 
-            UsuarioFormularioDTO datos
-                    = new UsuarioFormularioDTO(
-                            campoNombre.getValue().trim(),
-                            passwordParaEnviar,
-                            null
-                    );
+            UsuarioFormularioDTO datos = new UsuarioFormularioDTO(
+                    campoNombre.getValue().trim(),
+                    passwordParaEnviar,
+                    null,
+                    campoFechaNacimiento.getValue()
+            );
 
             try {
-
-                UsuarioDTO usuarioModificado = usuarioClient.actualizar(
-                        usuario.getCodigo(),
-                        datos
-                );
+                UsuarioDTO usuarioModificado = usuarioClient.actualizar(usuario.getCodigo(), datos);
 
                 dialogo.close();
                 cargarUsuarios();
 
                 NotificacionUtils.mostrarExito(
-                        "Usuario "
-                        + usuarioModificado.getCodigo()
-                        + " - "
-                        + usuarioModificado.getNombre()
-                        + " modificado correctamente."
+                        "Usuario " + usuarioModificado.getCodigo() + " - "
+                        + usuarioModificado.getNombre() + " modificado correctamente."
                 );
 
             } catch (RestClientResponseException excepcion) {
-
                 mostrarErrorOperacion(excepcion);
-
             } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonGuardar,
-                        botonCancelar
-                );
+        dialogo.add(new VerticalLayout(
+                campoNombre,
+                campoFechaNacimiento,
+                campoPassword,
+                new HorizontalLayout(botonGuardar, botonCancelar)
+        ));
 
-        VerticalLayout formulario
-                = new VerticalLayout(
-                        campoNombre,
-                        campoPassword,
-                        botones
-                );
-
-        dialogo.add(formulario);
         dialogo.open();
     }
 
-    /*
-     * Abre el formulario para crear
-     * un usuario con uno de los roles activos.
-     */
     private void abrirFormularioNuevo() {
-
         List<RolDTO> rolesActivos;
 
         try {
-
-            /*
-             * Consulta solamente los roles activos,
-             * porque no corresponde asignar un rol inactivo.
-             */
             rolesActivos = rolClient.listar(true);
-
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
             return;
-
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede consultar los roles."
-            );
+            NotificacionUtils.mostrarInformacion("No se pueden consultar los roles.");
             return;
         }
 
         if (rolesActivos.isEmpty()) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No existen roles activos disponibles."
-            );
+            NotificacionUtils.mostrarInformacion("No existen roles activos disponibles.");
             return;
         }
 
         Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Crear nuevo usuario");
 
-        dialogo.setHeaderTitle(
-                "Crear nuevo usuario"
-        );
+        TextField campoNombre = new TextField("Nombre");
+        PasswordField campoPassword = new PasswordField("Contraseña");
+        DatePicker campoFechaNacimiento = crearCampoFechaNacimiento();
 
-        TextField campoNombre
-                = new TextField("Nombre");
-
-        PasswordField campoPassword
-                = new PasswordField("Contraseña");
-
-        NumberField campoEdad
-                = new NumberField("Edad");
-
-        campoEdad.setMin(18);
-        campoEdad.setMax(65);
-        campoEdad.setStep(1);
-        campoEdad.setStepButtonsVisible(true);
-        campoEdad.setRequiredIndicatorVisible(true);
-        campoEdad.setVisible(false);
-
-        Select<RolDTO> campoRol
-                = new Select<>();
-
+        Select<RolDTO> campoRol = new Select<>();
         campoRol.setLabel("Rol");
-
-        /*
-         * Muestra el nombre del rol en lugar
-         * de mostrar el objeto completo.
-         */
-        campoRol.setItemLabelGenerator(
-                RolDTO::getNombre
-        );
-
+        campoRol.setItemLabelGenerator(RolDTO::getNombre);
         campoRol.setItems(rolesActivos);
-
-        /*
-         * La edad solo corresponde cuando el rol elegido es VIGILANTE.
-         */
-        campoRol.addValueChangeListener(evento -> {
-            boolean rolVigilante
-                    = esRolVigilante(evento.getValue());
-
-            campoEdad.setVisible(rolVigilante);
-
-            if (!rolVigilante) {
-                campoEdad.clear();
-                campoEdad.setInvalid(false);
-            }
-        });
 
         campoNombre.setRequiredIndicatorVisible(true);
         campoPassword.setRequiredIndicatorVisible(true);
         campoRol.setRequiredIndicatorVisible(true);
 
-        Button botonGuardar
-                = new Button("Guardar");
+        campoNombre.setWidthFull();
+        campoPassword.setWidthFull();
+        campoRol.setWidthFull();
 
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
+        campoRol.addValueChangeListener(evento -> {
+            campoFechaNacimiento.setInvalid(false);
+        });
+
+        Button botonGuardar = new Button("Guardar");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonGuardar.addClickListener(evento -> {
-
-            boolean nombreVacio
-                    = campoNombre.getValue().isBlank();
-
-            boolean passwordVacio
-                    = campoPassword.getValue().isBlank();
-
-            boolean rolVacio
-                    = campoRol.getValue() == null;
-
-            boolean rolVigilante
-                    = esRolVigilante(campoRol.getValue());
-
-            Double edadIngresada = campoEdad.getValue();
-
-            boolean edadInvalida
-                    = rolVigilante
-                    && (edadIngresada == null
-                    || edadIngresada < 18
-                    || edadIngresada > 65
-                    || edadIngresada != Math.floor(edadIngresada));
+            boolean nombreVacio = campoNombre.getValue().isBlank();
+            boolean passwordVacio = campoPassword.getValue().isBlank();
+            boolean rolVacio = campoRol.getValue() == null;
+            boolean rolVigilante = esRolVigilante(campoRol.getValue());
 
             campoNombre.setInvalid(nombreVacio);
-            campoNombre.setErrorMessage(
-                    "El nombre es obligatorio."
-            );
+            campoNombre.setErrorMessage("El nombre es obligatorio.");
 
             campoPassword.setInvalid(passwordVacio);
-            campoPassword.setErrorMessage(
-                    "La contraseña es obligatoria."
-            );
+            campoPassword.setErrorMessage("La contraseña es obligatoria.");
 
             campoRol.setInvalid(rolVacio);
-            campoRol.setErrorMessage(
-                    "Debe seleccionar un rol."
-            );
+            campoRol.setErrorMessage("Debe seleccionar un rol.");
 
-            campoEdad.setInvalid(edadInvalida);
-            campoEdad.setErrorMessage(
-                    "La edad debe ser un número entero entre 18 y 65."
-            );
+            validarCampoFecha(campoFechaNacimiento, rolVigilante);
 
-            if (nombreVacio
-                    || passwordVacio
-                    || rolVacio
-                    || edadInvalida) {
-
+            if (nombreVacio || passwordVacio || rolVacio || campoFechaNacimiento.isInvalid()) {
                 return;
             }
 
-            RolDTO rolSeleccionado
-                    = campoRol.getValue();
+            RolDTO rolSeleccionado = campoRol.getValue();
 
             try {
-
                 if (rolVigilante) {
-
-                    VigilanteDTO datosVigilante
-                            = new VigilanteDTO(
-                                    campoNombre.getValue().trim(),
-                                    campoPassword.getValue(),
-                                    edadIngresada.intValue()
-                            );
+                    VigilanteDTO datosVigilante = new VigilanteDTO(
+                            campoNombre.getValue().trim(),
+                            campoPassword.getValue(),
+                            campoFechaNacimiento.getValue()
+                    );
 
                     vigilanteClient.crear(datosVigilante);
-
                 } else {
-
-                    UsuarioFormularioDTO datosUsuario
-                            = new UsuarioFormularioDTO(
-                                    campoNombre.getValue().trim(),
-                                    campoPassword.getValue(),
-                                    rolSeleccionado.getNombre()
-                            );
+                    UsuarioFormularioDTO datosUsuario = new UsuarioFormularioDTO(
+                            campoNombre.getValue().trim(),
+                            campoPassword.getValue(),
+                            rolSeleccionado.getNombre(),
+                            campoFechaNacimiento.getValue()
+                    );
 
                     usuarioClient.crear(datosUsuario);
                 }
@@ -678,62 +387,180 @@ public class UsuariosView extends VerticalLayout
                 dialogo.close();
                 cargarUsuarios();
 
-                NotificacionUtils.mostrarExito(
-                        "Usuario creado correctamente."
-                );
+                NotificacionUtils.mostrarExito("Usuario creado correctamente.");
 
             } catch (RestClientResponseException excepcion) {
-
                 mostrarErrorOperacion(excepcion);
-
             } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonGuardar,
-                        botonCancelar
-                );
+        dialogo.add(new VerticalLayout(
+                campoNombre,
+                campoPassword,
+                campoRol,
+                campoFechaNacimiento,
+                new HorizontalLayout(botonGuardar, botonCancelar)
+        ));
 
-        VerticalLayout formulario
-                = new VerticalLayout(
-                        campoNombre,
-                        campoPassword,
-                        campoRol,
-                        campoEdad,
-                        botones
-                );
-
-        dialogo.add(formulario);
         dialogo.open();
     }
 
-    private void abrirDialogoBaja(
-            UsuarioDTO usuario) {
-
+    private void abrirFormularioEdicionVigilante(VigilanteDTO vigilante) {
         Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Modificar " + vigilante.getCodigo());
 
-        dialogo.setHeaderTitle(
-                "Dar de baja a "
-                        + usuario.getNombre()
-        );
+        TextField campoNombre = new TextField("Nombre");
+        campoNombre.setValue(vigilante.getNombre() != null ? vigilante.getNombre() : "");
+        campoNombre.setRequiredIndicatorVisible(true);
+        campoNombre.setWidthFull();
 
-        Select<String> campoMotivo
-                = new Select<>();
+        DatePicker campoFechaNacimiento = crearCampoFechaNacimiento();
+
+        if (vigilante.getFechaNacimiento() != null) {
+            campoFechaNacimiento.setValue(vigilante.getFechaNacimiento());
+        }
+
+        PasswordField campoPassword = new PasswordField("Nueva contraseña");
+        campoPassword.setPlaceholder("Dejar vacío para conservar la actual");
+        campoPassword.setRevealButtonVisible(false);
+        campoPassword.setWidthFull();
+
+        Button botonGuardar = new Button("Guardar cambios");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
+
+        botonGuardar.addClickListener(evento -> {
+            boolean nombreVacio = campoNombre.getValue().isBlank();
+            String nuevaPassword = campoPassword.getValue();
+
+            boolean passwordInvalida = !nuevaPassword.isBlank()
+                    && (nuevaPassword.length() < 4 || nuevaPassword.length() > 20);
+
+            validarCampoFecha(campoFechaNacimiento, true);
+
+            campoNombre.setInvalid(nombreVacio);
+            campoNombre.setErrorMessage("El nombre es obligatorio.");
+
+            campoPassword.setInvalid(passwordInvalida);
+            campoPassword.setErrorMessage("La contraseña debe tener entre 4 y 20 caracteres.");
+
+            if (nombreVacio || passwordInvalida || campoFechaNacimiento.isInvalid()) {
+                return;
+            }
+
+            VigilanteDTO datos = new VigilanteDTO(
+                    campoNombre.getValue().trim(),
+                    nuevaPassword.isBlank() ? null : nuevaPassword,
+                    campoFechaNacimiento.getValue()
+            );
+
+            try {
+                VigilanteDTO vigilanteModificado = vigilanteClient.actualizar(vigilante.getCodigo(), datos);
+
+                dialogo.close();
+                cargarUsuarios();
+
+                NotificacionUtils.mostrarExito(
+                        "Vigilante " + vigilanteModificado.getCodigo() + " - "
+                        + vigilanteModificado.getNombre() + " modificado correctamente."
+                );
+
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+            } catch (IllegalArgumentException excepcion) {
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
+            }
+        });
+
+        dialogo.add(new VerticalLayout(
+                campoNombre,
+                campoFechaNacimiento,
+                campoPassword,
+                new HorizontalLayout(botonGuardar, botonCancelar)
+        ));
+
+        dialogo.open();
+    }
+
+    private void abrirDialogoBaja(UsuarioDTO usuario) {
+        Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Dar de baja a " + usuario.getNombre());
+
+        Select<String> campoMotivo = crearCampoMotivo();
+
+        Button botonConfirmar = new Button("Confirmar baja");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
+
+        botonConfirmar.addClickListener(evento -> {
+            if (!validarMotivo(campoMotivo)) {
+                return;
+            }
+
+            try {
+                usuarioClient.darDeBaja(usuario.getCodigo(), campoMotivo.getValue());
+
+                dialogo.close();
+                cargarUsuarios();
+
+                NotificacionUtils.mostrarExito("Usuario dado de baja correctamente.");
+
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+            } catch (IllegalArgumentException excepcion) {
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
+            }
+        });
+
+        dialogo.add(campoMotivo, new HorizontalLayout(botonConfirmar, botonCancelar));
+        dialogo.open();
+    }
+
+    private void abrirDialogoBajaVigilante(VigilanteDTO vigilante) {
+        Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Dar de baja " + vigilante.getCodigo());
+
+        Select<String> campoMotivo = crearCampoMotivo();
+
+        Button botonConfirmar = new Button("Confirmar baja");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
+
+        botonConfirmar.addClickListener(evento -> {
+            if (!validarMotivo(campoMotivo)) {
+                return;
+            }
+
+            try {
+                vigilanteClient.darDeBaja(vigilante.getCodigo(), campoMotivo.getValue());
+
+                dialogo.close();
+                cargarUsuarios();
+
+                NotificacionUtils.mostrarExito("Vigilante dado de baja correctamente.");
+
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+            } catch (IllegalArgumentException excepcion) {
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
+            }
+        });
+
+        dialogo.add(campoMotivo, new HorizontalLayout(botonConfirmar, botonCancelar));
+        dialogo.open();
+    }
+
+    private Select<String> crearCampoMotivo() {
+        Select<String> campoMotivo = new Select<>();
 
         campoMotivo.setLabel("Motivo de baja");
-
         campoMotivo.setItems(
                 "FALLECIMIENTO",
                 "JUBILACION",
@@ -743,139 +570,53 @@ public class UsuariosView extends VerticalLayout
                 "ABANDONO_TRABAJO",
                 "INCAPACIDAD"
         );
-
         campoMotivo.setRequiredIndicatorVisible(true);
 
-        Button botonConfirmar
-                = new Button("Confirmar baja");
-
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
-
-        botonConfirmar.addClickListener(evento -> {
-
-            String motivoSeleccionado
-                    = campoMotivo.getValue();
-
-            if (motivoSeleccionado == null) {
-
-                campoMotivo.setInvalid(true);
-                campoMotivo.setErrorMessage(
-                        "Debe seleccionar un motivo."
-                );
-
-                return;
-            }
-
-            try {
-
-                usuarioClient.darDeBaja(
-                        usuario.getCodigo(),
-                        motivoSeleccionado
-                );
-
-                dialogo.close();
-                cargarUsuarios();
-
-                NotificacionUtils.mostrarExito(
-                        "Usuario dado de baja correctamente."
-                );
-
-            } catch (RestClientResponseException excepcion) {
-
-                mostrarErrorOperacion(excepcion);
-
-            } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
-            } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
-            }
-        });
-
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonConfirmar,
-                        botonCancelar
-                );
-
-        dialogo.add(
-                campoMotivo,
-                botones
-        );
-
-        dialogo.open();
+        return campoMotivo;
     }
 
-    /*
-     * Reactiva un usuario que estaba inactivo.
-     */
-    private void reactivarUsuario(
-            UsuarioDTO usuario) {
+    private boolean validarMotivo(Select<String> campoMotivo) {
+        String motivo = campoMotivo.getValue();
+        boolean motivoVacio = motivo == null || motivo.isBlank();
 
+        campoMotivo.setInvalid(motivoVacio);
+        campoMotivo.setErrorMessage("Debe seleccionar un motivo.");
+
+        return !motivoVacio;
+    }
+
+    private void reactivarUsuario(UsuarioDTO usuario) {
         try {
-
-            usuarioClient.reactivar(
-                    usuario.getCodigo()
-            );
-
+            usuarioClient.reactivar(usuario.getCodigo());
             cargarUsuarios();
 
-            NotificacionUtils.mostrarExito(
-                    "Usuario reactivado correctamente."
-            );
+            NotificacionUtils.mostrarExito("Usuario reactivado correctamente.");
 
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
-
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
-
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalArgumentException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    excepcion.getMessage()
-            );
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
-    /*
-     * Convierte los errores HTTP del backend
-     * en mensajes comprensibles.
-     */
-    private void mostrarErrorOperacion(
-            RestClientResponseException excepcion) {
-        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
+    private void reactivarVigilante(VigilanteDTO vigilante) {
+        try {
+            vigilanteClient.reactivar(vigilante.getCodigo());
+            cargarUsuarios();
+
+            NotificacionUtils.mostrarExito("Vigilante reactivado correctamente.");
+
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+        } catch (IllegalArgumentException excepcion) {
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
+        }
     }
 
-    /*
-     * Cuando se abre la pantalla,
-     * solicita los usuarios al backend.
-     */
-    @Override
-    public void beforeEnter(
-            BeforeEnterEvent evento) {
-
-        cargarOpcionesFiltros();
-        cargarUsuarios();
-    }
-
-    /*
-     * Carga las opciones de roles en el filtro.
-     */
     private void cargarOpcionesFiltros() {
         try {
             filtroRol.setItems(rolClient.listar(null));
@@ -886,130 +627,100 @@ public class UsuariosView extends VerticalLayout
         }
     }
 
-    /*
-     * Convierte el estado elegido en el valor
-     * que espera recibir el backend.
-     */
     private Boolean obtenerEstadoSeleccionado() {
-
-        return switch (filtroEstado.getValue()) {
-
-            case "Activos" -> true;
-            case "Inactivos" -> false;
-            default -> null;
-        };
+        switch (filtroEstado.getValue()) {
+            case "Activos":
+                return true;
+            case "Inactivos":
+                return false;
+            default:
+                return null;
+        }
     }
 
-    /*
-     * Consulta los usuarios y los coloca
-     * dentro de la tabla.
-     */
     private void cargarUsuarios() {
-
         try {
+            Boolean estadoSeleccionado = obtenerEstadoSeleccionado();
+            String nombreIngresado = filtroNombre.getValue();
+            RolDTO rolSeleccionado = filtroRol.getValue();
 
-            Boolean estadoSeleccionado
-                    = obtenerEstadoSeleccionado();
+            List<UsuarioDTO> todosLosUsuarios = new ArrayList<>();
 
-            String nombreIngresado
-                    = filtroNombre.getValue();
+            todosLosUsuarios.addAll(usuarioClient.listar(estadoSeleccionado, nombreIngresado));
 
-            RolDTO rolSeleccionado
-                    = filtroRol.getValue();
-
-            List<UsuarioDTO> todosLosUsuarios
-                    = new ArrayList<>();
-
-            todosLosUsuarios.addAll(
-                    usuarioClient.listar(
-                            estadoSeleccionado,
-                            nombreIngresado
-                    )
-            );
-
-            List<VigilanteDTO> vigilantes
-                    = vigilanteClient.listar(
-                            estadoSeleccionado,
-                            nombreIngresado
-                    );
+            List<VigilanteDTO> vigilantes = vigilanteClient.listar(estadoSeleccionado, nombreIngresado);
 
             vigilantesPorCodigo.clear();
 
             for (VigilanteDTO vigilante : vigilantes) {
-
                 if (vigilante.getCodigo() != null) {
-                    vigilantesPorCodigo.put(
-                            vigilante.getCodigo(),
-                            vigilante
-                    );
+                    vigilantesPorCodigo.put(vigilante.getCodigo(), vigilante);
                 }
 
-                todosLosUsuarios.add(
-                        convertirVigilanteAUsuario(vigilante)
-                );
+                todosLosUsuarios.add(convertirVigilanteAUsuario(vigilante));
             }
 
-            /*
-             * Aplica el filtro por rol si se seleccionó alguno.
-             * Compara por código o por nombre según lo que contenga el DTO.
-             */
-            if (rolSeleccionado != null) {
-                String codigoFiltro = rolSeleccionado.getCodigo();
-                String nombreFiltro = rolSeleccionado.getNombre();
+            List<UsuarioDTO> usuariosFiltrados = new ArrayList<>();
 
-                todosLosUsuarios = todosLosUsuarios.stream()
-                        .filter(u -> u.getRol() != null && (
-                                u.getRol().equalsIgnoreCase(codigoFiltro)
-                                || u.getRol().equalsIgnoreCase(nombreFiltro)
-                        ))
-                        .toList();
+            for (UsuarioDTO usuario : todosLosUsuarios) {
+                if (rolSeleccionado == null) {
+                    usuariosFiltrados.add(usuario);
+                    continue;
+                }
+
+                if (usuario.getRol() == null) {
+                    continue;
+                }
+
+                boolean coincideCodigo = usuario.getRol().equalsIgnoreCase(rolSeleccionado.getCodigo());
+                boolean coincideNombre = usuario.getRol().equalsIgnoreCase(rolSeleccionado.getNombre());
+
+                if (coincideCodigo || coincideNombre) {
+                    usuariosFiltrados.add(usuario);
+                }
             }
 
-            // Crear lista modificable antes de ordenar
-            todosLosUsuarios = new ArrayList<>(todosLosUsuarios);
+            usuariosFiltrados.sort(new java.util.Comparator<UsuarioDTO>() {
+                @Override
+                public int compare(UsuarioDTO primero, UsuarioDTO segundo) {
+                    String codigoPrimero = primero.getCodigo();
+                    String codigoSegundo = segundo.getCodigo();
 
-            todosLosUsuarios.sort(
-                    Comparator.comparing(
-                            UsuarioDTO::getCodigo,
-                            Comparator.nullsLast(
-                                    String.CASE_INSENSITIVE_ORDER
-                            )
-                    )
-            );
+                    if (codigoPrimero == null && codigoSegundo == null) {
+                        return 0;
+                    }
 
-            paginadorUsuarios.setItems(todosLosUsuarios);
+                    if (codigoPrimero == null) {
+                        return 1;
+                    }
+
+                    if (codigoSegundo == null) {
+                        return -1;
+                    }
+
+                    return codigoPrimero.compareToIgnoreCase(codigoSegundo);
+                }
+            });
+
+            paginadorUsuarios.setItems(usuariosFiltrados);
 
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
-
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
-
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "Debe iniciar sesión."
-            );
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
 
-    private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
-    }
-
-    private UsuarioDTO convertirVigilanteAUsuario(
-            VigilanteDTO vigilante) {
-
+    private UsuarioDTO convertirVigilanteAUsuario(VigilanteDTO vigilante) {
         UsuarioDTO usuario = new UsuarioDTO();
 
         usuario.setId(vigilante.getId());
         usuario.setCodigo(vigilante.getCodigo());
         usuario.setNombre(vigilante.getNombre());
+        usuario.setFechaNacimiento(vigilante.getFechaNacimiento());
+        usuario.setEdad(vigilante.getEdad());
         usuario.setRol(vigilante.getRol());
         usuario.setMotivoBaja(vigilante.getMotivoBaja());
         usuario.setActivo(vigilante.getActivo());
@@ -1017,9 +728,12 @@ public class UsuariosView extends VerticalLayout
         return usuario;
     }
 
+    private boolean puedeEscribir() {
+        return sesionUsuario.tienePermiso(PermisosApp.ESCRITURA);
+    }
+
     private boolean esVigilante(UsuarioDTO usuario) {
-        return usuario.getRol() != null
-                && usuario.getRol().equalsIgnoreCase("VIGILANTE");
+        return usuario.getRol() != null && usuario.getRol().equalsIgnoreCase("VIGILANTE");
     }
 
     private boolean esRolVigilante(RolDTO rol) {
@@ -1028,221 +742,13 @@ public class UsuariosView extends VerticalLayout
                 && rol.getNombre().equalsIgnoreCase("VIGILANTE");
     }
 
-    private void abrirFormularioEdicionVigilante(
-            VigilanteDTO vigilante) {
-
-        Dialog dialogo = new Dialog();
-        dialogo.setHeaderTitle(
-                "Modificar " + vigilante.getCodigo()
-        );
-
-        TextField campoNombre = new TextField("Nombre");
-        NumberField campoEdad = new NumberField("Edad");
-        PasswordField campoPassword
-                = new PasswordField("Nueva contraseña");
-
-        campoNombre.setValue(
-                vigilante.getNombre() != null
-                        ? vigilante.getNombre()
-                        : ""
-        );
-
-        if (vigilante.getEdad() != null) {
-            campoEdad.setValue(
-                    vigilante.getEdad().doubleValue()
-            );
-        }
-
-        campoEdad.setMin(18);
-        campoEdad.setMax(65);
-        campoEdad.setStep(1);
-        campoEdad.setStepButtonsVisible(true);
-        campoPassword.setPlaceholder(
-                "Dejar vacío para conservar la actual"
-        );
-        campoPassword.setRevealButtonVisible(false);
-
-        campoNombre.setRequiredIndicatorVisible(true);
-        campoEdad.setRequiredIndicatorVisible(true);
-        campoNombre.setWidthFull();
-        campoEdad.setWidthFull();
-        campoPassword.setWidthFull();
-
-        Button botonGuardar = new Button("Guardar cambios");
-        Button botonCancelar = new Button(
-                "Cancelar",
-                evento -> dialogo.close()
-        );
-
-        botonGuardar.addClickListener(evento -> {
-
-            Double edadIngresada = campoEdad.getValue();
-            String nuevaPassword = campoPassword.getValue();
-
-            boolean nombreVacio
-                    = campoNombre.getValue().isBlank();
-            boolean edadInvalida
-                    = edadIngresada == null
-                    || edadIngresada < 18
-                    || edadIngresada > 65
-                    || edadIngresada != Math.floor(edadIngresada);
-            boolean passwordInvalida
-                    = !nuevaPassword.isBlank()
-                    && (nuevaPassword.length() < 4
-                    || nuevaPassword.length() > 20);
-
-            campoNombre.setInvalid(nombreVacio);
-            campoNombre.setErrorMessage(
-                    "El nombre es obligatorio."
-            );
-            campoEdad.setInvalid(edadInvalida);
-            campoEdad.setErrorMessage(
-                    "La edad debe ser un número entero entre 18 y 65."
-            );
-            campoPassword.setInvalid(passwordInvalida);
-            campoPassword.setErrorMessage(
-                    "La contraseña debe tener entre 4 y 20 caracteres."
-            );
-
-            if (nombreVacio || edadInvalida || passwordInvalida) {
-                return;
-            }
-
-            VigilanteDTO datos = new VigilanteDTO(
-                    campoNombre.getValue().trim(),
-                    nuevaPassword.isBlank() ? null : nuevaPassword,
-                    edadIngresada.intValue()
-            );
-
-            try {
-                VigilanteDTO vigilanteModificado = vigilanteClient.actualizar(
-                        vigilante.getCodigo(),
-                        datos
-                );
-                dialogo.close();
-                cargarUsuarios();
-                NotificacionUtils.mostrarExito(
-                        "Vigilante "
-                        + vigilanteModificado.getCodigo()
-                        + " - "
-                        + vigilanteModificado.getNombre()
-                        + " modificado correctamente."
-                );
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-            } catch (IllegalArgumentException excepcion) {
-                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
-            }
-        });
-
-        dialogo.add(new VerticalLayout(
-                campoNombre,
-                campoEdad,
-                campoPassword,
-                new HorizontalLayout(
-                        botonGuardar,
-                        botonCancelar
-                )
-        ));
-        dialogo.open();
+    private void mostrarErrorOperacion(RestClientResponseException excepcion) {
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
-    private void abrirDialogoBajaVigilante(
-            VigilanteDTO vigilante) {
-
-        Dialog dialogo = new Dialog();
-        dialogo.setHeaderTitle(
-                "Dar de baja " + vigilante.getCodigo()
-        );
-
-        Select<String> campoMotivo = new Select<>();
-        campoMotivo.setLabel("Motivo de baja");
-        campoMotivo.setItems(
-                "FALLECIMIENTO",
-                "JUBILACION",
-                "LICENCIA",
-                "RENUNCIA",
-                "DESPIDO",
-                "ABANDONO_TRABAJO",
-                "INCAPACIDAD"
-        );
-        campoMotivo.setRequiredIndicatorVisible(true);
-
-        Button botonConfirmar = new Button("Confirmar baja");
-        Button botonCancelar = new Button(
-                "Cancelar",
-                evento -> dialogo.close()
-        );
-
-        botonConfirmar.addClickListener(evento -> {
-
-            String motivo = campoMotivo.getValue();
-            boolean motivoVacio
-                    = motivo == null || motivo.isBlank();
-
-            campoMotivo.setInvalid(motivoVacio);
-            campoMotivo.setErrorMessage(
-                    "Debe seleccionar un motivo."
-            );
-
-            if (motivoVacio) {
-                return;
-            }
-
-            try {
-                vigilanteClient.darDeBaja(
-                        vigilante.getCodigo(),
-                        motivo
-                );
-                dialogo.close();
-                cargarUsuarios();
-                NotificacionUtils.mostrarExito(
-                        "Vigilante dado de baja correctamente."
-                );
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-            } catch (IllegalArgumentException excepcion) {
-                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
-            }
-        });
-
-        dialogo.add(
-                campoMotivo,
-                new HorizontalLayout(
-                        botonConfirmar,
-                        botonCancelar
-                )
-        );
-        dialogo.open();
-    }
-
-    private void reactivarVigilante(
-            VigilanteDTO vigilante) {
-
-        try {
-            vigilanteClient.reactivar(
-                    vigilante.getCodigo()
-            );
-            cargarUsuarios();
-            NotificacionUtils.mostrarExito(
-                    "Vigilante reactivado correctamente."
-            );
-        } catch (RestClientResponseException excepcion) {
-            mostrarErrorOperacion(excepcion);
-        } catch (ResourceAccessException excepcion) {
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
-        } catch (IllegalArgumentException excepcion) {
-            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
-        }
+    @Override
+    public void beforeEnter(BeforeEnterEvent evento) {
+        cargarOpcionesFiltros();
+        cargarUsuarios();
     }
 }

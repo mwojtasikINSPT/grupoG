@@ -1,30 +1,22 @@
-
 package prog2.policia_frontend.dtos;
 
-/*
- * Datos que el frontend envía al backend
- * para crear o modificar un usuario.
- *
- * La contraseña solamente viaja hacia el backend;
- * nunca debe mostrarse en la tabla.
- */
+import java.time.LocalDate;
+
 public class UsuarioFormularioDTO {
 
     private String nombre;
     private String password;
     private String rol;
+    private LocalDate fechaNacimiento;
 
     public UsuarioFormularioDTO() {
     }
 
-    public UsuarioFormularioDTO(
-            String nombre,
-            String password,
-            String rol) {
-
+    public UsuarioFormularioDTO(String nombre, String password, String rol, LocalDate fechaNacimiento) {
         this.nombre = nombre;
         this.password = password;
         this.rol = rol;
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public String getNombre() {
@@ -49,5 +41,13 @@ public class UsuarioFormularioDTO {
 
     public void setRol(String rol) {
         this.rol = rol;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 }

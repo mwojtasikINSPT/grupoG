@@ -1,25 +1,16 @@
-
 package prog2.policia_frontend.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDate;
 
-/*
- * Representa los datos de un vigilante
- * recibidos o enviados al backend.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VigilanteDTO {
 
     private Long id;
     private String codigo;
     private String nombre;
-
-    /*
-     * Se envía al crear o cambiar la contraseña,
-     * pero el backend nunca la devuelve.
-     */
     private String password;
-
+    private LocalDate fechaNacimiento;
     private Integer edad;
     private String rol;
     private String motivoBaja;
@@ -28,18 +19,10 @@ public class VigilanteDTO {
     public VigilanteDTO() {
     }
 
-    /*
-     * Constructor utilizado para crear
-     * o modificar un vigilante.
-     */
-    public VigilanteDTO(
-            String nombre,
-            String password,
-            Integer edad) {
-
+    public VigilanteDTO(String nombre, String password, LocalDate fechaNacimiento) {
         this.nombre = nombre;
         this.password = password;
-        this.edad = edad;
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public Long getId() {
@@ -74,6 +57,14 @@ public class VigilanteDTO {
         this.password = password;
     }
 
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
     public Integer getEdad() {
         return edad;
     }
@@ -94,9 +85,7 @@ public class VigilanteDTO {
         return motivoBaja;
     }
 
-    public void setMotivoBaja(
-            String motivoBaja) {
-
+    public void setMotivoBaja(String motivoBaja) {
         this.motivoBaja = motivoBaja;
     }
 

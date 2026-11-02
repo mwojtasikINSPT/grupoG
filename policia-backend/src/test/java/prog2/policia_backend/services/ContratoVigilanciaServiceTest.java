@@ -41,7 +41,7 @@ class ContratoVigilanciaServiceTest {
         vigilante.setId(1L);
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
-        vigilante.setEdad(30);
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
         vigilante.setActivo(true);
 
         Rol rol = new Rol();

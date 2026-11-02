@@ -70,9 +70,8 @@ public class VigilanteClient {
                         )
                         .retrieve()
                         .body(
-                                new ParameterizedTypeReference
-                                        <List<VigilanteDTO>>() {
-                                }
+                                new ParameterizedTypeReference<List<VigilanteDTO>>() {
+                        }
                         );
 
         return vigilantes != null
@@ -96,8 +95,7 @@ public class VigilanteClient {
                 )
                 .headers(sesionUsuario::aplicarAutenticacion)
                 .retrieve()
-                .body(new ParameterizedTypeReference
-                        <List<ContratoVigilanciaDTO>>() {
+                .body(new ParameterizedTypeReference<List<ContratoVigilanciaDTO>>() {
                 });
 
         return contratos != null ? contratos : List.of();
@@ -214,53 +212,33 @@ public class VigilanteClient {
      * La contraseña es obligatoria al crear,
      * pero opcional al modificar.
      */
-    private void validarDatos(
-            VigilanteDTO datos,
-            boolean esCreacion) {
-
+    private void validarDatos(VigilanteDTO datos, boolean esCreacion) {
         if (datos == null) {
-
-            throw new IllegalArgumentException(
-                    "Los datos del vigilante son obligatorios."
-            );
+            throw new IllegalArgumentException("Los datos del vigilante son obligatorios.");
         }
 
-        if (datos.getNombre() == null
-                || datos.getNombre().isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El nombre es obligatorio."
-            );
+        if (datos.getNombre() == null || datos.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio.");
         }
 
-        if (datos.getEdad() == null
-                || datos.getEdad() < 18
-                || datos.getEdad() > 65) {
+        if (datos.getFechaNacimiento() == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
+        }
 
-            throw new IllegalArgumentException(
-                    "La edad debe estar entre 18 y 65 años."
-            );
+        int edad = java.time.Period.between(datos.getFechaNacimiento(), java.time.LocalDate.now()).getYears();
+
+        if (edad < 18 || edad > 65) {
+            throw new IllegalArgumentException("La edad debe estar entre 18 y 65 años.");
         }
 
         String password = datos.getPassword();
 
-        if (esCreacion
-                && (password == null
-                || password.isBlank())) {
-
-            throw new IllegalArgumentException(
-                    "La contraseña es obligatoria."
-            );
+        if (esCreacion && (password == null || password.isBlank())) {
+            throw new IllegalArgumentException("La contraseña es obligatoria.");
         }
 
-        if (password != null
-                && !password.isBlank()
-                && (password.length() < 4
-                || password.length() > 20)) {
-
-            throw new IllegalArgumentException(
-                    "La contraseña debe tener entre 4 y 20 caracteres."
-            );
+        if (password != null && !password.isBlank() && (password.length() < 4 || password.length() > 20)) {
+            throw new IllegalArgumentException("La contraseña debe tener entre 4 y 20 caracteres.");
         }
     }
 }

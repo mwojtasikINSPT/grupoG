@@ -1,5 +1,7 @@
 package prog2.policia_backend.repositories;
 
+import java.time.LocalDate;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +50,7 @@ class UsuarioRepositoryTest {
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("password123");
-        vigilante.setEdad(30);
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
         vigilante.setRol(rol);
         vigilante.setActivo(true);
 

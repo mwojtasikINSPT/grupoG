@@ -1,16 +1,21 @@
 package prog2.policia_backend.DTOs;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.PastOrPresent;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.validations.OnCreate;
 import prog2.policia_backend.validations.OnUpdate;
@@ -31,9 +36,11 @@ public class VigilanteDTO {
     @Size(min = 4, max = 20, groups = {OnCreate.class, OnUpdate.class})
     private String password;
 
-    @NotNull(groups = {OnCreate.class})
-    @Min(value = 18, groups = {OnCreate.class, OnUpdate.class})
-    @Max(value = 65, groups = {OnCreate.class, OnUpdate.class})
+    @NotNull(groups = OnCreate.class)
+    @PastOrPresent(groups = {OnCreate.class, OnUpdate.class}, message = "La fecha de nacimiento no puede ser futura")
+    private LocalDate fechaNacimiento;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer edad;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
