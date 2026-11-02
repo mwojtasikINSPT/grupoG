@@ -1,6 +1,21 @@
 # 🚔 Sistema de Gestión Policial
 
-Backend de un sistema de gestión policial desarrollado con **Java 21, Spring Boot, Spring Data JPA, Hibernate y MySQL**. Expone una API REST para administrar entidades bancarias, personal, asaltos, casos judiciales y contratos de vigilancia.
+Aplicación web **full stack** de gestión policial desarrollada en **Java 21**, con **Spring Boot** en el backend, **Vaadin** en el frontend y **MySQL** como base de datos. Permite administrar entidades bancarias, personal, asaltos, casos judiciales y contratos de vigilancia mediante una interfaz web conectada a una API REST.
+
+## 🌐 Aplicación en línea
+
+🚀 **[Acceder al Sistema de Gestión Policial](https://grupog-front.onrender.com)**
+
+La aplicación está desplegada en la nube: **frontend en Render** y **backend y base de datos MySQL en DockHosting**. La instancia gratuita del frontend puede tardar unos segundos en iniciar tras un período de inactividad.
+
+### 🔑 Acceso de prueba
+
+Para explorar las funcionalidades del sistema en modo solo lectura, utilizá:
+
+- **Usuario:** `INV00001`
+- **Contraseña:** `prog2`
+
+Para más permisos, investigar 🔎 o consultar ☎️ a los desarroladores.
 
 ## 📌 Incluye
 
@@ -9,6 +24,7 @@ Backend de un sistema de gestión policial desarrollado con **Java 21, Spring Bo
 - 🔍 Asaltantes, bandas y asaltos.
 - ⚖️ Casos judiciales y sentencias de asaltantes.
 - 🛡️ Contratos de vigilancia.
+- 🖥️ Interfaz web interactiva desarrollada con Vaadin.
 - 🌐 API REST con operaciones CRUD, DTOs, Services y Repositories.
 - ♻️ Baja lógica y conservación del historial.
 - 🔑 Generación automática de códigos.
@@ -22,10 +38,14 @@ Backend de un sistema de gestión policial desarrollado con **Java 21, Spring Bo
 
 - ☕ Java 21
 - 🌱 Spring Boot 4.1.1
+- 🖥️ Vaadin (frontend web)
 - 🗂️ Spring Data JPA
 - 💤 Hibernate
 - 🔐 Spring Security
 - 🐬 MySQL
+- 🐳 Docker y Docker Compose
+- ☁️ Render y DockHosting (despliegue en la nube)
+- 🔄 GitHub y despliegue automático (CI/CD)
 - 📦 Maven
 - 🧰 Lombok
 - 🧪 JUnit y Mockito
@@ -33,9 +53,14 @@ Backend de un sistema de gestión policial desarrollado con **Java 21, Spring Bo
 
 ## 📁 Estructura
 
-El backend se encuentra en la carpeta `policia-backend/` y está organizado por capas: `controllers`, `DTOs`, `services`, `repositories`, `models`, `security`, `configs`, `validations`, `exceptions` y `utils`.
+El repositorio contiene dos aplicaciones independientes:
 
-## 🚀 Instalación y ejecución
+- **`policia-backend/`**: API REST Spring Boot, organizada por capas: `controllers`, `DTOs`, `services`, `repositories`, `models`, `security`, `configs`, `validations`, `exceptions` y `utils`.
+- **`policia-frontend/`**: aplicación web Java con Spring Boot y Vaadin que consume la API del backend.
+
+Ambas aplicaciones cuentan con configuración para ejecutarse en contenedores Docker.
+
+## 🚀 Instalación y ejecución local del backend
 
 **Requisitos:** JDK 21, Maven y un servidor MySQL en funcionamiento.
 
@@ -121,9 +146,9 @@ Los códigos públicos se generan automáticamente con un prefijo, por ejemplo `
 Algunas actualizaciones permiten enviar solo los campos que se desean modificar, conservando los restantes.
 
 
-## 🐳 Ejecución con Docker (opcional)
+## 🐳 Contenedores Docker
 
-El proyecto también puede ejecutarse utilizando **Docker Desktop y Docker Compose**, sin necesidad de instalar MySQL Server ni Maven localmente.
+El proyecto está **dockerizado**: el backend y MySQL pueden levantarse con **Docker Compose**, mientras que el frontend dispone de su propio **Dockerfile**. Esto permite ejecutar los componentes en contenedores sin instalar Maven ni MySQL Server en el equipo anfitrión.
 
 ### 🚀 Iniciar con Docker
 
@@ -170,12 +195,38 @@ docker compose down
 
 Los datos de MySQL se conservan mediante un volumen de Docker.
 
+### 🖥️ Frontend Vaadin
+
+El frontend se encuentra en `policia-frontend/` y consume los endpoints REST del backend. Su dirección de conexión se configura mediante la variable de entorno `BACKEND_URL` (por ejemplo, `http://localhost:8080/api` cuando el backend está disponible localmente).
+
+El frontend también puede construirse y ejecutarse mediante su `Dockerfile`, publicando el puerto `8081` y configurando `BACKEND_URL` según la ubicación del backend.
+
+## ☁️ Despliegue en producción
+
+| Componente | Plataforma | Dirección |
+| --- | --- | --- |
+| Frontend Vaadin | Render | [Abrir aplicación](https://grupog-front.onrender.com) |
+| Backend REST | DockHosting | [API pública](https://grupog.dockhosting.cloud/api) |
+| Base de datos MySQL | DockHosting | Conexión privada desde el backend |
+
+Los servicios están vinculados a GitHub y tienen habilitado el **despliegue automático al publicar cambios en la rama conectada**. La aplicación desplegada funciona de forma independiente de Docker Desktop y de los equipos de desarrollo.
+
 ### 💻 Ejecución sin Docker
 
-**Docker es completamente opcional.**
+**Docker es opcional para el desarrollo local**, aunque el proyecto incluye su configuración de contenedores.
 
 El proyecto puede seguir ejecutándose desde NetBeans u otro IDE, utilizando MySQL Server local y MySQL Workbench.
 
 Para ello, seguir las instrucciones de **Instalación y ejecución** y **Base de datos** de este README.
 
 El archivo `.env` está excluido de Git para proteger las credenciales. Se proporciona `.env.example` como referencia.
+
+## 📚 Autoría y referencias
+
+Este proyecto fue desarrollado como trabajo académico para la cátedra de **Programación II** del profesor Miguel Silva, Tecnicatura en Informática Aplicada del INSPT UTN.
+
+El diseño, la implementación, las decisiones técnicas y las pruebas fueron realizados por sus autores, utilizando como referencia el material bibliográfico proporcionado por la cátedra.
+
+Durante el desarrollo se utilizaron herramientas de **inteligencia artificial como apoyo** para consultas técnicas, resolución de errores y revisión de código.
+
+La responsabilidad sobre el funcionamiento y el contenido del proyecto corresponde a sus autoras.
