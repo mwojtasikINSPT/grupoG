@@ -718,8 +718,6 @@ private void mostrarErrorOperacion(
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_ENTIDAD_BANCARIA");
     }
 }

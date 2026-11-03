@@ -17,10 +17,15 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
+import com.vaadin.flow.component.html.Span;
+
 import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.BandaClient;
 import prog2.policia_frontend.components.PaginadorGrid;
@@ -106,26 +111,26 @@ public class AsaltantesView
                 .setAutoWidth(true)
                 .setFlexGrow(1);
 
-        tabla.addColumn(asaltante ->
-                asaltante.getBandaCodigo() != null
-                        ? asaltante.getBandaCodigo()
-                        : "Sin banda"
+        tabla.addColumn(asaltante
+                -> asaltante.getBandaCodigo() != null
+                ? asaltante.getBandaCodigo()
+                : "Sin banda"
         ).setHeader("Banda")
                 .setAutoWidth(true);
 
-        tabla.addColumn(asaltante ->
-                Boolean.TRUE.equals(
+        tabla.addColumn(asaltante
+                -> Boolean.TRUE.equals(
                         asaltante.getActivo()
                 )
-                        ? "Activo"
-                        : "Inactivo"
+                ? "Activo"
+                : "Inactivo"
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
-        tabla.addColumn(asaltante ->
-                asaltante.getMotivoBaja() != null
-                        ? asaltante.getMotivoBaja()
-                        : "-"
+        tabla.addColumn(asaltante
+                -> asaltante.getMotivoBaja() != null
+                ? asaltante.getMotivoBaja()
+                : "-"
         ).setHeader("Motivo de baja")
                 .setAutoWidth(true);
 
@@ -134,6 +139,11 @@ public class AsaltantesView
             Button botonVerCasos = new Button(
                     "Ver casos",
                     evento -> verCasos(asaltante)
+            );
+
+            botonVerCasos.setVisible(
+                    sesionUsuario.tieneRol("ADMINISTRADOR")
+                    || sesionUsuario.tienePermiso("LECTURA_CASO_JUDICIAL")
             );
 
             if (!puedeEscribir()) {
@@ -162,12 +172,12 @@ public class AsaltantesView
 
                 botonModificar.addClickListener(
                         evento
-                                -> abrirFormulario(asaltante)
+                        -> abrirFormulario(asaltante)
                 );
 
                 botonBaja.addClickListener(
                         evento
-                                -> abrirConfirmacionBaja(asaltante)
+                        -> abrirConfirmacionBaja(asaltante)
                 );
 
             } else {
@@ -190,6 +200,16 @@ public class AsaltantesView
         }).setHeader("Acciones")
                 .setAutoWidth(true);
 
+        if (sesionUsuario.tieneRol("ADMINISTRADOR")
+                || sesionUsuario.tienePermiso("LECTURA_BANDA")) {
+
+            tabla.addComponentColumn(asaltante -> {
+                Button boton = new Button("Ver banda", evento -> verBanda(asaltante));
+                boton.setEnabled(asaltante.getBandaCodigo() != null
+                        && !asaltante.getBandaCodigo().isBlank());
+                return boton;
+            }).setAutoWidth(true);
+        }
         tabla.setSizeFull();
         tabla.addThemeVariants(
                 GridVariant.LUMO_COMPACT
@@ -309,18 +329,18 @@ public class AsaltantesView
 
             campoNombre.setValue(
                     asaltante.getNombre() != null
-                            ? asaltante.getNombre()
-                            : ""
+                    ? asaltante.getNombre()
+                    : ""
             );
 
             BandaDTO bandaActual
                     = bandasActivas.stream()
                             .filter(banda
                                     -> banda.getCodigo() != null
-                                    && banda.getCodigo()
-                                            .equalsIgnoreCase(
-                                                    asaltante.getBandaCodigo()
-                                            )
+                            && banda.getCodigo()
+                                    .equalsIgnoreCase(
+                                            asaltante.getBandaCodigo()
+                                    )
                             )
                             .findFirst()
                             .orElse(null);
@@ -449,7 +469,7 @@ public class AsaltantesView
 
         dialogo.setHeaderTitle(
                 "Baja definitiva de "
-                        + asaltante.getCodigo()
+                + asaltante.getCodigo()
         );
 
         Paragraph mensaje = new Paragraph(
@@ -510,17 +530,18 @@ public class AsaltantesView
 
         return switch (filtroEstado.getValue()) {
 
-            case "Activos" -> true;
-            case "Inactivos" -> false;
-            default -> null;
+            case "Activos" ->
+                true;
+            case "Inactivos" ->
+                false;
+            default ->
+                null;
         };
     }
 
     private boolean puedeEscribir() {
 
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_ASALTANTE");
     }
 
     private void cargarAsaltantes() {
@@ -562,5 +583,45 @@ public class AsaltantesView
             BeforeEnterEvent evento) {
 
         cargarAsaltantes();
+    }
+
+    private void verBanda(AsaltanteDTO asaltante) {
+        try {
+            for (BandaDTO banda : bandaClient.listar(null)) {
+                if (asaltante.getBandaCodigo().equalsIgnoreCase(banda.getCodigo())) {
+                    Dialog dialogo = new Dialog();
+                    dialogo.setHeaderTitle("Banda " + banda.getCodigo());
+
+                    String estado = Boolean.TRUE.equals(banda.getActivo()) ? "Activa" : "Inactiva";
+                    int miembros = banda.getCantMiembros() != null ? banda.getCantMiembros() : 0;
+
+                    VerticalLayout contenido = new VerticalLayout();
+                    contenido.add(new Span("Estado: " + estado));
+                    contenido.add(new Span("Cantidad de miembros: " + miembros));
+                    contenido.add(new Span("Integrantes activos:"));
+
+                    List<AsaltanteDTO> integrantes = bandaClient.listarIntegrantes(banda.getCodigo());
+
+                    if (integrantes.isEmpty()) {
+                        contenido.add(new Span("Sin integrantes activos."));
+                    } else {
+                        for (AsaltanteDTO integrante : integrantes) {
+                            contenido.add(new Span(integrante.getNombre() + " (" + integrante.getCodigo() + ")"));
+                        }
+                    }
+
+                    contenido.add(new Button("Cerrar", evento -> dialogo.close()));
+                    dialogo.add(contenido);
+                    dialogo.open();
+                    return;
+                }
+            }
+
+            NotificacionUtils.mostrarInformacion("No se encontró la banda.");
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pudo consultar la banda.");
+        }
     }
 }

@@ -150,8 +150,8 @@ public class RolClient {
             );
         }
 
-        if (datos.getPermisos() == null
-                || datos.getPermisos().isEmpty()) {
+        if (datos.getPermisosPorEntidad() == null
+                || datos.getPermisosPorEntidad().isEmpty()) {
             throw new IllegalArgumentException(
                     "Debe seleccionar al menos un permiso."
             );

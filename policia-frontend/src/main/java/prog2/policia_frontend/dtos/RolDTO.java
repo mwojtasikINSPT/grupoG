@@ -1,5 +1,6 @@
 
 package prog2.policia_frontend.dtos;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.HashSet;
@@ -17,7 +18,7 @@ public class RolDTO {
     private String nombre;
     private String prefijo;
     private String descripcion;
-    private Set<String> permisos = new HashSet<>();
+    private Set<RolPermisoEntidadDTO> permisosPorEntidad = new HashSet<>();
     private Boolean activo;
 
     public RolDTO() {
@@ -63,12 +64,12 @@ public class RolDTO {
         this.descripcion = descripcion;
     }
 
-    public Set<String> getPermisos() {
-        return permisos;
+    public Set<RolPermisoEntidadDTO> getPermisosPorEntidad() {
+        return permisosPorEntidad;
     }
 
-    public void setPermisos(Set<String> permisos) {
-        this.permisos = permisos;
+    public void setPermisosPorEntidad(Set<RolPermisoEntidadDTO> permisosPorEntidad) {
+        this.permisosPorEntidad = permisosPorEntidad;
     }
 
     public Boolean getActivo() {
@@ -78,4 +79,17 @@ public class RolDTO {
     public void setActivo(Boolean activo) {
         this.activo = activo;
     }
+
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaModificacion;
+    private String creadoPor;
+    private String modificadoPor;
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime value) { this.fechaCreacion = value; }
+    public LocalDateTime getFechaModificacion() { return fechaModificacion; }
+    public void setFechaModificacion(LocalDateTime value) { this.fechaModificacion = value; }
+    public String getCreadoPor() { return creadoPor; }
+    public void setCreadoPor(String value) { this.creadoPor = value; }
+    public String getModificadoPor() { return modificadoPor; }
+    public void setModificadoPor(String value) { this.modificadoPor = value; }
 }

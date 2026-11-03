@@ -55,6 +55,7 @@ public class MiPerfilView extends VerticalLayout
     private final TextField campoNombre = new TextField("Nombre");
     private final TextField campoRol = new TextField("Rol");
     private final TextField campoEstado = new TextField("Estado");
+    private final TextField campoNacimiento = new TextField("Fecha de nacimiento");
     private final TextField campoAlta = new TextField("Fecha de alta");
 
     public MiPerfilView(
@@ -140,6 +141,7 @@ public class MiPerfilView extends VerticalLayout
         campoNombre.setReadOnly(true);
         campoRol.setReadOnly(true);
         campoEstado.setReadOnly(true);
+        campoNacimiento.setReadOnly(true);
         campoAlta.setReadOnly(true);
 
         FormLayout datos = new FormLayout(
@@ -147,6 +149,7 @@ public class MiPerfilView extends VerticalLayout
                 campoNombre,
                 campoRol,
                 campoEstado,
+                campoNacimiento,
                 campoAlta
         );
         datos.setResponsiveSteps(
@@ -358,6 +361,10 @@ public class MiPerfilView extends VerticalLayout
         campoNombre.setValue(valorOVacio(usuario.getNombre()));
         campoRol.setValue(valorOVacio(usuario.getRol()));
         campoEstado.setValue(estado);
+        campoNacimiento.setValue(usuario.getFechaNacimiento() == null
+                ? "No informada"
+                : usuario.getFechaNacimiento().format(
+                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
         /* La fecha de alta solo se muestra si el backend la envió. */
         campoAlta.setVisible(usuario.getFechaCreacion() != null);

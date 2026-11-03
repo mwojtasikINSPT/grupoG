@@ -161,7 +161,7 @@ public class CasosJudicialesView extends VerticalLayout
             String estado = obtenerEstado(caso);
             Button botonModificar = new Button(
                     "Modificar", evento -> abrirFormulario(caso));
-            botonModificar.setEnabled(activo);
+            botonModificar.setVisible(puedeUsarFormulario());
 
             Button botonEstado = new Button();
 
@@ -193,7 +193,7 @@ public class CasosJudicialesView extends VerticalLayout
         H2 titulo = new H2("Casos Judiciales");
         Button botonNuevo = new Button(
                 "Nuevo caso", evento -> abrirFormulario(null));
-        botonNuevo.setVisible(puedeEscribir());
+        botonNuevo.setVisible(puedeUsarFormulario());
 
         Button botonBuscar = new Button("Buscar", evento -> cargarCasos());
         Button botonLimpiar = new Button("Limpiar", evento -> {
@@ -211,10 +211,10 @@ public class CasosJudicialesView extends VerticalLayout
 
         setSizeFull();
         add(
-                titulo, 
-                botonVolver, 
-                botonNuevo, 
-                filtros, 
+                titulo,
+                botonVolver,
+                botonNuevo,
+                filtros,
                 tabla,
                 paginadorCasos.getControles()
         );
@@ -323,6 +323,27 @@ public class CasosJudicialesView extends VerticalLayout
                 = new Grid<>(SentenciaAsaltanteDTO.class, false);
         tablaSentencias.addColumn(SentenciaAsaltanteDTO::getAsaltanteCodigo)
                 .setHeader("Asaltante").setAutoWidth(true);
+        if (sesionUsuario.tieneRol("ADMINISTRADOR")
+                || sesionUsuario.tienePermiso("LECTURA_ASALTANTE")) {
+
+            List<AsaltanteDTO> asaltantes = new java.util.ArrayList<>();
+
+            try {
+                asaltantes.addAll(asaltanteClient.listar(null, null));
+            } catch (RestClientResponseException | ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar los nombres de los asaltantes.");
+            }
+
+            tablaSentencias.addColumn(sentencia -> {
+                for (AsaltanteDTO asaltante : asaltantes) {
+                    if (asaltante.getCodigo() != null
+                            && asaltante.getCodigo().equalsIgnoreCase(sentencia.getAsaltanteCodigo())) {
+                        return asaltante.getNombre();
+                    }
+                }
+                return "No disponible";
+            }).setHeader("Nombre").setAutoWidth(true);
+        }
         tablaSentencias.addColumn(sentencia
                 -> Boolean.TRUE.equals(sentencia.getSentenciado())
                 ? "Sentenciado" : "Pendiente")
@@ -575,32 +596,60 @@ public class CasosJudicialesView extends VerticalLayout
     }
 
     private void cargarOpcionesFiltros() {
-        try {
-            juecesDisponibles = juezClient.listar(null, null);
-            asaltantesDisponibles = asaltanteClient.listar(null, null);
-            filtroJuez.setItems(juecesDisponibles);
-            filtroAsaltante.setItems(asaltantesDisponibles);
-        } catch (RestClientResponseException excepcion) {
-            mostrarErrorOperacion(excepcion);
-        } catch (ResourceAccessException excepcion) {
-            NotificacionUtils.mostrarInformacion("No se pudieron cargar jueces y asaltantes.");
+        List<String> opciones = new java.util.ArrayList<>();
+        opciones.add("Todos");
+
+        boolean administrador = sesionUsuario.tieneRol("ADMINISTRADOR");
+
+        if (administrador || sesionUsuario.tienePermiso("LECTURA_JUEZ")) {
+            try {
+                juecesDisponibles = juezClient.listar(null, null);
+                filtroJuez.setItems(juecesDisponibles);
+                opciones.add("Por juez");
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar los jueces.");
+            }
         }
+
+        if (administrador || sesionUsuario.tienePermiso("LECTURA_ASALTANTE")) {
+            try {
+                asaltantesDisponibles = asaltanteClient.listar(null, null);
+                filtroAsaltante.setItems(asaltantesDisponibles);
+                opciones.add("Por asaltante");
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar los asaltantes.");
+            }
+        }
+
+        filtroRelacion.setItems(opciones);
+        filtroRelacion.setValue("Todos");
     }
 
     private Boolean obtenerEstadoSeleccionado() {
         return switch (filtroEstado.getValue()) {
-            case "En trámite", "Reabiertos por apelación" -> true;
-            case "Cerrados" -> false;
-            default -> null;
+            case "En trámite", "Reabiertos por apelación" ->
+                true;
+            case "Cerrados" ->
+                false;
+            default ->
+                null;
         };
     }
 
     private String obtenerEstadoExactoSeleccionado() {
         return switch (filtroEstado.getValue()) {
-            case "En trámite" -> "EN_TRAMITE";
-            case "Cerrados" -> "CERRADO";
-            case "Reabiertos por apelación" -> "REABIERTO_POR_APELACION";
-            default -> null;
+            case "En trámite" ->
+                "EN_TRAMITE";
+            case "Cerrados" ->
+                "CERRADO";
+            case "Reabiertos por apelación" ->
+                "REABIERTO_POR_APELACION";
+            default ->
+                null;
         };
     }
 
@@ -616,10 +665,14 @@ public class CasosJudicialesView extends VerticalLayout
 
     private String obtenerEstadoVisible(CasoJudicialDTO caso) {
         return switch (obtenerEstado(caso)) {
-            case "EN_TRAMITE" -> "En trámite";
-            case "REABIERTO_POR_APELACION" -> "Reabierto por apelación";
-            case "CERRADO" -> "Cerrado";
-            default -> obtenerEstado(caso);
+            case "EN_TRAMITE" ->
+                "En trámite";
+            case "REABIERTO_POR_APELACION" ->
+                "Reabierto por apelación";
+            case "CERRADO" ->
+                "Cerrado";
+            default ->
+                obtenerEstado(caso);
         };
     }
 
@@ -629,7 +682,7 @@ public class CasosJudicialesView extends VerticalLayout
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(PermisosApp.ESCRITURA);
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_CASO_JUDICIAL");
     }
 
     @Override
@@ -693,5 +746,12 @@ public class CasosJudicialesView extends VerticalLayout
         return valores == null || valores.isEmpty()
                 ? null
                 : valores.get(0);
+    }
+
+    private boolean puedeUsarFormulario() {
+        return sesionUsuario.tieneRol("ADMINISTRADOR")
+                || (puedeEscribir()
+                && sesionUsuario.tienePermiso("LECTURA_ASALTO")
+                && sesionUsuario.tienePermiso("LECTURA_JUEZ"));
     }
 }
