@@ -50,7 +50,7 @@ public abstract class Usuario extends EntidadAuditable {
     @Enumerated(EnumType.STRING)
     private MotivoBajaPersona motivoBaja;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate fechaNacimiento;
 
     public int getEdad() {
