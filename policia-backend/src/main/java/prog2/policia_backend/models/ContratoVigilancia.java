@@ -1,6 +1,5 @@
 package prog2.policia_backend.models;
 
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -37,7 +36,7 @@ public class ContratoVigilancia extends EntidadAuditable {
     private String codigo;
 
     @ManyToOne
-    private Vigilante vigilante;
+    private Usuario vigilante;
 
     @ManyToOne
     private Sucursal sucursal;

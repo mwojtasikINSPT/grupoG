@@ -1,7 +1,6 @@
 package prog2.policia_backend.integration;
 
 import java.time.LocalDate;
-import java.util.EnumSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,15 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import prog2.policia_backend.models.ContratoVigilancia;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.models.MotivoBajaContrato;
-import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Sucursal;
-import prog2.policia_backend.models.Vigilante;
+import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
-import prog2.policia_backend.repositories.VigilanteRepository;
+import prog2.policia_backend.repositories.UsuarioRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -50,7 +48,7 @@ class ContratoVigilanciaIntegrationTest {
     private ContratoVigilanciaRepository contratoRepository;
 
     @Autowired
-    private VigilanteRepository vigilanteRepository;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private SucursalRepository sucursalRepository;
@@ -62,7 +60,7 @@ class ContratoVigilanciaIntegrationTest {
     private RolRepository rolRepository;
 
     private ContratoVigilancia contrato;
-    private Vigilante vigilante;
+    private Usuario vigilante;
     private Sucursal sucursal;
 
     @BeforeEach
@@ -72,18 +70,17 @@ class ContratoVigilanciaIntegrationTest {
         rol.setNombre("VIGILANTE");
         rol.setPrefijo("VIG");
         rol.setDescripcion("Rol de vigilancia");
-        rol.setPermisos(EnumSet.of(Permiso.LECTURA_DATOS_PROPIOS));
         rol.setActivo(true);
         rol = rolRepository.saveAndFlush(rol);
 
-        vigilante = new Vigilante();
+        vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("clave123");
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
         vigilante.setRol(rol);
         vigilante.setActivo(true);
-        vigilante = vigilanteRepository.saveAndFlush(vigilante);
+        vigilante = usuarioRepository.saveAndFlush(vigilante);
 
         EntidadBancaria entidad = new EntidadBancaria();
         entidad.setCodigo("EB00001");
@@ -122,7 +119,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosCorrectamente() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia"))
                 .andExpect(status().isOk())
@@ -131,7 +128,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void buscarContratoPorCodigo() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia/CDV00001"))
                 .andExpect(status().isOk())
@@ -140,7 +137,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosActivos() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia")
                 .param("activo", "true"))
@@ -149,7 +146,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void buscarPorNombreVigilante() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia")
                 .param("vigilante", "juan"))
@@ -158,7 +155,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosPorVigilante() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia/vigilante/VIG00001"))
                 .andExpect(status().isOk())
@@ -166,7 +163,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosPorSucursal() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia/sucursal/SUC00001"))
                 .andExpect(status().isOk())
@@ -174,7 +171,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void crearContratoCorrectamente() throws Exception {
         String fecha = LocalDate.now().plusDays(20).toString();
         String json = crearJson(fecha, "VIG00001");
@@ -191,7 +188,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void impedirContratoDuplicado() throws Exception {
         String fecha = contrato.getFecha().toString();
         String json = crearJson(fecha, "VIG00001");
@@ -205,7 +202,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void impedirContratoConFechaPasada() throws Exception {
         String fecha = LocalDate.now().minusDays(5).toString();
         String json = crearJson(fecha, "VIG00001");
@@ -219,7 +216,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void actualizarContratoCorrectamente() throws Exception {
         String json = """
                 {
@@ -240,7 +237,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void darDeBajaContratoCorrectamente() throws Exception {
         mockMvc.perform(patch("/api/contratos-vigilancia/CDV00001/baja"))
                 .andExpect(status().isNoContent());
@@ -254,7 +251,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void impedirBajaDeContratoInactivo() throws Exception {
         contrato.setActivo(false);
         contratoRepository.saveAndFlush(contrato);
@@ -264,10 +261,10 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void impedirContratoConVigilanteInactivo() throws Exception {
         vigilante.setActivo(false);
-        vigilanteRepository.saveAndFlush(vigilante);
+        usuarioRepository.saveAndFlush(vigilante);
 
         String json = crearJson(
                 LocalDate.now().plusDays(20).toString(),
@@ -282,7 +279,7 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = crearJson(
                 LocalDate.now().plusDays(20).toString(),
@@ -297,10 +294,10 @@ class ContratoVigilanciaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
-    void impedirLecturaSinPermisoLectura() throws Exception {
+    @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
+    void escrituraTambienPuedeConsultarContratos() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

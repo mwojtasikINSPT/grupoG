@@ -16,7 +16,7 @@ import prog2.policia_backend.models.ContratoVigilancia;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Sucursal;
-import prog2.policia_backend.models.Vigilante;
+import prog2.policia_backend.models.Usuario;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +34,7 @@ class ContratoVigilanciaRepositoryTest {
     private ContratoVigilanciaRepository contratoRepository;
 
     @Autowired
-    private VigilanteRepository vigilanteRepository;
+    private UsuarioRepository vigilanteRepository;
 
     @Autowired
     private RolRepository rolRepository;
@@ -48,7 +48,7 @@ class ContratoVigilanciaRepositoryTest {
     @Autowired
     private EntityManager entityManager;
 
-    private Vigilante vigilante;
+    private Usuario vigilante;
     private Sucursal sucursal;
     private ContratoVigilancia contrato;
 
@@ -62,7 +62,7 @@ class ContratoVigilanciaRepositoryTest {
         rol.setActivo(true);
         rol = rolRepository.saveAndFlush(rol);
 
-        vigilante = new Vigilante();
+        vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("password123");

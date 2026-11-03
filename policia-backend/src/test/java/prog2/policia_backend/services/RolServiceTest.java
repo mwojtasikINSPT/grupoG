@@ -10,8 +10,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import prog2.policia_backend.DTOs.RolDTO;
+import prog2.policia_backend.DTOs.RolPermisoEntidadDTO;
 import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.Permiso;
+import prog2.policia_backend.models.Entidad;
+import prog2.policia_backend.models.RolPermisoEntidad;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
@@ -33,10 +36,25 @@ class RolServiceTest {
         rolService = new RolService(rolRepository, usuarioRepository);
     }
 
-    private Set<Permiso> crearPermisos() {
-        Set<Permiso> permisos = new HashSet<>();
-        permisos.add(Permiso.LECTURA);
-        permisos.add(Permiso.ESCRITURA);
+    private Set<RolPermisoEntidad> crearPermisos(Rol rol) {
+        Set<RolPermisoEntidad> permisos = new HashSet<>();
+        RolPermisoEntidad lectura = new RolPermisoEntidad();
+        lectura.setRol(rol);
+        lectura.setPermiso(Permiso.LECTURA);
+        lectura.setEntidad(Entidad.USUARIO);
+        permisos.add(lectura);
+        RolPermisoEntidad escritura = new RolPermisoEntidad();
+        escritura.setRol(rol);
+        escritura.setPermiso(Permiso.ESCRITURA);
+        escritura.setEntidad(Entidad.USUARIO);
+        permisos.add(escritura);
+        return permisos;
+    }
+
+    private Set<RolPermisoEntidadDTO> crearPermisosDTO() {
+        Set<RolPermisoEntidadDTO> permisos = new HashSet<>();
+        permisos.add(new RolPermisoEntidadDTO(Permiso.LECTURA, Entidad.USUARIO));
+        permisos.add(new RolPermisoEntidadDTO(Permiso.ESCRITURA, Entidad.USUARIO));
         return permisos;
     }
 
@@ -45,10 +63,10 @@ class RolServiceTest {
 
         rol.setId(1L);
         rol.setCodigo("ROL00001");
-        rol.setNombre("ADMINISTRADOR");
-        rol.setPrefijo("ADM");
-        rol.setDescripcion("Administrador del sistema");
-        rol.setPermisos(crearPermisos());
+        rol.setNombre("SUPERVISOR");
+        rol.setPrefijo("SUP");
+        rol.setDescripcion("Supervisor del sistema");
+        rol.setPermisosPorEntidad(crearPermisos(rol));
         rol.setActivo(true);
 
         return rol;
@@ -60,7 +78,7 @@ class RolServiceTest {
         dto.setNombre("OPERADOR");
         dto.setPrefijo("OPE");
         dto.setDescripcion("Rol de operador");
-        dto.setPermisos(crearPermisos());
+        dto.setPermisosPorEntidad(crearPermisosDTO());
 
         return dto;
     }
@@ -94,7 +112,7 @@ class RolServiceTest {
 
         assertEquals(1, resultado.size());
         assertEquals("ROL00001", resultado.get(0).getCodigo());
-        assertEquals("ADMINISTRADOR", resultado.get(0).getNombre());
+        assertEquals("SUPERVISOR", resultado.get(0).getNombre());
     }
 
     @Test
@@ -130,7 +148,7 @@ class RolServiceTest {
         RolDTO resultado = rolService.buscarPorCodigo(" rol00001 ");
 
         assertEquals("ROL00001", resultado.getCodigo());
-        assertEquals("ADMINISTRADOR", resultado.getNombre());
+        assertEquals("SUPERVISOR", resultado.getNombre());
 
         verify(rolRepository).findByCodigo("ROL00001");
     }
@@ -162,7 +180,8 @@ class RolServiceTest {
         assertEquals("OPERADOR", resultado.getNombre());
         assertEquals("OPE", resultado.getPrefijo());
         assertTrue(resultado.getActivo());
-        assertEquals(crearPermisos(), resultado.getPermisos());
+        assertNotNull(resultado.getPermisosPorEntidad());
+        assertEquals(2, resultado.getPermisosPorEntidad().size());
 
         verify(rolRepository, times(2)).save(any(Rol.class));
     }
@@ -282,15 +301,19 @@ class RolServiceTest {
         when(rolRepository.save(any(Rol.class)))
                 .thenReturn(rol);
 
-        Set<Permiso> nuevosPermisos = new HashSet<>();
-        nuevosPermisos.add(Permiso.LECTURA_DATOS_PROPIOS);
+        Set<RolPermisoEntidadDTO> nuevosPermisos = new HashSet<>();
+        nuevosPermisos.add(new RolPermisoEntidadDTO(Permiso.LECTURA_DATOS_PROPIOS, Entidad.USUARIO));
 
         RolDTO dto = new RolDTO();
-        dto.setPermisos(nuevosPermisos);
+        dto.setPermisosPorEntidad(nuevosPermisos);
 
         RolDTO resultado = rolService.actualizar("ROL00001", dto);
 
-        assertEquals(nuevosPermisos, resultado.getPermisos());
+        assertNotNull(resultado.getPermisosPorEntidad());
+        assertEquals(1, resultado.getPermisosPorEntidad().size());
+        RolPermisoEntidadDTO permiso = resultado.getPermisosPorEntidad().iterator().next();
+        assertEquals(Permiso.LECTURA_DATOS_PROPIOS, permiso.getPermiso());
+        assertEquals(Entidad.USUARIO, permiso.getEntidad());
     }
 
     @Test
@@ -327,7 +350,7 @@ class RolServiceTest {
                 .thenReturn(rol);
 
         RolDTO dto = new RolDTO();
-        dto.setNombre("ADMINISTRADOR");
+        dto.setNombre("SUPERVISOR");
 
         rolService.actualizar("ROL00001", dto);
 

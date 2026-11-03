@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.integration;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void listarAsaltantesCorrectamente() throws Exception {
         mockMvc.perform(get("/api/asaltantes"))
                 .andExpect(status().isOk())
@@ -71,7 +70,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void buscarAsaltantePorCodigo() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001"))
                 .andExpect(status().isOk())
@@ -80,14 +79,14 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void buscarAsaltanteInexistente() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void filtrarAsaltantesActivos() throws Exception {
         mockMvc.perform(get("/api/asaltantes")
                 .param("activo", "true"))
@@ -96,7 +95,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void filtrarAsaltantesInactivos() throws Exception {
         mockMvc.perform(get("/api/asaltantes")
                 .param("activo", "false"))
@@ -105,7 +104,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void buscarAsaltantePorNombre() throws Exception {
         mockMvc.perform(get("/api/asaltantes")
                 .param("nombre", "juan"))
@@ -114,7 +113,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void buscarAsaltantePorNombreInexistente() throws Exception {
         mockMvc.perform(get("/api/asaltantes")
                 .param("nombre", "Carlos"))
@@ -123,7 +122,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void listarAsaltosSinAsaltos() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001/asaltos"))
                 .andExpect(status().isOk())
@@ -131,7 +130,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void listarCasosJudicialesSinCasos() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001/casos-judiciales"))
                 .andExpect(status().isOk())
@@ -139,7 +138,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void crearAsaltanteCorrectamente() throws Exception {
         String json = """
                 {
@@ -161,7 +160,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void crearAsaltanteSinBanda() throws Exception {
         String json = """
                 {
@@ -180,7 +179,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void impedirAsaltanteSinNombre() throws Exception {
         String json = """
                 {
@@ -198,7 +197,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void impedirAsaltanteConBandaInactiva() throws Exception {
         banda.setActivo(false);
         bandaRepository.saveAndFlush(banda);
@@ -219,7 +218,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void actualizarAsaltanteCorrectamente() throws Exception {
         String json = """
                 {
@@ -233,14 +232,14 @@ class AsaltanteIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Pedro Lopez"));
 
-        Asaltante actualizado =
-                asaltanteRepository.findByCodigo("ASS00001").get();
+        Asaltante actualizado
+                = asaltanteRepository.findByCodigo("ASS00001").get();
 
         assertEquals("Pedro Lopez", actualizado.getNombre());
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void quitarAsaltanteDeBanda() throws Exception {
         String json = """
                 {
@@ -254,14 +253,14 @@ class AsaltanteIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bandaCodigo").doesNotExist());
 
-        Asaltante actualizado =
-                asaltanteRepository.findByCodigo("ASS00001").get();
+        Asaltante actualizado
+                = asaltanteRepository.findByCodigo("ASS00001").get();
 
         assertNull(actualizado.getBanda());
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void darDeBajaAsaltanteCorrectamente() throws Exception {
         String json = """
                 {
@@ -274,8 +273,8 @@ class AsaltanteIntegrationTest {
                 .content(json))
                 .andExpect(status().isNoContent());
 
-        Asaltante resultado =
-                asaltanteRepository.findByCodigo("ASS00001").get();
+        Asaltante resultado
+                = asaltanteRepository.findByCodigo("ASS00001").get();
 
         assertFalse(resultado.isActivo());
         assertEquals(MotivoBajaPersona.FALLECIMIENTO,
@@ -283,7 +282,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void impedirBajaSinMotivo() throws Exception {
         mockMvc.perform(patch("/api/asaltantes/ASS00001/baja")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -295,7 +294,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void impedirBajaConMotivoInvalido() throws Exception {
         String json = """
                 {
@@ -313,7 +312,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTANTE")
     void impedirModificarAsaltanteInactivo() throws Exception {
         asaltante.setActivo(false);
         asaltante.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
@@ -332,7 +331,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTANTE")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = """
                 {

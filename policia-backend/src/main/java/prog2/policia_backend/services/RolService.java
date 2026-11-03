@@ -1,8 +1,10 @@
 package prog2.policia_backend.services;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -10,12 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.RolDTO;
+import prog2.policia_backend.DTOs.RolPermisoEntidadDTO;
 import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.RolExistenteException;
 import prog2.policia_backend.exceptions.RolYaActivoException;
 import prog2.policia_backend.exceptions.RolYaInactivoException;
 import prog2.policia_backend.models.Rol;
+import prog2.policia_backend.models.RolPermisoEntidad;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
@@ -52,7 +56,6 @@ public class RolService {
 
     @Transactional
     public RolDTO guardar(RolDTO dto) {
-
         String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());
 
         if (rolRepository.existsByNombre(nombreNormalizado)) {
@@ -73,6 +76,7 @@ public class RolService {
         return convertirADTO(rol);
     }
 
+    @Transactional
     public RolDTO actualizar(String codigo, RolDTO dto) {
         Rol rol = obtenerRol(codigo);
 
@@ -86,14 +90,17 @@ public class RolService {
                 rol.setNombre(nombreNormalizado);
             }
         }
+
         if (dto.getDescripcion() != null) {
             rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
         }
+
         if (dto.getPrefijo() != null) {
             rol.setPrefijo(NormalizadorTexto.normalizarConstante(dto.getPrefijo()));
         }
-        if (dto.getPermisos() != null) {
-            rol.setPermisos(dto.getPermisos());
+
+        if (dto.getPermisosPorEntidad() != null) {
+            asignarPermisos(rol, dto.getPermisosPorEntidad());
         }
 
         return convertirADTO(rolRepository.save(rol));
@@ -129,12 +136,23 @@ public class RolService {
     // --- Métodos de Mapeo ---
     private RolDTO convertirADTO(Rol rol) {
         RolDTO dto = new RolDTO();
+
         dto.setId(rol.getId());
         dto.setCodigo(rol.getCodigo());
         dto.setNombre(rol.getNombre());
         dto.setDescripcion(rol.getDescripcion());
         dto.setPrefijo(rol.getPrefijo());
-        dto.setPermisos(rol.getPermisos());
+
+        Set<RolPermisoEntidadDTO> permisos = new HashSet<>();
+
+        for (RolPermisoEntidad relacion : rol.getPermisosPorEntidad()) {
+            RolPermisoEntidadDTO permisoDTO = new RolPermisoEntidadDTO();
+            permisoDTO.setPermiso(relacion.getPermiso());
+            permisoDTO.setEntidad(relacion.getEntidad());
+            permisos.add(permisoDTO);
+        }
+
+        dto.setPermisosPorEntidad(permisos);
         dto.setActivo(rol.getActivo());
         dto.setFechaCreacion(rol.getFechaCreacion());
         dto.setFechaModificacion(rol.getFechaModificacion());
@@ -151,7 +169,8 @@ public class RolService {
         rol.setCodigo(NormalizadorTexto.normalizarConstante(dto.getCodigo()));
         rol.setNombre(NormalizadorTexto.normalizarConstante(dto.getNombre()));
         rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
-        rol.setPermisos(dto.getPermisos());
+
+        asignarPermisos(rol, dto.getPermisosPorEntidad());
 
         return rol;
     }
@@ -167,5 +186,35 @@ public class RolService {
         }
 
         return resultado.get();
+    }
+
+    private void asignarPermisos(Rol rol, Set<RolPermisoEntidadDTO> permisosDTO) {
+        if (permisosDTO == null || permisosDTO.isEmpty()) {
+            throw new OperacionNoPermitidaException("El rol debe tener al menos un permiso");
+        }
+
+        Set<String> combinaciones = new HashSet<>();
+
+        for (RolPermisoEntidadDTO dto : permisosDTO) {
+            if (dto == null || dto.getPermiso() == null || dto.getEntidad() == null) {
+                throw new OperacionNoPermitidaException("El permiso y la entidad son obligatorios");
+            }
+
+            String clave = dto.getPermiso().name() + ":" + dto.getEntidad().name();
+
+            if (!combinaciones.add(clave)) {
+                throw new OperacionNoPermitidaException("No se permiten permisos duplicados sobre una entidad");
+            }
+        }
+
+        rol.getPermisosPorEntidad().clear();
+
+        for (RolPermisoEntidadDTO dto : permisosDTO) {
+            RolPermisoEntidad relacion = new RolPermisoEntidad();
+            relacion.setRol(rol);
+            relacion.setPermiso(dto.getPermiso());
+            relacion.setEntidad(dto.getEntidad());
+            rol.getPermisosPorEntidad().add(relacion);
+        }
     }
 }

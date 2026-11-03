@@ -134,7 +134,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosJudicialesVacios() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales"))
                 .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosJudicialesCorrectamente() throws Exception {
         crearCaso();
 
@@ -154,7 +154,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void buscarCasoPorCodigo() throws Exception {
         crearCaso();
 
@@ -166,14 +166,14 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void buscarCasoInexistente() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/CJU99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void filtrarCasosActivos() throws Exception {
         crearCaso();
 
@@ -185,7 +185,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void filtrarCasosInactivos() throws Exception {
         crearCaso();
 
@@ -196,7 +196,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosPorJuez() throws Exception {
         crearCaso();
 
@@ -207,7 +207,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosPorJuezSinCasos() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/juez/JUE00001"))
                 .andExpect(status().isOk())
@@ -215,21 +215,21 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void buscarCasosDeJuezInexistente() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/juez/JUE99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void buscarCasosDeAsaltanteInexistente() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/asaltante/ASS99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosDeAsaltanteSinCasos() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/asaltante/ASS00001"))
                 .andExpect(status().isOk())
@@ -237,7 +237,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void crearCasoJudicialCorrectamente() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -254,7 +254,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoSinAsalto() throws Exception {
         String json = """
                 {
@@ -271,7 +271,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoSinJuez() throws Exception {
         String json = """
                 {
@@ -288,7 +288,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoConAsaltoInexistente() throws Exception {
         String json = """
                 {
@@ -304,7 +304,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoConJuezInexistente() throws Exception {
         String json = """
                 {
@@ -320,7 +320,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoConJuezInactivo() throws Exception {
         juez.setActivo(false);
         juezRepository.saveAndFlush(juez);
@@ -334,7 +334,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoConAsaltanteInactivo() throws Exception {
         asaltante.setActivo(false);
         asaltanteRepository.saveAndFlush(asaltante);
@@ -348,7 +348,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCasoSinAsaltantes() throws Exception {
         List<Asaltante> participantes = new ArrayList<>();
 
@@ -376,7 +376,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirDosCasosParaUnMismoAsalto() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -392,7 +392,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void cambiarJuezCorrectamente() throws Exception {
         crearCaso();
 
@@ -422,7 +422,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCambioAJuezInactivo() throws Exception {
         crearCaso();
 
@@ -452,7 +452,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void cerrarCasoReabiertoPorApelacionCorrectamente() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.cerrarAutomaticamente();
@@ -470,7 +470,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirCierreManualDeCasoEnTramite() throws Exception {
         CasoJudicial caso = crearCaso();
 
@@ -482,7 +482,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirBajaDeCasoInactivo() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.cerrarAutomaticamente();
@@ -493,7 +493,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void reactivarCasoCorrectamente() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.cerrarAutomaticamente();
@@ -512,7 +512,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirReactivarCasoActivo() throws Exception {
         crearCaso();
 
@@ -522,7 +522,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirActualizarCasoInactivo() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.actualizarActivo(false);
@@ -541,7 +541,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -552,7 +552,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_USUARIO")
     void impedirLecturaSinPermisoLectura() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales"))
                 .andExpect(status().isForbidden());
@@ -565,7 +565,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void impedirReaperturaSinMotivo() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.cerrarAutomaticamente();
@@ -580,7 +580,7 @@ class CasoJudicialIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
     void flujoCompletoReaperturaYCierrePorApelacion() throws Exception {
         CasoJudicial caso = crearCaso();
         caso.cerrarAutomaticamente();

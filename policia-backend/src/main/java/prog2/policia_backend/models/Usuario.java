@@ -28,8 +28,7 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Usuario extends EntidadAuditable {
+public class Usuario extends EntidadAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +49,7 @@ public abstract class Usuario extends EntidadAuditable {
     @Enumerated(EnumType.STRING)
     private MotivoBajaPersona motivoBaja;
 
-    @Column
+    @Column(nullable = true)
     private LocalDate fechaNacimiento;
 
     public int getEdad() {

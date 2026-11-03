@@ -1,3 +1,6 @@
+-- Carga de datos para tablas creadas previamente por Hibernate.
+-- Ejecutar una sola vez sobre una base vacia. No incluye DDL ni borrado de tablas.
+
 -- =================================================================
 -- NOTA PARA DESARROLLADORES:
 -- Todos los usuarios de prueba generados en este script tienen
@@ -15,11 +18,43 @@ INSERT INTO rol (id, activo, fecha_creacion, codigo, creado_por, descripcion, no
 (3, true, NOW(), 'ROL00003', 'SISTEMA', 'Rol para personal de vigilancia', 'VIGILANTE', 'VIG');
 
 
-INSERT INTO rol_permiso (rol_id, permiso) VALUES
-(1, 'ESCRITURA'),
-(1, 'LECTURA'),
-(2, 'LECTURA'),
-(3, 'LECTURA_DATOS_PROPIOS');
+-- Permisos vinculados a cada entidad del modelo actual.
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad) VALUES
+(1, 'LECTURA', 'ASALTANTE'),
+(1, 'ESCRITURA', 'ASALTANTE'),
+(1, 'LECTURA', 'ASALTO'),
+(1, 'ESCRITURA', 'ASALTO'),
+(1, 'LECTURA', 'BANDA'),
+(1, 'ESCRITURA', 'BANDA'),
+(1, 'LECTURA', 'CASO_JUDICIAL'),
+(1, 'ESCRITURA', 'CASO_JUDICIAL'),
+(1, 'LECTURA', 'CONTRATO_VIGILANCIA'),
+(1, 'ESCRITURA', 'CONTRATO_VIGILANCIA'),
+(1, 'LECTURA', 'ENTIDAD_BANCARIA'),
+(1, 'ESCRITURA', 'ENTIDAD_BANCARIA'),
+(1, 'LECTURA', 'JUEZ'),
+(1, 'ESCRITURA', 'JUEZ'),
+(1, 'LECTURA', 'SENTENCIA_ASALTANTE'),
+(1, 'ESCRITURA', 'SENTENCIA_ASALTANTE'),
+(1, 'LECTURA', 'SUCURSAL'),
+(1, 'ESCRITURA', 'SUCURSAL'),
+(1, 'LECTURA', 'USUARIO'),
+(1, 'ESCRITURA', 'USUARIO'),
+(1, 'LECTURA', 'VIGILANTE'),
+(1, 'ESCRITURA', 'VIGILANTE'),
+(2, 'LECTURA', 'ASALTANTE'),
+(2, 'LECTURA', 'ASALTO'),
+(2, 'LECTURA', 'BANDA'),
+(2, 'LECTURA', 'USUARIO'),
+(2, 'LECTURA', 'CONTRATO_VIGILANCIA'),
+(2, 'LECTURA', 'CASO_JUDICIAL'),
+(2, 'LECTURA', 'ENTIDAD_BANCARIA'),
+(2, 'LECTURA', 'JUEZ'),
+(2, 'LECTURA', 'SENTENCIA_ASALTANTE'),
+(2, 'LECTURA', 'SUCURSAL'),
+(3, 'LECTURA_DATOS_PROPIOS', 'USUARIO'),
+(3, 'LECTURA_DATOS_PROPIOS', 'VIGILANTE'),
+(3, 'LECTURA_DATOS_PROPIOS', 'CONTRATO_VIGILANCIA');
 
 
 -- =========================================================
@@ -49,10 +84,10 @@ INSERT INTO entidad_bancaria (id, nombre, domicilio_central, activo, codigo, cre
 (6, 'Banco Horizonte', 'Av. San Martin 3100, Buenos Aires', true, 'EBA00006', 'SISTEMA', NOW());
 
 
--- Usuarios: herencia JOINED.
+-- Usuarios: entidad unica con rol asociado (sin herencia JOINED).
 
 -- =========================================================
--- VIGILANTES
+-- USUARIOS CON ROL VIGILANTE
 -- =========================================================
 
 INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
@@ -82,15 +117,8 @@ INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codig
 (34, true, NOW(), '1996-10-04', 3, 'VIG00024', 'SISTEMA', 'Nicolas Romero', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
 (35, true, NOW(), '1997-07-15', 3, 'VIG00025', 'SISTEMA', 'Florencia Diaz', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 
-INSERT INTO vigilante (id) VALUES
-(1), (2), (3), (4), (5),
-(6), (7), (8), (9), (10),
-(11), (12), (13), (14), (15),
-(26), (27), (28), (29), (30),
-(31), (32), (33), (34), (35);
-
 -- =========================================================
--- INVESTIGADORES
+-- USUARIOS CON ROL INVESTIGADOR
 -- =========================================================
 
 INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
@@ -102,7 +130,7 @@ INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codig
 (21, true, NOW(), '2001-01-17', 2, 'INV00006', 'SISTEMA', 'Enzo Fernandez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 
 -- =========================================================
--- ADMINISTRADORES
+-- USUARIOS CON ROL ADMINISTRADOR
 -- =========================================================
 
 INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
@@ -110,19 +138,6 @@ INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codig
 (23, true, NOW(), '1963-03-13', 1, 'ADM00002', 'SISTEMA', 'Fito Paez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
 (24, true, NOW(), '1959-08-11', 1, 'ADM00003', 'SISTEMA', 'Gustavo Cerati', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
 (25, true, NOW(), '1961-08-22', 1, 'ADM00004', 'SISTEMA', 'Andres Calamaro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
-INSERT INTO usuario_generico (id) VALUES
-(16),
-(17),
-(18),
-(19),
-(20),
-(21),
-(22),
-(23),
-(24),
-(25);
-
-
 -- =========================================================
 -- JUECES
 -- =========================================================

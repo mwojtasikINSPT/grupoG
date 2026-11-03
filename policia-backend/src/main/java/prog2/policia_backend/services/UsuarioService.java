@@ -1,5 +1,6 @@
 package prog2.policia_backend.services;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.CambioPasswordDTO;
+import prog2.policia_backend.DTOs.RestablecerPasswordDTO;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
@@ -22,10 +24,11 @@ import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.PersonaYaActivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
+import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Usuario;
-import prog2.policia_backend.models.UsuarioGenerico;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
@@ -38,6 +41,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
     public List<UsuarioDTO> listar(Boolean activo) {
         List<Usuario> usuarios;
@@ -51,9 +55,7 @@ public class UsuarioService {
         List<UsuarioDTO> resultado = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
-            if (usuario instanceof UsuarioGenerico) {
-                resultado.add(convertirADTO(usuario));
-            }
+            resultado.add(convertirADTO(usuario));
         }
 
         return resultado;
@@ -62,10 +64,6 @@ public class UsuarioService {
     public List<UsuarioDTO> listarPropio(String codigo, Boolean activo, String nombre) {
         Usuario usuario = obtenerUsuario(codigo);
         List<UsuarioDTO> resultado = new ArrayList<>();
-
-        if (!(usuario instanceof UsuarioGenerico)) {
-            return resultado;
-        }
 
         if (activo != null && usuario.isActivo() != activo) {
             return resultado;
@@ -98,37 +96,24 @@ public class UsuarioService {
         List<UsuarioDTO> resultado = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
-            if (usuario instanceof UsuarioGenerico) {
-                resultado.add(convertirADTO(usuario));
-            }
+            resultado.add(convertirADTO(usuario));
         }
 
         return resultado;
     }
 
     public UsuarioDTO buscarPorCodigo(String codigo) {
-        Usuario usuario = obtenerUsuario(codigo);
-
-        if (!(usuario instanceof UsuarioGenerico)) {
-            throw new RecursoNoEncontradoException("Usuario", codigo);
-        }
-
-        return convertirADTO(usuario);
+        return convertirADTO(obtenerUsuario(codigo));
     }
 
     @Transactional
     public UsuarioDTO guardar(UsuarioDTO dto) {
         String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
-
-        if (nombreRol.equals("VIGILANTE")) {
-            throw new OperacionNoPermitidaException("Los vigilantes deben registrarse mediante VigilanteService");
-        }
-
         Rol rol = obtenerRol(nombreRol);
 
         ValidadorEdad.validar(dto.getFechaNacimiento(), 18, Integer.MAX_VALUE);
-        UsuarioGenerico usuario = new UsuarioGenerico();
 
+        Usuario usuario = new Usuario();
         usuario.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         usuario.setFechaNacimiento(dto.getFechaNacimiento());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -147,12 +132,16 @@ public class UsuarioService {
     public UsuarioDTO actualizar(String codigo, UsuarioDTO dto) {
         Usuario usuario = obtenerUsuario(codigo);
 
-        if (!(usuario instanceof UsuarioGenerico)) {
-            throw new RecursoNoEncontradoException("Usuario", codigo);
-        }
-
         if (!usuario.isActivo()) {
             throw new PersonaInactivaException();
+        }
+
+        if (dto.getRol() != null) {
+            String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
+
+            if (!usuario.getRol().getNombre().equalsIgnoreCase(nombreRol)) {
+                throw new OperacionNoPermitidaException("No se permite cambiar el rol de un usuario");
+            }
         }
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
@@ -168,27 +157,11 @@ public class UsuarioService {
             usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        if (dto.getRol() != null) {
-            String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
-
-            if (nombreRol.equals("VIGILANTE")) {
-                throw new OperacionNoPermitidaException("No se puede asignar el rol VIGILANTE desde UsuarioService");
-            }
-
-            Rol rol = obtenerRol(nombreRol);
-            usuario.setRol(rol);
-            usuario.setCodigo(generarCodigoDisponible(rol.getPrefijo()));
-        }
-
         return convertirADTO(usuarioRepository.save(usuario));
     }
 
     public void eliminar(String codigo, UsuarioDTO dto) {
         Usuario usuario = obtenerUsuario(codigo);
-
-        if (!(usuario instanceof UsuarioGenerico)) {
-            throw new RecursoNoEncontradoException("Usuario", codigo);
-        }
 
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
 
@@ -196,6 +169,10 @@ public class UsuarioService {
             throw new OperacionNoPermitidaException("Un administrador no puede darse de baja a sí mismo");
         }
 
+        if (usuario.getRol().getNombre().equalsIgnoreCase("VIGILANTE")
+                && contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(usuario.getId(), LocalDate.now())) {
+            throw new VigilanteConContratoFuturoException();
+        }
         if (!usuario.isActivo()) {
             throw new PersonaYaInactivaException();
         }
@@ -212,10 +189,6 @@ public class UsuarioService {
 
     public UsuarioDTO reactivar(String codigo) {
         Usuario usuario = obtenerUsuario(codigo);
-
-        if (!(usuario instanceof UsuarioGenerico)) {
-            throw new RecursoNoEncontradoException("Usuario", codigo);
-        }
 
         if (usuario.isActivo()) {
             throw new PersonaYaActivaException();
@@ -244,6 +217,7 @@ public class UsuarioService {
         if (usuario.getFechaNacimiento() != null) {
             dto.setEdad(usuario.getEdad());
         }
+
         dto.setRol(usuario.getRol().getNombre());
         dto.setActivo(usuario.isActivo());
 
@@ -306,6 +280,18 @@ public class UsuarioService {
 
         usuario.setPassword(passwordEncoder.encode(dto.getPasswordNueva()));
 
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void restablecerPassword(String codigo, RestablecerPasswordDTO dto) {
+        Usuario usuario = obtenerUsuario(codigo);
+
+        if (!usuario.isActivo()) {
+            throw new PersonaInactivaException();
+        }
+
+        usuario.setPassword(passwordEncoder.encode(dto.getPasswordNueva()));
         usuarioRepository.save(usuario);
     }
 }

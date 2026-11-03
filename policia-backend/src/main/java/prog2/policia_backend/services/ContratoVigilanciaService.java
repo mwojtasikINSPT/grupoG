@@ -20,10 +20,10 @@ import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.ContratoVigilancia;
 import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.models.Sucursal;
-import prog2.policia_backend.models.Vigilante;
+import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
-import prog2.policia_backend.repositories.VigilanteRepository;
+import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
@@ -32,7 +32,7 @@ import prog2.policia_backend.utils.NormalizadorTexto;
 public class ContratoVigilanciaService {
 
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
-    private final VigilanteRepository vigilanteRepository;
+    private final UsuarioRepository usuarioRepository;
     private final SucursalRepository sucursalRepository;
 
     public List<ContratoVigilanciaDTO> listar(Boolean activo) {
@@ -77,7 +77,7 @@ public class ContratoVigilanciaService {
     @Transactional
     public ContratoVigilanciaDTO guardar(ContratoVigilanciaDTO dto) {
 
-        Vigilante vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
+        Usuario vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
         Sucursal sucursal = obtenerSucursalActiva(dto.getSucursalCodigo());
         ContratoVigilancia contrato = convertirAEntidad(dto, vigilante, sucursal);
         contrato = contratoVigilanciaRepository.save(contrato);
@@ -101,18 +101,17 @@ public class ContratoVigilanciaService {
         if (dto.getFecha() != null && dto.getFecha().isBefore(LocalDate.now())) {
             throw new FechaPasadaException();
         }
+
         LocalDate fecha = dto.getFecha() != null ? dto.getFecha() : contrato.getFecha();
 
-        Vigilante vigilante = contrato.getVigilante();
+        Usuario vigilante = obtenerVigilanteActivo(contrato.getVigilante().getCodigo());
+
         if (dto.getVigilanteCodigo() != null && !dto.getVigilanteCodigo().isBlank()) {
             vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
         }
 
         boolean existeOtroContrato = contratoVigilanciaRepository
-                .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
-                        vigilante.getId(),
-                        fecha,
-                        contrato.getId());
+                .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(vigilante.getId(), fecha, contrato.getId());
 
         if (existeOtroContrato) {
             throw new ContratoVigilanciaDuplicadoException();
@@ -125,6 +124,7 @@ public class ContratoVigilanciaService {
         if (dto.getConArma() != null) {
             contrato.setConArma(dto.getConArma());
         }
+
         contrato.setVigilante(vigilante);
 
         if (dto.getSucursalCodigo() != null && !dto.getSucursalCodigo().isBlank()) {
@@ -151,10 +151,9 @@ public class ContratoVigilanciaService {
 
     public List<ContratoVigilanciaDTO> listarPorVigilante(String codigo) {
 
-        Vigilante vigilante = obtenerVigilante(codigo);
+        Usuario vigilante = obtenerVigilante(codigo);
 
-        List<ContratoVigilancia> contratos = contratoVigilanciaRepository
-                .findByVigilante_Id(vigilante.getId());
+        List<ContratoVigilancia> contratos = contratoVigilanciaRepository.findByVigilante_Id(vigilante.getId());
 
         List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
 
@@ -169,8 +168,7 @@ public class ContratoVigilanciaService {
 
         Sucursal sucursal = obtenerSucursal(codigo);
 
-        List<ContratoVigilancia> contratos = contratoVigilanciaRepository
-                .findBySucursal_Id(sucursal.getId());
+        List<ContratoVigilancia> contratos = contratoVigilanciaRepository.findBySucursal_Id(sucursal.getId());
 
         List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
 
@@ -181,8 +179,7 @@ public class ContratoVigilanciaService {
         return resultado;
     }
 
-    private ContratoVigilanciaDTO convertirADTO(
-            ContratoVigilancia contrato) {
+    private ContratoVigilanciaDTO convertirADTO(ContratoVigilancia contrato) {
 
         return new ContratoVigilanciaDTO(
                 contrato.getId(),
@@ -199,9 +196,10 @@ public class ContratoVigilanciaService {
                 contrato.getModificadoPor());
     }
 
-    private ContratoVigilancia convertirAEntidad(ContratoVigilanciaDTO dto, Vigilante vigilante, Sucursal sucursal) {
+    private ContratoVigilancia convertirAEntidad(ContratoVigilanciaDTO dto, Usuario vigilante, Sucursal sucursal) {
 
         validarContratoDuplicado(vigilante, dto.getFecha());
+
         ContratoVigilancia contrato = new ContratoVigilancia();
         contrato.setFecha(dto.getFecha());
         contrato.setConArma(dto.getConArma());
@@ -222,26 +220,33 @@ public class ContratoVigilanciaService {
         return resultado.get();
     }
 
-    private Vigilante obtenerVigilante(String codigo) {
-        Optional<Vigilante> resultado = vigilanteRepository.findByCodigo(codigo);
+    private Usuario obtenerVigilante(String codigo) {
+        Optional<Usuario> resultado = usuarioRepository.findByCodigo(codigo);
 
         if (resultado.isEmpty()) {
             throw new RecursoNoEncontradoException("Vigilante", codigo);
         }
 
-        return resultado.get();
+        Usuario vigilante = resultado.get();
+
+        if (vigilante.getRol() == null || !"VIGILANTE".equalsIgnoreCase(vigilante.getRol().getNombre())) {
+            throw new RecursoNoEncontradoException("Vigilante", codigo);
+        }
+
+        return vigilante;
     }
 
-    private Vigilante obtenerVigilanteActivo(String codigo) {
-        Vigilante vigilante = obtenerVigilante(codigo);
+    private Usuario obtenerVigilanteActivo(String codigo) {
+        Usuario vigilante = obtenerVigilante(codigo);
 
         if (!vigilante.isActivo()) {
             throw new PersonaInactivaException();
         }
+
         return vigilante;
     }
 
-    private void validarContratoDuplicado(Vigilante vigilante, LocalDate fecha) {
+    private void validarContratoDuplicado(Usuario vigilante, LocalDate fecha) {
         if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrue(vigilante.getId(), fecha)) {
             throw new ContratoVigilanciaDuplicadoException();
         }
@@ -263,6 +268,7 @@ public class ContratoVigilanciaService {
         if (!sucursal.isActivo()) {
             throw new SucursalYaCerradaException();
         }
+
         return sucursal;
     }
 }

@@ -64,7 +64,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void listarSucursalesCorrectamente() throws Exception {
         mockMvc.perform(get("/api/sucursales"))
                 .andExpect(status().isOk())
@@ -73,7 +73,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void buscarSucursalPorCodigo() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001"))
                 .andExpect(status().isOk())
@@ -84,14 +84,14 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void buscarSucursalInexistente() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void filtrarSucursalesActivas() throws Exception {
         mockMvc.perform(get("/api/sucursales")
                 .param("activo", "true"))
@@ -100,7 +100,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void buscarSucursalPorDomicilio() throws Exception {
         mockMvc.perform(get("/api/sucursales")
                 .param("domicilio", "corrientes"))
@@ -109,7 +109,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void listarContratosDeSucursalSinContratos() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001/contratos"))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void listarAsaltosDeSucursalSinAsaltos() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001/asaltos"))
                 .andExpect(status().isOk())
@@ -125,7 +125,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void crearSucursalCorrectamente() throws Exception {
         String json = """
                 {
@@ -148,7 +148,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void impedirSucursalConEntidadInactiva() throws Exception {
         entidad.setActivo(false);
         entidadRepository.saveAndFlush(entidad);
@@ -170,7 +170,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void actualizarSucursalCorrectamente() throws Exception {
         String json = """
                 {
@@ -195,7 +195,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void darDeBajaSucursalCorrectamente() throws Exception {
         String json = """
                 {
@@ -217,7 +217,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void impedirBajaSinMotivo() throws Exception {
         mockMvc.perform(patch("/api/sucursales/SUC00001/baja")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -229,7 +229,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void reactivarSucursalCorrectamente() throws Exception {
         sucursal.setActivo(false);
         sucursal.setMotivoCierre(MotivoCierreSucursal.CIERRE_TEMPORAL);
@@ -247,7 +247,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_SUCURSAL")
     void impedirReactivacionDeCierreDefinitivo() throws Exception {
         sucursal.setActivo(false);
         sucursal.setMotivoCierre(MotivoCierreSucursal.CIERRE_DEFINITIVO);
@@ -261,7 +261,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = """
                 {
