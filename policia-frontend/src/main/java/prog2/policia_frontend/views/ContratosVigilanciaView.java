@@ -21,11 +21,11 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import prog2.policia_frontend.clients.ContratoVigilanciaClient;
 import prog2.policia_frontend.clients.SucursalClient;
-import prog2.policia_frontend.clients.VigilanteClient;
+import prog2.policia_frontend.clients.UsuarioClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
-import prog2.policia_frontend.dtos.VigilanteDTO;
+import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
@@ -46,7 +46,7 @@ public class ContratosVigilanciaView
         implements BeforeEnterObserver {
 
     private final ContratoVigilanciaClient contratoClient;
-    private final VigilanteClient vigilanteClient;
+    private final UsuarioClient usuarioClient;
     private final SucursalClient sucursalClient;
     private final SesionUsuario sesionUsuario;
 
@@ -62,7 +62,7 @@ public class ContratosVigilanciaView
     private final Select<String> filtroTipoBusqueda
             = new Select<>();
 
-    private final Select<VigilanteDTO> filtroVigilanteExacto
+    private final Select<UsuarioDTO> filtroVigilanteExacto
             = new Select<>();
 
     private final Select<SucursalDTO> filtroSucursalExacta
@@ -82,12 +82,12 @@ public class ContratosVigilanciaView
 
     public ContratosVigilanciaView(
             ContratoVigilanciaClient contratoClient,
-            VigilanteClient vigilanteClient,
+            UsuarioClient usuarioClient,
             SucursalClient sucursalClient,
             SesionUsuario sesionUsuario) {
 
         this.contratoClient = contratoClient;
-        this.vigilanteClient = vigilanteClient;
+        this.usuarioClient = usuarioClient;
         this.sucursalClient = sucursalClient;
         this.sesionUsuario = sesionUsuario;
 
@@ -117,18 +117,18 @@ public class ContratosVigilanciaView
         filtroVigilante.setClearButtonVisible(true);
 
         filtroVigilanteExacto.setLabel("Vigilante");
-        filtroVigilanteExacto.setItemLabelGenerator(vigilante ->
-                vigilante.getCodigo()
-                        + " - "
-                        + vigilante.getNombre()
+        filtroVigilanteExacto.setItemLabelGenerator(vigilante
+                -> vigilante.getCodigo()
+                + " - "
+                + vigilante.getNombre()
         );
         filtroVigilanteExacto.setVisible(false);
 
         filtroSucursalExacta.setLabel("Sucursal");
-        filtroSucursalExacta.setItemLabelGenerator(sucursal ->
-                sucursal.getCodigo()
-                        + " - "
-                        + sucursal.getDomicilio()
+        filtroSucursalExacta.setItemLabelGenerator(sucursal
+                -> sucursal.getCodigo()
+                + " - "
+                + sucursal.getDomicilio()
         );
         filtroSucursalExacta.setVisible(false);
 
@@ -188,12 +188,12 @@ public class ContratosVigilanciaView
         ).setHeader("Fecha")
                 .setAutoWidth(true);
 
-        tabla.addColumn(contrato ->
-                Boolean.TRUE.equals(
+        tabla.addColumn(contrato
+                -> Boolean.TRUE.equals(
                         contrato.getConArma()
                 )
-                        ? "Sí"
-                        : "No"
+                ? "Sí"
+                : "No"
         ).setHeader("Con arma")
                 .setAutoWidth(true);
 
@@ -211,10 +211,10 @@ public class ContratosVigilanciaView
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
-        tabla.addColumn(contrato ->
-                contrato.getMotivoBaja() != null
-                        ? contrato.getMotivoBaja()
-                        : "-"
+        tabla.addColumn(contrato
+                -> contrato.getMotivoBaja() != null
+                ? contrato.getMotivoBaja()
+                : "-"
         ).setHeader("Motivo de baja")
                 .setAutoWidth(true);
 
@@ -249,12 +249,12 @@ public class ContratosVigilanciaView
 
                 botonModificar.addClickListener(
                         evento
-                                -> abrirFormularioEdicion(contrato)
+                        -> abrirFormularioEdicion(contrato)
                 );
 
                 botonCancelarContrato.addClickListener(
                         evento
-                                -> abrirConfirmacionCancelacion(contrato)
+                        -> abrirConfirmacionCancelacion(contrato)
                 );
 
             } else {
@@ -332,7 +332,7 @@ public class ContratosVigilanciaView
 
         dialogo.setHeaderTitle(
                 "Dar de baja "
-                        + contrato.getCodigo()
+                + contrato.getCodigo()
         );
 
         Paragraph mensaje = new Paragraph(
@@ -426,12 +426,12 @@ public class ContratosVigilanciaView
     private void abrirFormularioEdicion(
             ContratoVigilanciaDTO contrato) {
 
-        List<VigilanteDTO> vigilantesActivos;
+        List<UsuarioDTO> vigilantesActivos;
         List<SucursalDTO> sucursalesActivas;
 
         try {
 
-            vigilantesActivos = vigilanteClient.listar(
+            vigilantesActivos = listarVigilantes(
                     true,
                     null
             );
@@ -458,13 +458,13 @@ public class ContratosVigilanciaView
 
         dialogo.setHeaderTitle(
                 "Modificar "
-                        + contrato.getCodigo()
+                + contrato.getCodigo()
         );
 
         DatePicker campoFecha
                 = new DatePicker("Fecha");
 
-        Select<VigilanteDTO> campoVigilante
+        Select<UsuarioDTO> campoVigilante
                 = new Select<>();
 
         Select<SucursalDTO> campoSucursal
@@ -479,24 +479,20 @@ public class ContratosVigilanciaView
 
         campoVigilante.setLabel("Vigilante");
         campoVigilante.setItems(vigilantesActivos);
-        campoVigilante.setItemLabelGenerator(vigilante ->
-                vigilante.getCodigo()
-                        + " - "
-                        + vigilante.getNombre()
+        campoVigilante.setItemLabelGenerator(vigilante
+                -> vigilante.getCodigo()
+                + " - "
+                + vigilante.getNombre()
         );
         campoVigilante.setRequiredIndicatorVisible(true);
 
-        VigilanteDTO vigilanteActual
-                = vigilantesActivos.stream()
-                        .filter(vigilante
-                                -> vigilante.getCodigo() != null
-                                && vigilante.getCodigo()
-                                        .equalsIgnoreCase(
-                                                contrato.getVigilanteCodigo()
-                                        )
-                        )
-                        .findFirst()
-                        .orElse(null);
+        UsuarioDTO vigilanteActual = null;
+        for (UsuarioDTO vigilante : vigilantesActivos) {
+            if (vigilante.getCodigo() != null && vigilante.getCodigo().equalsIgnoreCase(contrato.getVigilanteCodigo())) {
+                vigilanteActual = vigilante;
+                break;
+            }
+        }
 
         if (vigilanteActual != null) {
             campoVigilante.setValue(vigilanteActual);
@@ -504,24 +500,20 @@ public class ContratosVigilanciaView
 
         campoSucursal.setLabel("Sucursal");
         campoSucursal.setItems(sucursalesActivas);
-        campoSucursal.setItemLabelGenerator(sucursal ->
-                sucursal.getCodigo()
-                        + " - "
-                        + sucursal.getDomicilio()
+        campoSucursal.setItemLabelGenerator(sucursal
+                -> sucursal.getCodigo()
+                + " - "
+                + sucursal.getDomicilio()
         );
         campoSucursal.setRequiredIndicatorVisible(true);
 
-        SucursalDTO sucursalActual
-                = sucursalesActivas.stream()
-                        .filter(sucursal
-                                -> sucursal.getCodigo() != null
-                                && sucursal.getCodigo()
-                                        .equalsIgnoreCase(
-                                                contrato.getSucursalCodigo()
-                                        )
-                        )
-                        .findFirst()
-                        .orElse(null);
+        SucursalDTO sucursalActual = null;
+        for (SucursalDTO sucursal : sucursalesActivas) {
+            if (sucursal.getCodigo() != null && sucursal.getCodigo().equalsIgnoreCase(contrato.getSucursalCodigo())) {
+                sucursalActual = sucursal;
+                break;
+            }
+        }
 
         if (sucursalActual != null) {
             campoSucursal.setValue(sucursalActual);
@@ -537,8 +529,8 @@ public class ContratosVigilanciaView
                     Boolean.TRUE.equals(
                             contrato.getConArma()
                     )
-                            ? "Sí"
-                            : "No"
+                    ? "Sí"
+                    : "No"
             );
         }
 
@@ -667,12 +659,12 @@ public class ContratosVigilanciaView
      */
     private void abrirFormularioNuevo() {
 
-        List<VigilanteDTO> vigilantesActivos;
+        List<UsuarioDTO> vigilantesActivos;
         List<SucursalDTO> sucursalesActivas;
 
         try {
 
-            vigilantesActivos = vigilanteClient.listar(
+            vigilantesActivos = listarVigilantes(
                     true,
                     null
             );
@@ -720,7 +712,7 @@ public class ContratosVigilanciaView
         DatePicker campoFecha
                 = new DatePicker("Fecha");
 
-        Select<VigilanteDTO> campoVigilante
+        Select<UsuarioDTO> campoVigilante
                 = new Select<>();
 
         Select<SucursalDTO> campoSucursal
@@ -734,19 +726,19 @@ public class ContratosVigilanciaView
 
         campoVigilante.setLabel("Vigilante");
         campoVigilante.setItems(vigilantesActivos);
-        campoVigilante.setItemLabelGenerator(vigilante ->
-                vigilante.getCodigo()
-                        + " - "
-                        + vigilante.getNombre()
+        campoVigilante.setItemLabelGenerator(vigilante
+                -> vigilante.getCodigo()
+                + " - "
+                + vigilante.getNombre()
         );
         campoVigilante.setRequiredIndicatorVisible(true);
 
         campoSucursal.setLabel("Sucursal");
         campoSucursal.setItems(sucursalesActivas);
-        campoSucursal.setItemLabelGenerator(sucursal ->
-                sucursal.getCodigo()
-                        + " - "
-                        + sucursal.getDomicilio()
+        campoSucursal.setItemLabelGenerator(sucursal
+                -> sucursal.getCodigo()
+                + " - "
+                + sucursal.getDomicilio()
         );
         campoSucursal.setRequiredIndicatorVisible(true);
 
@@ -887,9 +879,12 @@ public class ContratosVigilanciaView
 
         return switch (filtroEstado.getValue()) {
 
-            case "Activos" -> true;
-            case "Finalizados" -> false;
-            default -> null;
+            case "Activos" ->
+                true;
+            case "Finalizados" ->
+                false;
+            default ->
+                null;
         };
     }
 
@@ -931,7 +926,7 @@ public class ContratosVigilanciaView
 
             if ("Por vigilante".equals(tipoBusqueda)) {
 
-                VigilanteDTO vigilante
+                UsuarioDTO vigilante
                         = filtroVigilanteExacto.getValue();
 
                 if (vigilante == null) {
@@ -971,10 +966,13 @@ public class ContratosVigilanciaView
              */
             if (!"General".equals(tipoBusqueda) && estado != null) {
 
-                contratos = contratos.stream()
-                        .filter(contrato
-                                -> estado.equals(contrato.getActivo()))
-                        .toList();
+                List<ContratoVigilanciaDTO> contratosFiltrados = new java.util.ArrayList<>();
+                for (ContratoVigilanciaDTO contrato : contratos) {
+                    if (estado.equals(contrato.getActivo())) {
+                        contratosFiltrados.add(contrato);
+                    }
+                }
+                contratos = contratosFiltrados;
             }
 
             paginadorContratos.setItems(contratos);
@@ -990,8 +988,8 @@ public class ContratosVigilanciaView
 
                     NotificacionUtils.mostrarInformacion(
                             "No se encontraron contratos para un vigilante cuyo nombre coincida con: "
-                                    + nombreBuscado.trim()
-                                    + "."
+                            + nombreBuscado.trim()
+                            + "."
                     );
 
                 } else if (estado != null) {
@@ -1020,9 +1018,9 @@ public class ContratosVigilanciaView
 
                 NotificacionUtils.mostrarInformacion(
                         recurso
-                                + " no tiene contratos de vigilancia"
-                                + aclaracionEstado
-                                + "."
+                        + " no tiene contratos de vigilancia"
+                        + aclaracionEstado
+                        + "."
                 );
             }
 
@@ -1052,35 +1050,52 @@ public class ContratosVigilanciaView
      * que el usuario tenga que escribir códigos manualmente.
      */
     private void cargarOpcionesFiltros() {
+        List<String> opciones = new java.util.ArrayList<>();
+        opciones.add("General");
 
-        try {
+        boolean administrador = sesionUsuario.tieneRol("ADMINISTRADOR");
 
-            filtroVigilanteExacto.setItems(
-                    vigilanteClient.listar(null, null)
-            );
-
-            filtroSucursalExacta.setItems(
-                    sucursalClient.listar(null, null)
-            );
-
-        } catch (RestClientResponseException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se pudieron cargar vigilantes y sucursales."
-            );
-
-        } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+        if (administrador || sesionUsuario.tienePermiso("LECTURA_USUARIO")) {
+            try {
+                filtroVigilanteExacto.setItems(listarVigilantes(null, null));
+                opciones.add("Por vigilante");
+            } catch (RestClientResponseException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar los vigilantes.");
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+            }
         }
+
+        if (administrador || sesionUsuario.tienePermiso("LECTURA_SUCURSAL")) {
+            try {
+                filtroSucursalExacta.setItems(sucursalClient.listar(null, null));
+                opciones.add("Por sucursal");
+            } catch (RestClientResponseException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar las sucursales.");
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+            }
+        }
+
+        filtroTipoBusqueda.setItems(opciones);
+        filtroTipoBusqueda.setValue("General");
+    }
+
+    private List<UsuarioDTO> listarVigilantes(Boolean activo, String nombre) {
+        List<UsuarioDTO> usuarios = usuarioClient.listar(activo, nombre);
+        List<UsuarioDTO> vigilantes = new java.util.ArrayList<>();
+
+        for (UsuarioDTO usuario : usuarios) {
+            if (usuario.getRol() != null && usuario.getRol().equalsIgnoreCase("VIGILANTE")) {
+                vigilantes.add(usuario);
+            }
+        }
+
+        return vigilantes;
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_CONTRATO_VIGILANCIA");
     }
 
     /*

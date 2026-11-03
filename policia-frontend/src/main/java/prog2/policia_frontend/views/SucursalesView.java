@@ -5,7 +5,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
+
 import prog2.policia_frontend.utils.NotificacionUtils;
+
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -14,17 +16,23 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.SucursalClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.clients.EntidadBancariaClient;
+
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.NumberField;
+
 import java.util.List;
 import java.util.Map;
+
+import prog2.policia_frontend.clients.AsaltoClient;
 import prog2.policia_frontend.dtos.EntidadBancariaDTO;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.SesionUsuario;
@@ -44,11 +52,12 @@ public class SucursalesView
 
     private final SucursalClient sucursalClient;
     private final SesionUsuario sesionUsuario;
-       /*
+    private final AsaltoClient asaltoClient;
+
+    /*
  * Se utiliza para consultar las entidades
  * bancarias activas del formulario.
- */ 
-    
+     */
     private final EntidadBancariaClient entidadClient;
 
     private final Grid<SucursalDTO> tabla
@@ -74,35 +83,36 @@ public class SucursalesView
 
     private final Button botonLimpiar
             = new Button("Limpiar");
-    
+
     private final Button botonNuevaSucursal
-        = new Button("Nueva sucursal");
+            = new Button("Nueva sucursal");
 
     private final Button botonVolverEntidades
             = new Button("Volver a entidades bancarias");
 
     private List<EntidadBancariaDTO> entidadesDisponibles = List.of();
 
-   public SucursalesView(
-        SucursalClient sucursalClient,
-        EntidadBancariaClient entidadClient,
-        SesionUsuario sesionUsuario) {
+    public SucursalesView(
+            SucursalClient sucursalClient,
+            EntidadBancariaClient entidadClient,
+            SesionUsuario sesionUsuario, AsaltoClient asaltoClient) {
 
-    this.sucursalClient = sucursalClient;
-    this.entidadClient = entidadClient;
-    this.sesionUsuario = sesionUsuario;
+        this.sucursalClient = sucursalClient;
+        this.entidadClient = entidadClient;
+        this.sesionUsuario = sesionUsuario;
+        this.asaltoClient = asaltoClient;
 
-    botonVolverEntidades.setVisible(false);
-    botonVolverEntidades.addClickListener(
-            evento -> UI.getCurrent().navigate(
-                    EntidadesBancariasView.class
-            )
-    );
+        botonVolverEntidades.setVisible(false);
+        botonVolverEntidades.addClickListener(
+                evento -> UI.getCurrent().navigate(
+                        EntidadesBancariasView.class
+                )
+        );
 
-    configurarFiltros();
-    configurarVista();
-    configurarTabla();
-}
+        configurarFiltros();
+        configurarVista();
+        configurarTabla();
+    }
 
     /*
      * Configura la búsqueda por domicilio y estado.
@@ -123,10 +133,10 @@ public class SucursalesView
         filtroDomicilio.setClearButtonVisible(true);
 
         filtroEntidad.setLabel("Entidad bancaria");
-        filtroEntidad.setItemLabelGenerator(entidad ->
-                entidad.getCodigo()
-                        + " - "
-                        + entidad.getNombre()
+        filtroEntidad.setItemLabelGenerator(entidad
+                -> entidad.getCodigo()
+                + " - "
+                + entidad.getNombre()
         );
         filtroEntidad.setVisible(false);
 
@@ -187,20 +197,20 @@ public class SucursalesView
         filtros.setAlignItems(
                 HorizontalLayout.Alignment.END
         );
-        
+
         botonNuevaSucursal.addClickListener(
-        evento -> abrirFormularioNuevo()
-);
+                evento -> abrirFormularioNuevo()
+        );
         botonNuevaSucursal.setVisible(puedeEscribir());
         setSizeFull();
 
         add(
-                 titulo,
-        botonVolverEntidades,
-        botonNuevaSucursal,
-        filtros,
-        tabla,
-        paginadorSucursales.getControles()
+                titulo,
+                botonVolverEntidades,
+                botonNuevaSucursal,
+                filtros,
+                tabla,
+                paginadorSucursales.getControles()
         );
 
         expand(tabla);
@@ -232,19 +242,19 @@ public class SucursalesView
         ).setHeader("Entidad bancaria")
                 .setAutoWidth(true);
 
-        tabla.addColumn(sucursal ->
-                Boolean.TRUE.equals(
+        tabla.addColumn(sucursal
+                -> Boolean.TRUE.equals(
                         sucursal.getActivo()
                 )
-                        ? "Activa"
-                        : "Inactiva"
+                ? "Activa"
+                : "Inactiva"
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
-        tabla.addColumn(sucursal ->
-                sucursal.getMotivoCierre() != null
-                        ? sucursal.getMotivoCierre()
-                        : "-"
+        tabla.addColumn(sucursal
+                -> sucursal.getMotivoCierre() != null
+                ? sucursal.getMotivoCierre()
+                : "-"
         ).setHeader("Motivo de cierre")
                 .setAutoWidth(true);
         /*
@@ -271,7 +281,7 @@ public class SucursalesView
 
                 botonModificar.addClickListener(
                         evento
-                                -> abrirFormularioEdicion(sucursal)
+                        -> abrirFormularioEdicion(sucursal)
                 );
 
             } else {
@@ -293,7 +303,7 @@ public class SucursalesView
 
                 botonEstado.addClickListener(
                         evento
-                                -> abrirDialogoBaja(sucursal)
+                        -> abrirDialogoBaja(sucursal)
                 );
 
             } else if ("CIERRE_DEFINITIVO".equals(
@@ -321,7 +331,7 @@ public class SucursalesView
 
                 botonEstado.addClickListener(
                         evento
-                                -> reactivarSucursal(sucursal)
+                        -> reactivarSucursal(sucursal)
                 );
             }
 
@@ -332,471 +342,544 @@ public class SucursalesView
 
         }).setHeader("Acciones")
                 .setAutoWidth(true);
+
+        if (sesionUsuario.tieneRol("ADMINISTRADOR")
+                || sesionUsuario.tienePermiso("LECTURA_ASALTO")) {
+
+            tabla.addComponentColumn(sucursal
+                    -> new Button("Ver asaltos", evento -> verAsaltos(sucursal))
+            ).setAutoWidth(true);
+        }
+
         tabla.setSizeFull();
     }
-    
+
     /*
  * Abre el formulario con los datos actuales
  * de una sucursal activa.
- */
-private void abrirFormularioEdicion(
-        SucursalDTO sucursal) {
+     */
+    private void abrirFormularioEdicion(
+            SucursalDTO sucursal) {
 
-    List<EntidadBancariaDTO> entidadesActivas;
-
-    try {
-
-        entidadesActivas = entidadClient.listar(
-                true,
-                null,
-                null
-        );
-
-    } catch (RestClientResponseException excepcion) {
-
-        mostrarErrorOperacion(excepcion);
-        return;
-
-    } catch (ResourceAccessException excepcion) {
-
-        NotificacionUtils.mostrarInformacion(
-                "No se pueden consultar las entidades bancarias."
-        );
-        return;
-    }
-
-    Dialog dialogo = new Dialog();
-
-    dialogo.setHeaderTitle(
-            "Modificar "
-                    + sucursal.getCodigo()
-    );
-
-    TextField campoDomicilio
-            = new TextField("Domicilio");
-
-    NumberField campoEmpleados
-            = new NumberField(
-                    "Cantidad de empleados"
-            );
-
-    Select<EntidadBancariaDTO> campoEntidad
-            = new Select<>();
-
-    campoDomicilio.setValue(
-            sucursal.getDomicilio() != null
-                    ? sucursal.getDomicilio()
-                    : ""
-    );
-
-    if (sucursal.getCantEmpleados() != null) {
-
-        campoEmpleados.setValue(
-                sucursal.getCantEmpleados()
-                        .doubleValue()
-        );
-    }
-
-    campoEntidad.setLabel("Entidad bancaria");
-
-    campoEntidad.setItemLabelGenerator(entidad ->
-            entidad.getCodigo()
-                    + " - "
-                    + entidad.getNombre()
-    );
-
-    campoEntidad.setItems(entidadesActivas);
-
-    EntidadBancariaDTO entidadActual
-            = entidadesActivas.stream()
-                    .filter(entidad
-                            -> entidad.getCodigo() != null
-                            && entidad.getCodigo()
-                                    .equalsIgnoreCase(
-                                            sucursal
-                                                    .getEntidadBancariaCodigo()
-                                    )
-                    )
-                    .findFirst()
-                    .orElse(null);
-
-    if (entidadActual != null) {
-        campoEntidad.setValue(entidadActual);
-    }
-
-    campoDomicilio.setRequiredIndicatorVisible(true);
-    campoEmpleados.setRequiredIndicatorVisible(true);
-    campoEntidad.setRequiredIndicatorVisible(true);
-
-    campoEmpleados.setMin(1);
-    campoEmpleados.setStep(1);
-    campoEmpleados.setStepButtonsVisible(true);
-
-    campoDomicilio.setWidthFull();
-    campoEmpleados.setWidthFull();
-    campoEntidad.setWidthFull();
-
-    Button botonGuardar
-            = new Button("Guardar cambios");
-
-    Button botonCancelar
-            = new Button(
-                    "Cancelar",
-                    evento -> dialogo.close()
-            );
-
-    botonGuardar.addClickListener(evento -> {
-
-        boolean domicilioVacio
-                = campoDomicilio.getValue().isBlank();
-
-        Double cantidadIngresada
-                = campoEmpleados.getValue();
-
-        boolean cantidadInvalida
-                = cantidadIngresada == null
-                || cantidadIngresada < 1
-                || cantidadIngresada
-                        != Math.floor(cantidadIngresada);
-
-        boolean entidadVacia
-                = campoEntidad.getValue() == null;
-
-        campoDomicilio.setInvalid(domicilioVacio);
-        campoDomicilio.setErrorMessage(
-                "El domicilio es obligatorio."
-        );
-
-        campoEmpleados.setInvalid(cantidadInvalida);
-        campoEmpleados.setErrorMessage(
-                "Debe ingresar un número entero mayor que cero."
-        );
-
-        campoEntidad.setInvalid(entidadVacia);
-        campoEntidad.setErrorMessage(
-                "Debe seleccionar una entidad bancaria."
-        );
-
-        if (domicilioVacio
-                || cantidadInvalida
-                || entidadVacia) {
-
-            return;
-        }
-
-        SucursalDTO datos
-                = new SucursalDTO(
-                        campoDomicilio.getValue().trim(),
-                        cantidadIngresada.intValue(),
-                        campoEntidad.getValue().getCodigo()
-                );
+        List<EntidadBancariaDTO> entidadesActivas;
 
         try {
 
-            sucursalClient.actualizar(
-                    sucursal.getCodigo(),
-                    datos
-            );
-
-            dialogo.close();
-            cargarSucursales();
-
-            NotificacionUtils.mostrarExito(
-                    "Sucursal modificada correctamente."
+            entidadesActivas = entidadClient.listar(
+                    true,
+                    null,
+                    null
             );
 
         } catch (RestClientResponseException excepcion) {
 
             mostrarErrorOperacion(excepcion);
+            return;
 
         } catch (ResourceAccessException excepcion) {
 
             NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
+                    "No se pueden consultar las entidades bancarias."
             );
+            return;
+        }
 
-        } catch (IllegalArgumentException excepcion) {
+        Dialog dialogo = new Dialog();
 
-            NotificacionUtils.mostrarInformacion(
-                    excepcion.getMessage()
+        dialogo.setHeaderTitle(
+                "Modificar "
+                + sucursal.getCodigo()
+        );
+
+        TextField campoDomicilio
+                = new TextField("Domicilio");
+
+        NumberField campoEmpleados
+                = new NumberField(
+                        "Cantidad de empleados"
+                );
+
+        Select<EntidadBancariaDTO> campoEntidad
+                = new Select<>();
+
+        campoDomicilio.setValue(
+                sucursal.getDomicilio() != null
+                ? sucursal.getDomicilio()
+                : ""
+        );
+
+        if (sucursal.getCantEmpleados() != null) {
+
+            campoEmpleados.setValue(
+                    sucursal.getCantEmpleados()
+                            .doubleValue()
             );
         }
-    });
 
-    HorizontalLayout botones
-            = new HorizontalLayout(
-                    botonGuardar,
-                    botonCancelar
-            );
+        campoEntidad.setLabel("Entidad bancaria");
 
-    VerticalLayout formulario
-            = new VerticalLayout(
-                    campoDomicilio,
-                    campoEmpleados,
-                    campoEntidad,
-                    botones
-            );
-
-    dialogo.add(formulario);
-    dialogo.open();
-}
-        /*
- * Abre el formulario para registrar
- * una nueva sucursal.
- */
-private void abrirFormularioNuevo() {
-
-    List<EntidadBancariaDTO> entidadesActivas;
-
-    try {
-
-        entidadesActivas = entidadClient.listar(
-                true,
-                null,
-                null
+        campoEntidad.setItemLabelGenerator(entidad
+                -> entidad.getCodigo()
+                + " - "
+                + entidad.getNombre()
         );
 
-    } catch (RestClientResponseException excepcion) {
+        campoEntidad.setItems(entidadesActivas);
 
-        mostrarErrorOperacion(excepcion);
-        return;
+        EntidadBancariaDTO entidadActual
+                = entidadesActivas.stream()
+                        .filter(entidad
+                                -> entidad.getCodigo() != null
+                        && entidad.getCodigo()
+                                .equalsIgnoreCase(
+                                        sucursal
+                                                .getEntidadBancariaCodigo()
+                                )
+                        )
+                        .findFirst()
+                        .orElse(null);
 
-    } catch (ResourceAccessException excepcion) {
+        if (entidadActual != null) {
+            campoEntidad.setValue(entidadActual);
+        }
 
-        NotificacionUtils.mostrarInformacion(
-                "No se pueden consultar las entidades bancarias."
-        );
-        return;
+        campoDomicilio.setRequiredIndicatorVisible(true);
+        campoEmpleados.setRequiredIndicatorVisible(true);
+        campoEntidad.setRequiredIndicatorVisible(true);
+
+        campoEmpleados.setMin(1);
+        campoEmpleados.setStep(1);
+        campoEmpleados.setStepButtonsVisible(true);
+
+        campoDomicilio.setWidthFull();
+        campoEmpleados.setWidthFull();
+        campoEntidad.setWidthFull();
+
+        Button botonGuardar
+                = new Button("Guardar cambios");
+
+        Button botonCancelar
+                = new Button(
+                        "Cancelar",
+                        evento -> dialogo.close()
+                );
+
+        botonGuardar.addClickListener(evento -> {
+
+            boolean domicilioVacio
+                    = campoDomicilio.getValue().isBlank();
+
+            Double cantidadIngresada
+                    = campoEmpleados.getValue();
+
+            boolean cantidadInvalida
+                    = cantidadIngresada == null
+                    || cantidadIngresada < 1
+                    || cantidadIngresada
+                    != Math.floor(cantidadIngresada);
+
+            boolean entidadVacia
+                    = campoEntidad.getValue() == null;
+
+            campoDomicilio.setInvalid(domicilioVacio);
+            campoDomicilio.setErrorMessage(
+                    "El domicilio es obligatorio."
+            );
+
+            campoEmpleados.setInvalid(cantidadInvalida);
+            campoEmpleados.setErrorMessage(
+                    "Debe ingresar un número entero mayor que cero."
+            );
+
+            campoEntidad.setInvalid(entidadVacia);
+            campoEntidad.setErrorMessage(
+                    "Debe seleccionar una entidad bancaria."
+            );
+
+            if (domicilioVacio
+                    || cantidadInvalida
+                    || entidadVacia) {
+
+                return;
+            }
+
+            SucursalDTO datos
+                    = new SucursalDTO(
+                            campoDomicilio.getValue().trim(),
+                            cantidadIngresada.intValue(),
+                            campoEntidad.getValue().getCodigo()
+                    );
+
+            try {
+
+                sucursalClient.actualizar(
+                        sucursal.getCodigo(),
+                        datos
+                );
+
+                dialogo.close();
+                cargarSucursales();
+
+                NotificacionUtils.mostrarExito(
+                        "Sucursal modificada correctamente."
+                );
+
+            } catch (RestClientResponseException excepcion) {
+
+                mostrarErrorOperacion(excepcion);
+
+            } catch (ResourceAccessException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        "No se puede conectar con el backend."
+                );
+
+            } catch (IllegalArgumentException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        excepcion.getMessage()
+                );
+            }
+        });
+
+        HorizontalLayout botones
+                = new HorizontalLayout(
+                        botonGuardar,
+                        botonCancelar
+                );
+
+        VerticalLayout formulario
+                = new VerticalLayout(
+                        campoDomicilio,
+                        campoEmpleados,
+                        campoEntidad,
+                        botones
+                );
+
+        dialogo.add(formulario);
+        dialogo.open();
     }
-
-    if (entidadesActivas.isEmpty()) {
-
-        NotificacionUtils.mostrarInformacion(
-                "No existen entidades bancarias activas."
-        );
-        return;
-    }
-
-    Dialog dialogo = new Dialog();
-
-    dialogo.setHeaderTitle(
-            "Nueva sucursal"
-    );
-
-    TextField campoDomicilio
-            = new TextField("Domicilio");
-
-    NumberField campoEmpleados
-            = new NumberField(
-                    "Cantidad de empleados"
-            );
-
-    Select<EntidadBancariaDTO> campoEntidad
-            = new Select<>();
-
-    campoEntidad.setLabel("Entidad bancaria");
 
     /*
-     * Muestra código y nombre para distinguir
-     * correctamente cada entidad.
+ * Abre el formulario para registrar
+ * una nueva sucursal.
      */
-    campoEntidad.setItemLabelGenerator(entidad ->
-            entidad.getCodigo()
-                    + " - "
-                    + entidad.getNombre()
-    );
+    private void abrirFormularioNuevo() {
 
-    campoEntidad.setItems(entidadesActivas);
+        List<EntidadBancariaDTO> entidadesActivas;
 
-    campoDomicilio.setRequiredIndicatorVisible(true);
-    campoEmpleados.setRequiredIndicatorVisible(true);
-    campoEntidad.setRequiredIndicatorVisible(true);
+        try {
 
-    campoEmpleados.setMin(1);
-    campoEmpleados.setStep(1);
-    campoEmpleados.setStepButtonsVisible(true);
-
-    campoDomicilio.setWidthFull();
-    campoEmpleados.setWidthFull();
-    campoEntidad.setWidthFull();
-
-    Button botonGuardar
-            = new Button("Guardar");
-
-    Button botonCancelar
-            = new Button(
-                    "Cancelar",
-                    evento -> dialogo.close()
+            entidadesActivas = entidadClient.listar(
+                    true,
+                    null,
+                    null
             );
 
-    botonGuardar.addClickListener(evento -> {
+        } catch (RestClientResponseException excepcion) {
 
-        boolean domicilioVacio
-                = campoDomicilio.getValue().isBlank();
+            mostrarErrorOperacion(excepcion);
+            return;
 
-        Double cantidadIngresada
-                = campoEmpleados.getValue();
+        } catch (ResourceAccessException excepcion) {
 
-        boolean cantidadInvalida
-                = cantidadIngresada == null
-                || cantidadIngresada < 1
-                || cantidadIngresada
-                        != Math.floor(cantidadIngresada);
-
-        boolean entidadVacia
-                = campoEntidad.getValue() == null;
-
-        campoDomicilio.setInvalid(domicilioVacio);
-        campoDomicilio.setErrorMessage(
-                "El domicilio es obligatorio."
-        );
-
-        campoEmpleados.setInvalid(cantidadInvalida);
-        campoEmpleados.setErrorMessage(
-                "Debe ingresar un número entero mayor que cero."
-        );
-
-        campoEntidad.setInvalid(entidadVacia);
-        campoEntidad.setErrorMessage(
-                "Debe seleccionar una entidad bancaria."
-        );
-
-        if (domicilioVacio
-                || cantidadInvalida
-                || entidadVacia) {
-
+            NotificacionUtils.mostrarInformacion(
+                    "No se pueden consultar las entidades bancarias."
+            );
             return;
         }
 
-        EntidadBancariaDTO entidadSeleccionada
-                = campoEntidad.getValue();
+        if (entidadesActivas.isEmpty()) {
 
-        SucursalDTO datos
-                = new SucursalDTO(
-                        campoDomicilio.getValue().trim(),
-                        cantidadIngresada.intValue(),
-                        entidadSeleccionada.getCodigo()
+            NotificacionUtils.mostrarInformacion(
+                    "No existen entidades bancarias activas."
+            );
+            return;
+        }
+
+        Dialog dialogo = new Dialog();
+
+        dialogo.setHeaderTitle(
+                "Nueva sucursal"
+        );
+
+        TextField campoDomicilio
+                = new TextField("Domicilio");
+
+        NumberField campoEmpleados
+                = new NumberField(
+                        "Cantidad de empleados"
                 );
 
-        try {
+        Select<EntidadBancariaDTO> campoEntidad
+                = new Select<>();
 
-            sucursalClient.crear(datos);
-
-            dialogo.close();
-            cargarSucursales();
-
-            NotificacionUtils.mostrarExito(
-                    "Sucursal creada correctamente."
-            );
-
-        } catch (RestClientResponseException excepcion) {
-
-            mostrarErrorOperacion(excepcion);
-
-        } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
-
-        } catch (IllegalArgumentException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    excepcion.getMessage()
-            );
-        }
-    });
-
-    HorizontalLayout botones
-            = new HorizontalLayout(
-                    botonGuardar,
-                    botonCancelar
-            );
-
-    VerticalLayout formulario
-            = new VerticalLayout(
-                    campoDomicilio,
-                    campoEmpleados,
-                    campoEntidad,
-                    botones
-            );
-
-    dialogo.add(formulario);
-    dialogo.open();
-}
-/*
- * Abre una ventana para seleccionar
- * el motivo de baja de la sucursal.
- */
-private void abrirDialogoBaja(
-        SucursalDTO sucursal) {
-
-    Dialog dialogo = new Dialog();
-
-    dialogo.setHeaderTitle(
-            "Dar de baja "
-                    + sucursal.getCodigo()
-    );
-
-    Select<String> campoMotivo
-            = new Select<>();
-
-    campoMotivo.setLabel(
-            "Motivo del cierre"
-    );
-
-    campoMotivo.setItems(
-            "CIERRE_TEMPORAL",
-            "CIERRE_DEFINITIVO",
-            "MUDANZA"
-    );
-
-    campoMotivo.setRequiredIndicatorVisible(true);
-    campoMotivo.setWidthFull();
-
-    Button botonConfirmar
-            = new Button("Confirmar baja");
-
-    Button botonCancelar
-            = new Button(
-                    "Cancelar",
-                    evento -> dialogo.close()
-            );
-
-    botonConfirmar.addClickListener(evento -> {
-
-        String motivoSeleccionado
-                = campoMotivo.getValue();
-
-        boolean motivoVacio
-                = motivoSeleccionado == null
-                || motivoSeleccionado.isBlank();
-
-        campoMotivo.setInvalid(motivoVacio);
-        campoMotivo.setErrorMessage(
-                "Debe seleccionar un motivo."
-        );
+        campoEntidad.setLabel("Entidad bancaria");
 
         /*
+     * Muestra código y nombre para distinguir
+     * correctamente cada entidad.
+         */
+        campoEntidad.setItemLabelGenerator(entidad
+                -> entidad.getCodigo()
+                + " - "
+                + entidad.getNombre()
+        );
+
+        campoEntidad.setItems(entidadesActivas);
+
+        campoDomicilio.setRequiredIndicatorVisible(true);
+        campoEmpleados.setRequiredIndicatorVisible(true);
+        campoEntidad.setRequiredIndicatorVisible(true);
+
+        campoEmpleados.setMin(1);
+        campoEmpleados.setStep(1);
+        campoEmpleados.setStepButtonsVisible(true);
+
+        campoDomicilio.setWidthFull();
+        campoEmpleados.setWidthFull();
+        campoEntidad.setWidthFull();
+
+        Button botonGuardar
+                = new Button("Guardar");
+
+        Button botonCancelar
+                = new Button(
+                        "Cancelar",
+                        evento -> dialogo.close()
+                );
+
+        botonGuardar.addClickListener(evento -> {
+
+            boolean domicilioVacio
+                    = campoDomicilio.getValue().isBlank();
+
+            Double cantidadIngresada
+                    = campoEmpleados.getValue();
+
+            boolean cantidadInvalida
+                    = cantidadIngresada == null
+                    || cantidadIngresada < 1
+                    || cantidadIngresada
+                    != Math.floor(cantidadIngresada);
+
+            boolean entidadVacia
+                    = campoEntidad.getValue() == null;
+
+            campoDomicilio.setInvalid(domicilioVacio);
+            campoDomicilio.setErrorMessage(
+                    "El domicilio es obligatorio."
+            );
+
+            campoEmpleados.setInvalid(cantidadInvalida);
+            campoEmpleados.setErrorMessage(
+                    "Debe ingresar un número entero mayor que cero."
+            );
+
+            campoEntidad.setInvalid(entidadVacia);
+            campoEntidad.setErrorMessage(
+                    "Debe seleccionar una entidad bancaria."
+            );
+
+            if (domicilioVacio
+                    || cantidadInvalida
+                    || entidadVacia) {
+
+                return;
+            }
+
+            EntidadBancariaDTO entidadSeleccionada
+                    = campoEntidad.getValue();
+
+            SucursalDTO datos
+                    = new SucursalDTO(
+                            campoDomicilio.getValue().trim(),
+                            cantidadIngresada.intValue(),
+                            entidadSeleccionada.getCodigo()
+                    );
+
+            try {
+
+                sucursalClient.crear(datos);
+
+                dialogo.close();
+                cargarSucursales();
+
+                NotificacionUtils.mostrarExito(
+                        "Sucursal creada correctamente."
+                );
+
+            } catch (RestClientResponseException excepcion) {
+
+                mostrarErrorOperacion(excepcion);
+
+            } catch (ResourceAccessException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        "No se puede conectar con el backend."
+                );
+
+            } catch (IllegalArgumentException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        excepcion.getMessage()
+                );
+            }
+        });
+
+        HorizontalLayout botones
+                = new HorizontalLayout(
+                        botonGuardar,
+                        botonCancelar
+                );
+
+        VerticalLayout formulario
+                = new VerticalLayout(
+                        campoDomicilio,
+                        campoEmpleados,
+                        campoEntidad,
+                        botones
+                );
+
+        dialogo.add(formulario);
+        dialogo.open();
+    }
+
+    /*
+ * Abre una ventana para seleccionar
+ * el motivo de baja de la sucursal.
+     */
+    private void abrirDialogoBaja(
+            SucursalDTO sucursal) {
+
+        Dialog dialogo = new Dialog();
+
+        dialogo.setHeaderTitle(
+                "Dar de baja "
+                + sucursal.getCodigo()
+        );
+
+        Select<String> campoMotivo
+                = new Select<>();
+
+        campoMotivo.setLabel(
+                "Motivo del cierre"
+        );
+
+        campoMotivo.setItems(
+                "CIERRE_TEMPORAL",
+                "CIERRE_DEFINITIVO",
+                "MUDANZA"
+        );
+
+        campoMotivo.setRequiredIndicatorVisible(true);
+        campoMotivo.setWidthFull();
+
+        Button botonConfirmar
+                = new Button("Confirmar baja");
+
+        Button botonCancelar
+                = new Button(
+                        "Cancelar",
+                        evento -> dialogo.close()
+                );
+
+        botonConfirmar.addClickListener(evento -> {
+
+            String motivoSeleccionado
+                    = campoMotivo.getValue();
+
+            boolean motivoVacio
+                    = motivoSeleccionado == null
+                    || motivoSeleccionado.isBlank();
+
+            campoMotivo.setInvalid(motivoVacio);
+            campoMotivo.setErrorMessage(
+                    "Debe seleccionar un motivo."
+            );
+
+            /*
          * Si no se eligió un motivo,
          * no se envía la baja al backend.
-         */
-        if (motivoVacio) {
-            return;
-        }
+             */
+            if (motivoVacio) {
+                return;
+            }
+
+            try {
+
+                sucursalClient.darDeBaja(
+                        sucursal.getCodigo(),
+                        motivoSeleccionado
+                );
+
+                dialogo.close();
+                cargarSucursales();
+
+                NotificacionUtils.mostrarExito(
+                        "Sucursal dada de baja correctamente."
+                );
+
+            } catch (RestClientResponseException excepcion) {
+
+                mostrarErrorOperacion(excepcion);
+
+            } catch (ResourceAccessException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        "No se puede conectar con el backend."
+                );
+
+            } catch (IllegalArgumentException excepcion) {
+
+                NotificacionUtils.mostrarInformacion(
+                        excepcion.getMessage()
+                );
+            }
+        });
+
+        HorizontalLayout botones
+                = new HorizontalLayout(
+                        botonConfirmar,
+                        botonCancelar
+                );
+
+        VerticalLayout contenido
+                = new VerticalLayout(
+                        campoMotivo,
+                        botones
+                );
+
+        dialogo.add(contenido);
+        dialogo.open();
+    }
+
+    /*
+ * Convierte errores HTTP en mensajes
+ * comprensibles para el usuario.
+     */
+    private void mostrarErrorOperacion(
+            RestClientResponseException excepcion) {
+        NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
+    }
+
+    /*
+ * Reactiva una sucursal cerrada,
+ * siempre que el backend lo permita.
+     */
+    private void reactivarSucursal(
+            SucursalDTO sucursal) {
 
         try {
 
-            sucursalClient.darDeBaja(
-                    sucursal.getCodigo(),
-                    motivoSeleccionado
+            sucursalClient.reactivar(
+                    sucursal.getCodigo()
             );
 
-            dialogo.close();
             cargarSucursales();
 
             NotificacionUtils.mostrarExito(
-                    "Sucursal dada de baja correctamente."
+                    "Sucursal reactivada correctamente."
             );
 
         } catch (RestClientResponseException excepcion) {
@@ -815,70 +898,7 @@ private void abrirDialogoBaja(
                     excepcion.getMessage()
             );
         }
-    });
-
-    HorizontalLayout botones
-            = new HorizontalLayout(
-                    botonConfirmar,
-                    botonCancelar
-            );
-
-    VerticalLayout contenido
-            = new VerticalLayout(
-                    campoMotivo,
-                    botones
-            );
-
-    dialogo.add(contenido);
-    dialogo.open();
-}
-
-/*
- * Convierte errores HTTP en mensajes
- * comprensibles para el usuario.
- */
-private void mostrarErrorOperacion(
-        RestClientResponseException excepcion) {
-    NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
-}
-
-/*
- * Reactiva una sucursal cerrada,
- * siempre que el backend lo permita.
- */
-private void reactivarSucursal(
-        SucursalDTO sucursal) {
-
-    try {
-
-        sucursalClient.reactivar(
-                sucursal.getCodigo()
-        );
-
-        cargarSucursales();
-
-        NotificacionUtils.mostrarExito(
-                "Sucursal reactivada correctamente."
-        );
-
-    } catch (RestClientResponseException excepcion) {
-
-        mostrarErrorOperacion(excepcion);
-
-    } catch (ResourceAccessException excepcion) {
-
-        NotificacionUtils.mostrarInformacion(
-                "No se puede conectar con el backend."
-        );
-
-    } catch (IllegalArgumentException excepcion) {
-
-        NotificacionUtils.mostrarInformacion(
-                excepcion.getMessage()
-        );
     }
-}
-
 
     @Override
     public void beforeEnter(
@@ -893,9 +913,12 @@ private void reactivarSucursal(
 
         return switch (filtroEstado.getValue()) {
 
-            case "Activas" -> true;
-            case "Inactivas" -> false;
-            default -> null;
+            case "Activas" ->
+                true;
+            case "Inactivas" ->
+                false;
+            default ->
+                null;
         };
     }
 
@@ -953,8 +976,8 @@ private void reactivarSucursal(
 
                     NotificacionUtils.mostrarInformacion(
                             "La entidad bancaria seleccionada no tiene sucursales"
-                                    + aclaracionEstado
-                                    + "."
+                            + aclaracionEstado
+                            + "."
                     );
 
                 } else if (filtroDomicilio.getValue() != null
@@ -962,8 +985,8 @@ private void reactivarSucursal(
 
                     NotificacionUtils.mostrarInformacion(
                             "No se encontraron sucursales cuyo domicilio coincida con: "
-                                    + filtroDomicilio.getValue().trim()
-                                    + "."
+                            + filtroDomicilio.getValue().trim()
+                            + "."
                     );
 
                 } else if (estado != null) {
@@ -996,25 +1019,26 @@ private void reactivarSucursal(
     }
 
     private void cargarOpcionesFiltros() {
+        filtroTipoBusqueda.setItems("General");
+        filtroTipoBusqueda.setValue("General");
+        entidadesDisponibles = List.of();
+
+        boolean puedeLeerEntidades = sesionUsuario.tieneRol("ADMINISTRADOR")
+                || sesionUsuario.tienePermiso("LECTURA_ENTIDAD_BANCARIA");
+
+        if (!puedeLeerEntidades) {
+            return;
+        }
 
         try {
-
-            entidadesDisponibles
-                    = entidadClient.listar(null, null, null);
-
+            entidadesDisponibles = entidadClient.listar(null, null, null);
             filtroEntidad.setItems(entidadesDisponibles);
-
+            filtroTipoBusqueda.setItems("General", "Por entidad bancaria");
+            filtroTipoBusqueda.setValue("General");
         } catch (RestClientResponseException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se pudieron cargar las entidades bancarias."
-            );
-
+            mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+            NotificacionUtils.mostrarInformacion("No se pudieron cargar las entidades bancarias.");
         }
     }
 
@@ -1045,8 +1069,48 @@ private void reactivarSucursal(
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_SUCURSAL");
+    }
+
+    private void verAsaltos(SucursalDTO sucursal) {
+        try {
+            List<prog2.policia_frontend.dtos.AsaltoDTO> asaltos
+                    = asaltoClient.listarPorSucursal(sucursal.getCodigo());
+
+            Dialog dialogo = new Dialog();
+            dialogo.setHeaderTitle("Asaltos de " + sucursal.getCodigo());
+            dialogo.setWidth("500px");
+
+            VerticalLayout contenido = new VerticalLayout();
+            contenido.setPadding(false);
+
+            if (asaltos.isEmpty()) {
+                contenido.add(new Span("No hay asaltos registrados."));
+            } else {
+                Grid<prog2.policia_frontend.dtos.AsaltoDTO> tablaAsaltos
+                        = new Grid<>(prog2.policia_frontend.dtos.AsaltoDTO.class, false);
+
+                tablaAsaltos.addColumn(asalto -> asalto.getCodigo())
+                        .setHeader("Código del asalto").setAutoWidth(true);
+
+                tablaAsaltos.addColumn(asalto -> asalto.getFecha() == null
+                        ? "-"
+                        : asalto.getFecha().format(
+                                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        .setHeader("Fecha").setAutoWidth(true);
+
+                tablaAsaltos.setItems(asaltos);
+                tablaAsaltos.setAllRowsVisible(true);
+                contenido.add(tablaAsaltos);
+            }
+
+            contenido.add(new Button("Cerrar", evento -> dialogo.close()));
+            dialogo.add(contenido);
+            dialogo.open();
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pudieron consultar los asaltos.");
+        }
     }
 }

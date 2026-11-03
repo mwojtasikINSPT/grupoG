@@ -370,9 +370,7 @@ public class BandasView
 
     private boolean puedeEscribir() {
 
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_BANDA");
     }
 
     private void cargarBandas() {

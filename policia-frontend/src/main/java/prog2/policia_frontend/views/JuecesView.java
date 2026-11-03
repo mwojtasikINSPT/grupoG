@@ -94,24 +94,24 @@ public class JuecesView
                 .setHeader("Juez desde")
                 .setAutoWidth(true);
 
-        tabla.addColumn(juez ->
-                juez.getAniosServicio() != null
-                        ? juez.getAniosServicio()
-                        : 0
+        tabla.addColumn(juez
+                -> juez.getAniosServicio() != null
+                ? juez.getAniosServicio()
+                : 0
         ).setHeader("Años de servicio")
                 .setAutoWidth(true);
 
-        tabla.addColumn(juez ->
-                Boolean.TRUE.equals(juez.getActivo())
-                        ? "Activo"
-                        : "Inactivo"
+        tabla.addColumn(juez
+                -> Boolean.TRUE.equals(juez.getActivo())
+                ? "Activo"
+                : "Inactivo"
         ).setHeader("Estado")
                 .setAutoWidth(true);
 
-        tabla.addColumn(juez ->
-                juez.getMotivoBaja() != null
-                        ? juez.getMotivoBaja()
-                        : "-"
+        tabla.addColumn(juez
+                -> juez.getMotivoBaja() != null
+                ? juez.getMotivoBaja()
+                : "-"
         ).setHeader("Motivo de baja")
                 .setAutoWidth(true);
 
@@ -120,6 +120,11 @@ public class JuecesView
             Button botonVerCasos = new Button(
                     "Ver casos",
                     evento -> verCasos(juez)
+            );
+
+            botonVerCasos.setVisible(
+                    sesionUsuario.tieneRol("ADMINISTRADOR")
+                    || sesionUsuario.tienePermiso("LECTURA_CASO_JUDICIAL")
             );
 
             if (!puedeEscribir()) {
@@ -264,8 +269,8 @@ public class JuecesView
         if (!esCreacion) {
             campoNombre.setValue(
                     juez.getNombre() != null
-                            ? juez.getNombre()
-                            : ""
+                    ? juez.getNombre()
+                    : ""
             );
             campoJuezDesde.setValue(juez.getJuezDesde());
         }
@@ -422,16 +427,17 @@ public class JuecesView
 
     private Boolean obtenerEstado() {
         return switch (filtroEstado.getValue()) {
-            case "Activos" -> true;
-            case "Inactivos" -> false;
-            default -> null;
+            case "Activos" ->
+                true;
+            case "Inactivos" ->
+                false;
+            default ->
+                null;
         };
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_JUEZ");
     }
 
     private void cargarJueces() {
@@ -460,7 +466,9 @@ public class JuecesView
     private void actualizarTabla() {
         int totalRegistros = listaCompletaJueces.size();
         int totalPaginas = (int) Math.ceil((double) totalRegistros / PAGE_SIZE);
-        if (totalPaginas == 0) totalPaginas = 1;
+        if (totalPaginas == 0) {
+            totalPaginas = 1;
+        }
 
         int desde = paginaActual * PAGE_SIZE;
         int hasta = Math.min(desde + PAGE_SIZE, totalRegistros);

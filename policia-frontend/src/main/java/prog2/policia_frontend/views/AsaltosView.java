@@ -87,26 +87,22 @@ public class AsaltosView
     private void configurarFiltros() {
 
         filtroTipoBusqueda.setLabel("Buscar asaltos");
-        filtroTipoBusqueda.setItems(
-                "Todos",
-                "Por asaltante",
-                "Por sucursal"
-        );
+        filtroTipoBusqueda.setItems("Todos");
         filtroTipoBusqueda.setValue("Todos");
 
         filtroAsaltante.setLabel("Asaltante");
-        filtroAsaltante.setItemLabelGenerator(asaltante ->
-                asaltante.getCodigo()
-                        + " - "
-                        + asaltante.getNombre()
+        filtroAsaltante.setItemLabelGenerator(asaltante
+                -> asaltante.getCodigo()
+                + " - "
+                + asaltante.getNombre()
         );
         filtroAsaltante.setVisible(false);
 
         filtroSucursal.setLabel("Sucursal");
-        filtroSucursal.setItemLabelGenerator(sucursal ->
-                sucursal.getCodigo()
-                        + " - "
-                        + sucursal.getDomicilio()
+        filtroSucursal.setItemLabelGenerator(sucursal
+                -> sucursal.getCodigo()
+                + " - "
+                + sucursal.getDomicilio()
         );
         filtroSucursal.setVisible(false);
 
@@ -155,6 +151,11 @@ public class AsaltosView
                 .setAutoWidth(true)
                 .setFlexGrow(1);
 
+        if (puedeLeer("ASALTANTE")) {
+            tabla.addComponentColumn(asalto -> new Button("Ver nombres", evento -> mostrarAsaltantes(asalto)))
+                    .setHeader("Participantes").setAutoWidth(true);
+        }
+
         tabla.addComponentColumn(asalto -> {
 
             if (!puedeEscribir()) {
@@ -174,6 +175,42 @@ public class AsaltosView
                 .setAutoWidth(true);
 
         tabla.setSizeFull();
+    }
+
+    private void mostrarAsaltantes(AsaltoDTO asalto) {
+        try {
+            List<String> codigos = asalto.getAsaltantesCodigos();
+            Dialog dialogo = new Dialog();
+            dialogo.setHeaderTitle("Asaltantes de " + asalto.getCodigo());
+            dialogo.setWidth("420px");
+            VerticalLayout contenido = new VerticalLayout();
+            contenido.setPadding(false);
+
+            if (codigos == null || codigos.isEmpty()) {
+                contenido.add(new Span("Sin participantes."));
+            } else {
+                List<AsaltanteDTO> asaltantes = asaltanteClient.listar(null, null);
+                for (String codigo : codigos) {
+                    String nombre = null;
+                    for (AsaltanteDTO asaltante : asaltantes) {
+                        if (codigo.equalsIgnoreCase(asaltante.getCodigo())) {
+                            nombre = asaltante.getNombre();
+                            break;
+                        }
+                    }
+                    String detalle = nombre == null || nombre.isBlank() ? "Nombre no disponible" : nombre;
+                    contenido.add(new Span(detalle + " (" + codigo + ")"));
+                }
+            }
+
+            contenido.add(new Button("Cerrar", evento -> dialogo.close()));
+            dialogo.add(contenido);
+            dialogo.open();
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pudieron cargar los asaltantes.");
+        }
     }
 
     private void configurarVista() {
@@ -299,18 +336,18 @@ public class AsaltosView
 
         campoSucursal.setLabel("Sucursal");
         campoSucursal.setItems(sucursalesActivas);
-        campoSucursal.setItemLabelGenerator(sucursal ->
-                sucursal.getCodigo()
-                        + " - "
-                        + sucursal.getDomicilio()
+        campoSucursal.setItemLabelGenerator(sucursal
+                -> sucursal.getCodigo()
+                + " - "
+                + sucursal.getDomicilio()
         );
         campoSucursal.setRequiredIndicatorVisible(true);
 
         campoAsaltantes.setItems(asaltantesActivos);
-        campoAsaltantes.setItemLabelGenerator(asaltante ->
-                asaltante.getCodigo()
-                        + " - "
-                        + asaltante.getNombre()
+        campoAsaltantes.setItemLabelGenerator(asaltante
+                -> asaltante.getCodigo()
+                + " - "
+                + asaltante.getNombre()
         );
         campoAsaltantes.setPlaceholder(
                 "Puede quedar sin participantes"
@@ -324,17 +361,13 @@ public class AsaltosView
             campoFecha.setValue(asalto.getFecha());
             campoFecha.setEnabled(false);
 
-            SucursalDTO sucursalActual
-                    = sucursalesActivas.stream()
-                            .filter(sucursal
-                                    -> sucursal.getCodigo() != null
-                                    && sucursal.getCodigo()
-                                            .equalsIgnoreCase(
-                                                    asalto.getSucursalCodigo()
-                                            )
-                            )
-                            .findFirst()
-                            .orElse(null);
+            SucursalDTO sucursalActual = null;
+            for (SucursalDTO sucursal : sucursalesActivas) {
+                if (sucursal.getCodigo() != null && sucursal.getCodigo().equalsIgnoreCase(asalto.getSucursalCodigo())) {
+                    sucursalActual = sucursal;
+                    break;
+                }
+            }
 
             if (sucursalActual != null) {
                 campoSucursal.setValue(sucursalActual);
@@ -351,11 +384,14 @@ public class AsaltosView
                 for (AsaltanteDTO candidato
                         : asaltantesActivos) {
 
-                    if (codigosActuales.stream()
-                            .anyMatch(codigo
-                                    -> codigo.equalsIgnoreCase(
-                                            candidato.getCodigo()
-                                    ))) {
+                    boolean participa = false;
+                    for (String codigo : codigosActuales) {
+                        if (codigo.equalsIgnoreCase(candidato.getCodigo())) {
+                            participa = true;
+                            break;
+                        }
+                    }
+                    if (participa) {
 
                         seleccionActual.add(candidato);
                         participantesActivosOriginales.add(
@@ -409,11 +445,10 @@ public class AsaltosView
                 return;
             }
 
-            List<String> codigosSeleccionados
-                    = campoAsaltantes.getSelectedItems()
-                            .stream()
-                            .map(AsaltanteDTO::getCodigo)
-                            .toList();
+            List<String> codigosSeleccionados = new java.util.ArrayList<>();
+            for (AsaltanteDTO seleccionado : campoAsaltantes.getSelectedItems()) {
+                codigosSeleccionados.add(seleccionado.getCodigo());
+            }
 
             AsaltoDTO datos = new AsaltoDTO();
             datos.setSucursalCodigo(
@@ -574,27 +609,38 @@ public class AsaltosView
     }
 
     private void cargarOpcionesFiltros() {
+        List<String> opciones = new java.util.ArrayList<>();
+        opciones.add("Todos");
 
-        try {
-
-            filtroAsaltante.setItems(
-                    asaltanteClient.listar(null, null)
-            );
-
-            filtroSucursal.setItems(
-                    sucursalClient.listar(null, null)
-            );
-
-        } catch (RestClientResponseException excepcion) {
-
-            mostrarErrorOperacion(excepcion);
-
-        } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se pudieron cargar asaltantes y sucursales."
-            );
+        if (puedeLeer("ASALTANTE")) {
+            try {
+                filtroAsaltante.setItems(asaltanteClient.listar(null, null));
+                opciones.add("Por asaltante");
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar los asaltantes.");
+            }
         }
+
+        if (puedeLeer("SUCURSAL")) {
+            try {
+                filtroSucursal.setItems(sucursalClient.listar(null, null));
+                opciones.add("Por sucursal");
+            } catch (RestClientResponseException excepcion) {
+                mostrarErrorOperacion(excepcion);
+            } catch (ResourceAccessException excepcion) {
+                NotificacionUtils.mostrarInformacion("No se pudieron cargar las sucursales.");
+            }
+        }
+
+        filtroTipoBusqueda.setItems(opciones);
+        filtroTipoBusqueda.setValue("Todos");
+    }
+
+    private boolean puedeLeer(String entidad) {
+        return sesionUsuario.tieneRol("ADMINISTRADOR")
+                || sesionUsuario.tienePermiso(PermisosApp.LECTURA + "_" + entidad);
     }
 
     private void mostrarErrorOperacion(
@@ -603,10 +649,10 @@ public class AsaltosView
     }
 
     private boolean puedeEscribir() {
-
-        return sesionUsuario.tienePermiso(
-                PermisosApp.ESCRITURA
-        );
+        return sesionUsuario.tieneRol("ADMINISTRADOR")
+                || (sesionUsuario.tienePermiso("ESCRITURA_ASALTO")
+                && sesionUsuario.tienePermiso("LECTURA_ASALTANTE")
+                && sesionUsuario.tienePermiso("LECTURA_SUCURSAL"));
     }
 
     @Override
