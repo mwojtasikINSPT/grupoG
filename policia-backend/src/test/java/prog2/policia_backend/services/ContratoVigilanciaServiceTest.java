@@ -12,6 +12,7 @@ import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.*;
+import prog2.policia_backend.security.AutorizadorPermisos;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,12 +29,9 @@ class ContratoVigilanciaServiceTest {
         contratoRepository = mock(ContratoVigilanciaRepository.class);
         usuarioRepository = mock(UsuarioRepository.class);
         sucursalRepository = mock(SucursalRepository.class);
+        AutorizadorPermisos autorizadorPermisos = mock(AutorizadorPermisos.class);
 
-        contratoService = new ContratoVigilanciaService(
-                contratoRepository,
-                usuarioRepository,
-                sucursalRepository
-        );
+        contratoService = new ContratoVigilanciaService(contratoRepository, usuarioRepository, sucursalRepository, autorizadorPermisos);
     }
 
     private Usuario crearVigilante() {

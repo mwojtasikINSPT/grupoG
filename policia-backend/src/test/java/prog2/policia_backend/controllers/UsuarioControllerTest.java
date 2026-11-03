@@ -27,8 +27,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import prog2.policia_backend.configs.SecurityConfig;
 
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @WebMvcTest(UsuarioController.class)
-@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class})
+@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class})
 class UsuarioControllerTest {
 
     @Autowired

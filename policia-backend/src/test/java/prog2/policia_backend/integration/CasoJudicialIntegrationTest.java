@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {

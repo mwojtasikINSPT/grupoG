@@ -114,4 +114,22 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDTO> reactivar(@PathVariable String codigo) {
         return ResponseEntity.ok(usuarioService.reactivar(codigo));
     }
+
+    @GetMapping("/mis-permisos")
+    public ResponseEntity<List<String>> obtenerMisPermisos(Authentication authentication) {
+        List<String> permisos = new java.util.ArrayList<>();
+
+        for (GrantedAuthority autoridad : authentication.getAuthorities()) {
+            permisos.add(autoridad.getAuthority());
+        }
+
+        return ResponseEntity.ok(permisos);
+    }
+
+    @GetMapping("/mi-perfil")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UsuarioDTO> obtenerMiPerfil(Authentication authentication) {
+        return ResponseEntity.ok(usuarioService.buscarPorCodigo(authentication.getName()));
+    }
+
 }

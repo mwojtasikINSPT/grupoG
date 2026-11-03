@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -18,12 +21,14 @@ import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.ContratoVigilancia;
+import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
+import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
 
@@ -34,6 +39,7 @@ public class ContratoVigilanciaService {
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
     private final UsuarioRepository usuarioRepository;
     private final SucursalRepository sucursalRepository;
+    private final AutorizadorPermisos autorizadorPermisos;
 
     public List<ContratoVigilanciaDTO> listar(Boolean activo) {
 
@@ -271,4 +277,26 @@ public class ContratoVigilanciaService {
 
         return sucursal;
     }
+
+    public List<ContratoVigilanciaDTO> filtrarPorPermisos(List<ContratoVigilanciaDTO> contratos, Authentication authentication) {
+
+        if (autorizadorPermisos.puedeLeerTodo(authentication, Entidad.CONTRATO_VIGILANCIA)) {
+            return contratos;
+        }
+
+        if (!autorizadorPermisos.puedeLeerPropios(authentication, Entidad.CONTRATO_VIGILANCIA)) {
+            throw new AccessDeniedException("No tiene permisos para consultar contratos");
+        }
+
+        List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
+
+        for (ContratoVigilanciaDTO contrato : contratos) {
+            if (authentication.getName().equals(contrato.getVigilanteCodigo())) {
+                resultado.add(contrato);
+            }
+        }
+
+        return resultado;
+    }
+
 }

@@ -2,6 +2,7 @@ package prog2.policia_backend.services;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -207,14 +208,34 @@ public class RolService {
             }
         }
 
-        rol.getPermisosPorEntidad().clear();
+        Iterator<RolPermisoEntidad> iterator = rol.getPermisosPorEntidad().iterator();
+
+        while (iterator.hasNext()) {
+            RolPermisoEntidad existente = iterator.next();
+            String clave = existente.getPermiso().name() + ":" + existente.getEntidad().name();
+
+            if (!combinaciones.contains(clave)) {
+                iterator.remove();
+            }
+        }
 
         for (RolPermisoEntidadDTO dto : permisosDTO) {
-            RolPermisoEntidad relacion = new RolPermisoEntidad();
-            relacion.setRol(rol);
-            relacion.setPermiso(dto.getPermiso());
-            relacion.setEntidad(dto.getEntidad());
-            rol.getPermisosPorEntidad().add(relacion);
+            boolean existe = false;
+
+            for (RolPermisoEntidad existente : rol.getPermisosPorEntidad()) {
+                if (existente.getPermiso() == dto.getPermiso() && existente.getEntidad() == dto.getEntidad()) {
+                    existe = true;
+                    break;
+                }
+            }
+
+            if (!existe) {
+                RolPermisoEntidad relacion = new RolPermisoEntidad();
+                relacion.setRol(rol);
+                relacion.setPermiso(dto.getPermiso());
+                relacion.setEntidad(dto.getEntidad());
+                rol.getPermisosPorEntidad().add(relacion);
+            }
         }
     }
 }

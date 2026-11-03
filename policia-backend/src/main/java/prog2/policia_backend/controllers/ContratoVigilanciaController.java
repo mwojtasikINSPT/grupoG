@@ -1,16 +1,19 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import prog2.policia_backend.validations.OnCreate;
-import prog2.policia_backend.validations.OnUpdate;
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.services.ContratoVigilanciaService;
+import prog2.policia_backend.validations.OnCreate;
+import prog2.policia_backend.validations.OnUpdate;
 
 @RestController
 @RequestMapping("/api/contratos-vigilancia")
@@ -20,53 +23,59 @@ public class ContratoVigilanciaController {
     private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listar(
-            @RequestParam(required = false) Boolean activo,
-            @RequestParam(required = false) String vigilante) {
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String vigilante, Authentication authentication) {
+
+        List<ContratoVigilanciaDTO> contratos;
 
         if (vigilante != null && !vigilante.isBlank()) {
-            return ResponseEntity.ok(contratoVigilanciaService.buscarPorNombreVigilante(vigilante, activo));
+            contratos = contratoVigilanciaService.buscarPorNombreVigilante(vigilante, activo);
+        } else {
+            contratos = contratoVigilanciaService.listar(activo);
         }
 
-        return ResponseEntity.ok(contratoVigilanciaService.listar(activo));
+        return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<ContratoVigilanciaDTO> buscarPorCodigo(@PathVariable String codigo) {
+    public ResponseEntity<ContratoVigilanciaDTO> buscarPorCodigo(@PathVariable String codigo, Authentication authentication) {
 
-        return ResponseEntity.ok(contratoVigilanciaService.buscarPorCodigo(codigo));
+        ContratoVigilanciaDTO contrato = contratoVigilanciaService.buscarPorCodigo(codigo);
+        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.filtrarPorPermisos(List.of(contrato), authentication);
+
+        if (contratos.isEmpty()) {
+            throw new AccessDeniedException("No tiene permisos para consultar este contrato");
+        }
+
+        return ResponseEntity.ok(contratos.get(0));
     }
 
     @GetMapping("/vigilante/{codigo}")
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorVigilante(@PathVariable String codigo) {
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorVigilante(@PathVariable String codigo, Authentication authentication) {
 
-        return ResponseEntity.ok(contratoVigilanciaService.listarPorVigilante(codigo));
+        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.listarPorVigilante(codigo);
+        return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
     }
 
     @GetMapping("/sucursal/{codigo}")
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorSucursal(@PathVariable String codigo) {
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarPorSucursal(@PathVariable String codigo, Authentication authentication) {
 
-        return ResponseEntity.ok(contratoVigilanciaService.listarPorSucursal(codigo));
+        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.listarPorSucursal(codigo);
+        return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
     }
 
     @PostMapping
     public ResponseEntity<ContratoVigilanciaDTO> guardar(@Validated(OnCreate.class) @RequestBody ContratoVigilanciaDTO dto) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(contratoVigilanciaService.guardar(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(contratoVigilanciaService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
     public ResponseEntity<ContratoVigilanciaDTO> actualizar(@PathVariable String codigo, @Validated(OnUpdate.class) @RequestBody ContratoVigilanciaDTO dto) {
-
         return ResponseEntity.ok(contratoVigilanciaService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
-
         contratoVigilanciaService.eliminar(codigo);
-
         return ResponseEntity.noContent().build();
     }
 }

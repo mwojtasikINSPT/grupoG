@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -295,9 +296,9 @@ class ContratoVigilanciaIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
-    void escrituraTambienPuedeConsultarContratos() throws Exception {
+    void escrituraSinLecturaNoPuedeConsultarContratos() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia"))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 
     @Test

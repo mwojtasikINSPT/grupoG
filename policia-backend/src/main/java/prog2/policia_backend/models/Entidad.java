@@ -10,8 +10,7 @@ public enum Entidad {
     JUEZ,
     SENTENCIA_ASALTANTE,
     SUCURSAL,
-    USUARIO,
-    VIGILANTE
+    USUARIO
 }
 
 //No incluimos Rol porque su administración esta reservada exclusivamente al administrador

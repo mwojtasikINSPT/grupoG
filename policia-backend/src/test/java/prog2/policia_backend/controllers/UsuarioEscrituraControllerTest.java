@@ -30,8 +30,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @WebMvcTest(UsuarioController.class)
-@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class})
+@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class})
 class UsuarioEscrituraControllerTest {
 
     @Autowired

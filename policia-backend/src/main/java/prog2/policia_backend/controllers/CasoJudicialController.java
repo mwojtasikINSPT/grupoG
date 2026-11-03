@@ -1,12 +1,15 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.Builder.Default;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.SentenciaAsaltanteDTO;
 import prog2.policia_backend.services.CasoJudicialService;
@@ -32,12 +35,24 @@ public class CasoJudicialController {
 
     @GetMapping("/juez/{codigo}")
     public ResponseEntity<List<CasoJudicialDTO>> listarPorJuez(@PathVariable String codigo) {
+
         return ResponseEntity.ok(casoJudicialService.listarPorJuez(codigo));
     }
 
     @GetMapping("/{codigo}")
     public ResponseEntity<CasoJudicialDTO> buscarPorCodigo(@PathVariable String codigo) {
+
         return ResponseEntity.ok(casoJudicialService.buscarPorCodigo(codigo));
+    }
+
+    @GetMapping("/{codigo}/sentencias")
+    public ResponseEntity<List<SentenciaAsaltanteDTO>> listarSentenciasPorCaso(@PathVariable String codigo) {
+        return ResponseEntity.ok(casoJudicialService.listarSentenciasPorCaso(codigo));
+    }
+
+    @GetMapping("/sentencias/asaltante/{codigo}")
+    public ResponseEntity<List<SentenciaAsaltanteDTO>> listarSentenciasPorAsaltante(@PathVariable String codigo) {
+        return ResponseEntity.ok(casoJudicialService.listarSentenciasPorAsaltante(codigo));
     }
 
     @PostMapping
@@ -71,15 +86,5 @@ public class CasoJudicialController {
     public ResponseEntity<Void> modificarSentencia(@PathVariable String codigo, @PathVariable String asaltanteCodigo, @Validated({OnCreate.class, Default.class}) @RequestBody SentenciaAsaltanteDTO dto) {
         casoJudicialService.modificarSentencia(codigo, asaltanteCodigo, dto.getCondenado(), dto.getTiempoCarcel());
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{codigo}/sentencias")
-    public ResponseEntity<List<SentenciaAsaltanteDTO>> listarSentenciasPorCaso(@PathVariable String codigo) {
-        return ResponseEntity.ok(casoJudicialService.listarSentenciasPorCaso(codigo));
-    }
-
-    @GetMapping("/sentencias/asaltante/{codigo}")
-    public ResponseEntity<List<SentenciaAsaltanteDTO>> listarSentenciasPorAsaltante(@PathVariable String codigo) {
-        return ResponseEntity.ok(casoJudicialService.listarSentenciasPorAsaltante(codigo));
     }
 }
