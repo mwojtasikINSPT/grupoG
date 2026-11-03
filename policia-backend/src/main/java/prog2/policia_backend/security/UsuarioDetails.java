@@ -11,9 +11,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import prog2.policia_backend.models.Permiso;
+import prog2.policia_backend.models.RolPermisoEntidad;
 
-// Adapta nuestro usuario al modelo de Spring Security.
 @Getter
 @RequiredArgsConstructor
 public class UsuarioDetails implements UserDetails {
@@ -21,16 +20,22 @@ public class UsuarioDetails implements UserDetails {
     private final Long id;
     private final String codigo;
     private final String password;
-    private final Set<Permiso> permisos;
+    private final String nombreRol;
+    private final Set<RolPermisoEntidad> permisosPorEntidad;
     private final boolean activo;
 
-    // Conierto  los permisos del rol en GrantedAuthority para Spring Security
+    // Convierte los permisos del rol en autoridades para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-        for (Permiso permiso : permisos) {
-            authorities.add(new SimpleGrantedAuthority(permiso.name()));
+        for (RolPermisoEntidad relacion : permisosPorEntidad) {
+            String autoridad = relacion.getPermiso().name() + "_" + relacion.getEntidad().name();
+            authorities.add(new SimpleGrantedAuthority(autoridad));
+        }
+
+        if ("ADMINISTRADOR".equals(nombreRol)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"));
         }
 
         return authorities;

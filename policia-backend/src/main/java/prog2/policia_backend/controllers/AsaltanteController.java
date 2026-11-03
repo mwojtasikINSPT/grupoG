@@ -1,8 +1,11 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,58 +27,42 @@ public class AsaltanteController {
     private final AsaltoService asaltoService;
 
     @GetMapping
-    public ResponseEntity<List<AsaltanteDTO>> listar(
-            @RequestParam(required = false) Boolean activo,
-            @RequestParam(required = false) String nombre) {
-
+    public ResponseEntity<List<AsaltanteDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String nombre) {
         if (nombre != null && !nombre.isBlank()) {
             return ResponseEntity.ok(asaltanteService.buscarPorNombre(nombre, activo));
         }
-
         return ResponseEntity.ok(asaltanteService.listar(activo));
     }
 
-    /*
-    @GetMapping("/{id}")
-    public ResponseEntity<AsaltanteDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(asaltanteService.buscarPorId(id));
-    }
-     */
     @GetMapping("/{codigo}")
     public ResponseEntity<AsaltanteDTO> buscarPorCodigo(@PathVariable String codigo) {
         return ResponseEntity.ok(asaltanteService.buscarPorCodigo(codigo));
     }
 
+    @GetMapping("/{codigo}/casos-judiciales")
+    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(@PathVariable String codigo) {
+        return ResponseEntity.ok(casoJudicialService.listarPorAsaltante(codigo));
+    }
+
+    @GetMapping("/{codigo}/asaltos")
+    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(@PathVariable String codigo) {
+        return ResponseEntity.ok(asaltoService.listarPorAsaltante(codigo));
+    }
+
     @PostMapping
     public ResponseEntity<AsaltanteDTO> guardar(@Valid @RequestBody AsaltanteDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(asaltanteService.guardar(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(asaltanteService.guardar(dto));
     }
 
     @PutMapping("/{codigo}")
     public ResponseEntity<AsaltanteDTO> actualizar(@PathVariable String codigo, @RequestBody AsaltanteDTO dto) {
-
         return ResponseEntity.ok(asaltanteService.actualizar(codigo, dto));
     }
 
     @PatchMapping("/{codigo}/baja")
     public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody AsaltanteDTO dto) {
-
         asaltanteService.eliminar(codigo, dto);
-
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{codigo}/casos-judiciales")
-    public ResponseEntity<List<CasoJudicialDTO>> listarCasosJudiciales(@PathVariable String codigo) {
-
-        return ResponseEntity.ok(casoJudicialService.listarPorAsaltante(codigo));
-    }
-
-    @GetMapping("/{codigo}/asaltos")
-    public ResponseEntity<List<AsaltoDTO>> listarAsaltos(
-            @PathVariable String codigo) {
-
-        return ResponseEntity.ok(asaltoService.listarPorAsaltante(codigo));
-    }
 }

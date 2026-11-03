@@ -12,6 +12,7 @@ import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.*;
+import prog2.policia_backend.security.AutorizadorPermisos;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -19,25 +20,22 @@ import static org.mockito.Mockito.*;
 class ContratoVigilanciaServiceTest {
 
     private ContratoVigilanciaRepository contratoRepository;
-    private VigilanteRepository vigilanteRepository;
+    private UsuarioRepository usuarioRepository;
     private SucursalRepository sucursalRepository;
     private ContratoVigilanciaService contratoService;
 
     @BeforeEach
     void setUp() {
         contratoRepository = mock(ContratoVigilanciaRepository.class);
-        vigilanteRepository = mock(VigilanteRepository.class);
+        usuarioRepository = mock(UsuarioRepository.class);
         sucursalRepository = mock(SucursalRepository.class);
+        AutorizadorPermisos autorizadorPermisos = mock(AutorizadorPermisos.class);
 
-        contratoService = new ContratoVigilanciaService(
-                contratoRepository,
-                vigilanteRepository,
-                sucursalRepository
-        );
+        contratoService = new ContratoVigilanciaService(contratoRepository, usuarioRepository, sucursalRepository, autorizadorPermisos);
     }
 
-    private Vigilante crearVigilante() {
-        Vigilante vigilante = new Vigilante();
+    private Usuario crearVigilante() {
+        Usuario vigilante = new Usuario();
         vigilante.setId(1L);
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
@@ -230,10 +228,10 @@ class ContratoVigilanciaServiceTest {
     // GUARDAR
     @Test
     void guardarContratoCorrectamente() {
-        Vigilante vigilante = crearVigilante();
+        Usuario vigilante = crearVigilante();
         Sucursal sucursal = crearSucursal();
 
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(vigilante));
 
         when(sucursalRepository.findByCodigo("SUC00001"))
@@ -263,7 +261,7 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void guardarRechazaVigilanteInexistente() {
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.empty());
 
         try {
@@ -278,10 +276,10 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void guardarRechazaVigilanteInactivo() {
-        Vigilante vigilante = crearVigilante();
+        Usuario vigilante = crearVigilante();
         vigilante.setActivo(false);
 
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(vigilante));
 
         try {
@@ -296,7 +294,7 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void guardarRechazaSucursalInexistente() {
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(crearVigilante()));
 
         when(sucursalRepository.findByCodigo("SUC00001"))
@@ -317,7 +315,7 @@ class ContratoVigilanciaServiceTest {
         Sucursal sucursal = crearSucursal();
         sucursal.setActivo(false);
 
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(crearVigilante()));
 
         when(sucursalRepository.findByCodigo("SUC00001"))
@@ -335,7 +333,7 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void guardarRechazaContratoDuplicado() {
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(crearVigilante()));
 
         when(sucursalRepository.findByCodigo("SUC00001"))
@@ -365,6 +363,8 @@ class ContratoVigilanciaServiceTest {
         ContratoVigilancia contrato = crearContrato(
                 "CDV00001", LocalDate.now().plusDays(5), true
         );
+
+        when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(contrato.getVigilante()));
 
         when(contratoRepository.findByCodigo("CDV00001"))
                 .thenReturn(Optional.of(contrato));
@@ -432,6 +432,8 @@ class ContratoVigilanciaServiceTest {
                 "CDV00001", LocalDate.now().plusDays(5), true
         );
 
+        when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(contrato.getVigilante()));
+
         when(contratoRepository.findByCodigo("CDV00001"))
                 .thenReturn(Optional.of(contrato));
 
@@ -456,15 +458,17 @@ class ContratoVigilanciaServiceTest {
                 "CDV00001", LocalDate.now().plusDays(5), true
         );
 
-        Vigilante nuevoVigilante = crearVigilante();
-        nuevoVigilante.setId(2L);
-        nuevoVigilante.setCodigo("VIG00002");
+        Usuario nuevoUsuario = crearVigilante();
+        nuevoUsuario.setId(2L);
+        nuevoUsuario.setCodigo("VIG00002");
+
+        when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(contrato.getVigilante()));
 
         when(contratoRepository.findByCodigo("CDV00001"))
                 .thenReturn(Optional.of(contrato));
 
-        when(vigilanteRepository.findByCodigo("VIG00002"))
-                .thenReturn(Optional.of(nuevoVigilante));
+        when(usuarioRepository.findByCodigo("VIG00002"))
+                .thenReturn(Optional.of(nuevoUsuario));
 
         when(contratoRepository
                 .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
@@ -491,6 +495,8 @@ class ContratoVigilanciaServiceTest {
         Sucursal nuevaSucursal = crearSucursal();
         nuevaSucursal.setId(2L);
         nuevaSucursal.setCodigo("SUC00002");
+
+        when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(contrato.getVigilante()));
 
         when(contratoRepository.findByCodigo("CDV00001"))
                 .thenReturn(Optional.of(contrato));
@@ -572,14 +578,14 @@ class ContratoVigilanciaServiceTest {
     // LISTAR POR VIGILANTE
     @Test
     void listarContratosPorVigilante() {
-        Vigilante vigilante = crearVigilante();
+        Usuario vigilante = crearVigilante();
 
         List<ContratoVigilancia> contratos = new ArrayList<>();
         contratos.add(crearContrato(
                 "CDV00001", LocalDate.now().plusDays(5), true
         ));
 
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(vigilante));
 
         when(contratoRepository.findByVigilante_Id(1L))
@@ -594,7 +600,7 @@ class ContratoVigilanciaServiceTest {
 
     @Test
     void listarContratosRechazaVigilanteInexistente() {
-        when(vigilanteRepository.findByCodigo("VIG00001"))
+        when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.empty());
 
         try {

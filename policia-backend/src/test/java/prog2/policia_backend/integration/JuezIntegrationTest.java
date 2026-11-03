@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -53,7 +54,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void listarJuecesCorrectamente() throws Exception {
         mockMvc.perform(get("/api/jueces"))
                 .andExpect(status().isOk())
@@ -62,7 +63,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void buscarJuezPorCodigo() throws Exception {
         mockMvc.perform(get("/api/jueces/JUE00001"))
                 .andExpect(status().isOk())
@@ -71,14 +72,14 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void buscarJuezInexistente() throws Exception {
         mockMvc.perform(get("/api/jueces/JUE99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void filtrarJuecesActivos() throws Exception {
         mockMvc.perform(get("/api/jueces")
                 .param("activo", "true"))
@@ -87,7 +88,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void buscarJuezPorNombre() throws Exception {
         mockMvc.perform(get("/api/jueces")
                 .param("nombre", "carlos"))
@@ -96,7 +97,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void listarCasosJudicialesSinCasos() throws Exception {
         mockMvc.perform(get("/api/jueces/JUE00001/casos-judiciales"))
                 .andExpect(status().isOk())
@@ -104,7 +105,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void crearJuezCorrectamente() throws Exception {
         String json = """
                 {
@@ -125,7 +126,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void impedirJuezSinNombre() throws Exception {
         String json = """
                 {
@@ -143,7 +144,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void impedirJuezConFechaFutura() throws Exception {
         String json = """
                 {
@@ -161,7 +162,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void actualizarJuezCorrectamente() throws Exception {
         String json = """
                 {
@@ -185,7 +186,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void darDeBajaJuezCorrectamente() throws Exception {
         String json = """
                 {
@@ -206,7 +207,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void impedirBajaSinMotivo() throws Exception {
         mockMvc.perform(patch("/api/jueces/JUE00001/baja")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -217,7 +218,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void reactivarJuezCorrectamente() throws Exception {
         juez.setActivo(false);
         juez.setMotivoBaja(MotivoBajaPersona.JUBILACION);
@@ -234,7 +235,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_JUEZ")
     void impedirReactivacionPorFallecimiento() throws Exception {
         juez.setActivo(false);
         juez.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
@@ -248,7 +249,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_JUEZ")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = """
                 {

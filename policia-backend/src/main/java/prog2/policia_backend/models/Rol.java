@@ -2,7 +2,6 @@ package prog2.policia_backend.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,10 +41,7 @@ public class Rol extends EntidadAuditable {
     @OneToMany(mappedBy = "rol")
     private List<Usuario> usuarios = new ArrayList<>();
 
-    @ElementCollection(targetClass = Permiso.class, fetch = FetchType.EAGER)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "rol_permiso", joinColumns = @JoinColumn(name = "rol_id"))
-    @Column(name = "permiso", nullable = false)
-    @NotEmpty(groups = OnCreate.class)
-    private Set<Permiso> permisos = new HashSet<>();
+    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolPermisoEntidad> permisosPorEntidad = new HashSet<>();
+
 }

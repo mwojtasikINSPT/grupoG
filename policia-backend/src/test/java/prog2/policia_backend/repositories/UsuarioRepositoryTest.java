@@ -13,7 +13,6 @@ import org.springframework.test.context.TestPropertySource;
 
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Usuario;
-import prog2.policia_backend.models.Vigilante;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +32,7 @@ class UsuarioRepositoryTest {
     @Autowired
     private RolRepository rolRepository;
 
-    private Vigilante vigilante;
+    private Usuario vigilante;
 
     @BeforeEach
     void setUp() {
@@ -46,7 +45,7 @@ class UsuarioRepositoryTest {
 
         rol = rolRepository.saveAndFlush(rol);
 
-        vigilante = new Vigilante();
+        vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("password123");

@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -56,7 +57,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void listarEntidadesCorrectamente() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias"))
                 .andExpect(status().isOk())
@@ -65,7 +66,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void buscarEntidadPorCodigo() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias/EBA00001"))
                 .andExpect(status().isOk())
@@ -74,14 +75,14 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void buscarEntidadInexistente() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias/EBA99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void filtrarEntidadesActivas() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias")
                 .param("activo", "true"))
@@ -90,7 +91,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void buscarEntidadPorNombre() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias")
                 .param("nombre", "nacional"))
@@ -99,7 +100,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void buscarEntidadPorDomicilio() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias")
                 .param("domicilio", "aires"))
@@ -108,7 +109,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void listarSucursalesDeEntidadSinSucursales() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias/EBA00001/sucursales"))
                 .andExpect(status().isOk())
@@ -116,7 +117,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void crearEntidadCorrectamente() throws Exception {
         String json = """
                 {
@@ -137,7 +138,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void impedirEntidadSinNombre() throws Exception {
         String json = """
                 {
@@ -155,7 +156,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void actualizarEntidadCorrectamente() throws Exception {
         String json = """
                 {
@@ -179,7 +180,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void darDeBajaEntidadCorrectamente() throws Exception {
         String json = """
                 {
@@ -201,7 +202,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void impedirBajaSinMotivo() throws Exception {
         mockMvc.perform(patch("/api/entidades-bancarias/EBA00001/baja")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -213,7 +214,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void impedirBajaConSucursalActiva() throws Exception {
         Sucursal sucursal = new Sucursal();
         sucursal.setCodigo("SUC00001");
@@ -239,7 +240,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void reactivarEntidadCorrectamente() throws Exception {
         entidad.setActivo(false);
         entidad.setMotivoBaja(MotivoBajaEntidadBancaria.FUSION);
@@ -257,7 +258,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ENTIDAD_BANCARIA")
     void impedirReactivacionDeEntidadActiva() throws Exception {
         mockMvc.perform(patch("/api/entidades-bancarias/EBA00001/reactivar"))
                 .andExpect(status().isConflict());
@@ -267,7 +268,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = """
                 {

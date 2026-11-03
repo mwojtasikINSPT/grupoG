@@ -17,6 +17,7 @@ import prog2.policia_backend.DTOs.CambioPasswordDTO;
 import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.exceptions.*;
 import prog2.policia_backend.models.*;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.repositories.RolRepository;
 
@@ -29,17 +30,20 @@ class UsuarioServiceTest {
     private RolRepository rolRepository;
     private PasswordEncoder passwordEncoder;
     private UsuarioService usuarioService;
+    private ContratoVigilanciaRepository contratoVigilanciaRepository;
 
     @BeforeEach
     void setUp() {
         usuarioRepository = mock(UsuarioRepository.class);
         rolRepository = mock(RolRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
+        contratoVigilanciaRepository = mock(ContratoVigilanciaRepository.class);
 
         usuarioService = new UsuarioService(
                 usuarioRepository,
                 rolRepository,
-                passwordEncoder
+                passwordEncoder,
+                contratoVigilanciaRepository
         );
     }
 
@@ -57,8 +61,8 @@ class UsuarioServiceTest {
         return rol;
     }
 
-    private UsuarioGenerico crearUsuario(String codigo, String nombre, boolean activo) {
-        UsuarioGenerico usuario = new UsuarioGenerico();
+    private Usuario crearUsuario(String codigo, String nombre, boolean activo) {
+        Usuario usuario = new Usuario();
 
         usuario.setId(1L);
         usuario.setCodigo(codigo);
@@ -66,6 +70,7 @@ class UsuarioServiceTest {
         usuario.setPassword("encoded");
         usuario.setRol(crearRol("ADMINISTRADOR", "ADM"));
         usuario.setActivo(activo);
+        usuario.setFechaNacimiento(LocalDate.now().minusYears(30));
 
         return usuario;
     }
@@ -89,26 +94,33 @@ class UsuarioServiceTest {
 
     // LISTAR
     @Test
-    void listarTodosLosUsuariosGenericos() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+    void listarTodosLosUsuarios() {
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
-        Vigilante vigilante = new Vigilante();
+        Usuario vigilante = new Usuario();
+        vigilante.setId(2L);
+        vigilante.setActivo(true);
 
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(usuario);
+        vigilante.setCodigo("VIG00001");
+        vigilante.setNombre("Pedro Gomez");
+        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(25));
         usuarios.add(vigilante);
 
         when(usuarioRepository.findAll()).thenReturn(usuarios);
 
         List<UsuarioDTO> resultado = usuarioService.listar(null);
 
-        assertEquals(1, resultado.size());
+        assertEquals(2, resultado.size());
         assertEquals("ADM00001", resultado.get(0).getCodigo());
+        assertEquals("VIG00001", resultado.get(1).getCodigo());
     }
 
     @Test
     void listarUsuariosPorEstado() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(usuario);
@@ -133,7 +145,7 @@ class UsuarioServiceTest {
     // LISTAR PROPIO
     @Test
     void listarPropioDevuelveSusDatos() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -148,7 +160,7 @@ class UsuarioServiceTest {
 
     @Test
     void listarPropioNoDevuelveUsuarioConEstadoDiferente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -162,7 +174,7 @@ class UsuarioServiceTest {
 
     @Test
     void listarPropioFiltraPorNombre() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -175,9 +187,12 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void listarPropioNoDevuelveVigilantes() {
-        Vigilante vigilante = new Vigilante();
+    void listarPropioPermiteVigilantes() {
+        Usuario vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
+        vigilante.setNombre("Pedro Gomez");
+        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(25));
 
         when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(vigilante));
@@ -186,13 +201,14 @@ class UsuarioServiceTest {
                 "VIG00001", null, null
         );
 
-        assertTrue(resultado.isEmpty());
+        assertEquals(1, resultado.size());
+        assertEquals("VIG00001", resultado.get(0).getCodigo());
     }
 
     // BUSCAR POR NOMBRE
     @Test
     void buscarPorNombreEncuentraCoincidencias() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(usuario);
@@ -217,9 +233,12 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void buscarPorNombreExcluyeVigilantes() {
-        Vigilante vigilante = new Vigilante();
+    void buscarPorNombreIncluyeVigilantes() {
+        Usuario vigilante = new Usuario();
         vigilante.setNombre("Juan Perez");
+        vigilante.setCodigo("VIG00001");
+        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
 
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(vigilante);
@@ -228,13 +247,14 @@ class UsuarioServiceTest {
 
         List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("Juan", null);
 
-        assertTrue(resultado.isEmpty());
+        assertEquals(1, resultado.size());
+        assertEquals("VIG00001", resultado.get(0).getCodigo());
     }
 
     // BUSCAR POR CODIGO
     @Test
     void buscarPorCodigoEncuentraUsuario() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -246,18 +266,15 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void buscarPorCodigoRechazaVigilantes() {
-        Vigilante vigilante = new Vigilante();
+    void buscarPorCodigoPermiteVigilantes() {
+        Usuario vigilante = crearUsuario("VIG00001", "Juan Perez", true);
+        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
 
-        when(usuarioRepository.findByCodigo("VIG00001"))
-                .thenReturn(Optional.of(vigilante));
+        when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(vigilante));
 
-        try {
-            usuarioService.buscarPorCodigo("VIG00001");
-            fail("Debía lanzar RecursoNoEncontradoException");
-        } catch (RecursoNoEncontradoException e) {
-            assertNotNull(e);
-        }
+        UsuarioDTO resultado = usuarioService.buscarPorCodigo("VIG00001");
+
+        assertEquals("VIG00001", resultado.getCodigo());
     }
 
     @Test
@@ -277,11 +294,6 @@ class UsuarioServiceTest {
     @Test
     void guardarUsuarioCorrectamente() {
         Rol rol = crearRol("ADMINISTRADOR", "ADM");
-        UsuarioGenerico usuario = new UsuarioGenerico();
-
-        usuario.setId(1L);
-        usuario.setRol(rol);
-
         when(rolRepository.findByNombre("ADMINISTRADOR"))
                 .thenReturn(Optional.of(rol));
 
@@ -292,7 +304,11 @@ class UsuarioServiceTest {
                 .thenAnswer(new org.mockito.stubbing.Answer<Usuario>() {
                     @Override
                     public Usuario answer(org.mockito.invocation.InvocationOnMock invocation) {
-                        return invocation.getArgument(0);
+                        Usuario usuario = invocation.getArgument(0);
+                        if (usuario.getId() == null) {
+                            usuario.setId(1L);
+                        }
+                        return usuario;
                     }
                 });
 
@@ -315,15 +331,28 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void guardarRechazaRolVigilante() {
-        try {
-            usuarioService.guardar(crearDTO("Juan Perez", "VIGILANTE"));
-            fail("Debía lanzar OperacionNoPermitidaException");
-        } catch (OperacionNoPermitidaException e) {
-            assertNotNull(e);
-        }
+    void guardarPermiteRolVigilante() {
+        Rol rol = crearRol("VIGILANTE", "VIG");
+        when(rolRepository.findByNombre("VIGILANTE")).thenReturn(Optional.of(rol));
+        when(passwordEncoder.encode("clave123")).thenReturn("encoded");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(new org.mockito.stubbing.Answer<Usuario>() {
+            @Override
+            public Usuario answer(org.mockito.invocation.InvocationOnMock invocation) {
+                Usuario usuario = invocation.getArgument(0);
+                if (usuario.getId() == null) {
+                    usuario.setId(1L);
+                }
+                return usuario;
+            }
+        });
+        UsuarioDTO dto = crearDTO("Juan Perez", "VIGILANTE");
+        dto.setFechaNacimiento(LocalDate.now().minusYears(30));
 
-        verifyNoInteractions(usuarioRepository);
+        UsuarioDTO resultado = usuarioService.guardar(dto);
+
+        assertEquals("VIGILANTE", resultado.getRol());
+        assertEquals("Juan Perez", resultado.getNombre());
+        verify(usuarioRepository, times(2)).save(any(Usuario.class));
     }
 
     @Test
@@ -342,7 +371,7 @@ class UsuarioServiceTest {
     // ACTUALIZAR
     @Test
     void actualizarNombreCorrectamente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -361,7 +390,7 @@ class UsuarioServiceTest {
 
     @Test
     void actualizarContraseñaCorrectamente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -383,7 +412,7 @@ class UsuarioServiceTest {
 
     @Test
     void actualizarRechazaUsuarioInactivo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -399,8 +428,8 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void actualizarRechazaRolVigilante() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+    void actualizarRechazaCambioDeRol() {
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -419,7 +448,7 @@ class UsuarioServiceTest {
     // ELIMINAR
     @Test
     void eliminarUsuarioCorrectamente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         autenticar("ADM00002");
 
@@ -439,7 +468,7 @@ class UsuarioServiceTest {
 
     @Test
     void eliminarExigeMotivoBaja() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         autenticar("ADM00002");
 
@@ -458,7 +487,7 @@ class UsuarioServiceTest {
 
     @Test
     void eliminarRechazaUsuarioYaInactivo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
 
         autenticar("ADM00002");
 
@@ -478,7 +507,7 @@ class UsuarioServiceTest {
 
     @Test
     void administradorNoPuedeEliminarseASiMismo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         autenticar("ADM00001");
 
@@ -501,7 +530,7 @@ class UsuarioServiceTest {
     // REACTIVAR
     @Test
     void reactivarUsuarioCorrectamente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
         usuario.setMotivoBaja(MotivoBajaPersona.RENUNCIA);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
@@ -519,7 +548,7 @@ class UsuarioServiceTest {
 
     @Test
     void reactivarRechazaUsuarioYaActivo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
@@ -534,7 +563,7 @@ class UsuarioServiceTest {
 
     @Test
     void reactivarRechazaUsuarioFallecido() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
         usuario.setMotivoBaja(MotivoBajaPersona.FALLECIMIENTO);
 
         when(usuarioRepository.findByCodigo("ADM00001"))
@@ -550,7 +579,7 @@ class UsuarioServiceTest {
 
     @Test
     void cambiarPasswordCorrectamente() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
         autenticar("ADM00001");
 
         when(usuarioRepository.findByCodigo("ADM00001"))
@@ -576,7 +605,7 @@ class UsuarioServiceTest {
 
     @Test
     void cambiarPasswordRechazaPasswordActualIncorrecta() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", true);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
         autenticar("ADM00001");
 
         when(usuarioRepository.findByCodigo("ADM00001"))
@@ -586,10 +615,12 @@ class UsuarioServiceTest {
         dto.setPasswordActual("incorrecta");
         dto.setPasswordNueva("nueva123");
 
-        assertThrows(
-                OperacionNoPermitidaException.class,
-                () -> usuarioService.cambiarPassword(dto)
-        );
+        try {
+            usuarioService.cambiarPassword(dto);
+            fail("Debía lanzar OperacionNoPermitidaException");
+        } catch (OperacionNoPermitidaException e) {
+            assertNotNull(e);
+        }
 
         verify(usuarioRepository, never()).save(any(Usuario.class));
         verify(passwordEncoder, never()).encode(anyString());
@@ -597,7 +628,7 @@ class UsuarioServiceTest {
 
     @Test
     void cambiarPasswordRechazaUsuarioInactivo() {
-        UsuarioGenerico usuario = crearUsuario("ADM00001", "Juan Perez", false);
+        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
         autenticar("ADM00001");
 
         when(usuarioRepository.findByCodigo("ADM00001"))
@@ -610,20 +641,24 @@ class UsuarioServiceTest {
         dto.setPasswordActual("actual123");
         dto.setPasswordNueva("nueva123");
 
-        assertThrows(
-                PersonaInactivaException.class,
-                () -> usuarioService.cambiarPassword(dto)
-        );
+        try {
+            usuarioService.cambiarPassword(dto);
+            fail("Debía lanzar PersonaInactivaException");
+        } catch (PersonaInactivaException e) {
+            assertNotNull(e);
+        }
 
         verify(usuarioRepository, never()).save(any(Usuario.class));
     }
 
     @Test
     void cambiarPasswordPermiteVigilantes() {
-        Vigilante vigilante = new Vigilante();
+        Usuario vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
         vigilante.setPassword("encoded");
         vigilante.setActivo(true);
+        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
 
         autenticar("VIG00001");
 

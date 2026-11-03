@@ -29,6 +29,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Usuario usuario = resultado.get();
 
-        return new UsuarioDetails(usuario.getId(), usuario.getCodigo(), usuario.getPassword(), usuario.getRol().getPermisos(), usuario.isActivo());
+        return new UsuarioDetails(usuario.getId(), usuario.getCodigo(), usuario.getPassword(), usuario.getRol().getNombre(), usuario.getRol().getPermisosPorEntidad(), usuario.isActivo());
     }
 }

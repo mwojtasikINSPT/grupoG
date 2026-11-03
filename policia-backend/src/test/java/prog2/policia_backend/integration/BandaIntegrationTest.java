@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -65,7 +66,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void listarBandasCorrectamente() throws Exception {
         mockMvc.perform(get("/api/bandas"))
                 .andExpect(status().isOk())
@@ -74,7 +75,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void buscarBandaPorCodigo() throws Exception {
         mockMvc.perform(get("/api/bandas/BAN00001"))
                 .andExpect(status().isOk())
@@ -83,14 +84,14 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void buscarBandaInexistente() throws Exception {
         mockMvc.perform(get("/api/bandas/BAN99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void filtrarBandasActivas() throws Exception {
         mockMvc.perform(get("/api/bandas")
                 .param("activo", "true"))
@@ -99,7 +100,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void filtrarBandasInactivas() throws Exception {
         mockMvc.perform(get("/api/bandas")
                 .param("activo", "false"))
@@ -108,7 +109,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void crearBandaCorrectamente() throws Exception {
         mockMvc.perform(post("/api/bandas"))
                 .andExpect(status().isCreated())
@@ -120,7 +121,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void bandaSinMiembrosTieneCantidadCero() throws Exception {
         mockMvc.perform(get("/api/bandas/BAN00001"))
                 .andExpect(status().isOk())
@@ -128,7 +129,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void contarMiembrosActivosCorrectamente() throws Exception {
         crearAsaltante("ASS00001", true);
         crearAsaltante("ASS00002", true);
@@ -142,7 +143,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void noContarMiembrosInactivos() throws Exception {
         crearAsaltante("ASS00001", true);
         crearAsaltante("ASS00002", false);
@@ -156,7 +157,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void darDeBajaBandaCorrectamente() throws Exception {
         mockMvc.perform(patch("/api/bandas/BAN00001/baja"))
                 .andExpect(status().isNoContent());
@@ -167,7 +168,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void impedirBajaConMiembrosActivos() throws Exception {
         crearAsaltante("ASS00001", true);
 
@@ -178,7 +179,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void permitirBajaConMiembrosInactivos() throws Exception {
         crearAsaltante("ASS00001", false);
 
@@ -189,7 +190,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void impedirBajaDeBandaInactiva() throws Exception {
         banda.setActivo(false);
         bandaRepository.saveAndFlush(banda);
@@ -199,7 +200,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void reactivarBandaCorrectamente() throws Exception {
         banda.setActivo(false);
         bandaRepository.saveAndFlush(banda);
@@ -212,7 +213,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_BANDA")
     void impedirReactivarBandaActiva() throws Exception {
         mockMvc.perform(patch("/api/bandas/BAN00001/reactivar"))
                 .andExpect(status().isConflict());
@@ -221,7 +222,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_BANDA")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         mockMvc.perform(post("/api/bandas"))
                 .andExpect(status().isForbidden());
@@ -230,7 +231,7 @@ class BandaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_USUARIO")
     void impedirLecturaSinPermisoLectura() throws Exception {
         mockMvc.perform(get("/api/bandas"))
                 .andExpect(status().isForbidden());

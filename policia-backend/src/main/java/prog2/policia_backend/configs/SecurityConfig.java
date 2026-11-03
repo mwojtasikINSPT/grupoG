@@ -1,10 +1,10 @@
 package prog2.policia_backend.configs;
 
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import prog2.policia_backend.security.AutorizadorPermisos;
 
 // Configuración principal de Spring Security
 @Configuration
@@ -46,40 +48,17 @@ public class SecurityConfig {
 
     // Define cómo se protege la API
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AutorizadorPermisos autorizadorPermisos) throws Exception {
 
         http
-                // apaga la protección CSRF (en APIs REST sin estado)
                 .csrf(csrf -> csrf.disable())
-                // habilita el flujo cruzado (CORS) para Vaadin
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Autenticación basada en permisos
                 .authorizeHttpRequests(auth -> auth
-                // Permite consultar vigilantes con lectura general o de datos propios
-                .requestMatchers(HttpMethod.GET, "/api/vigilantes")
-                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
-                .requestMatchers(HttpMethod.GET, "/api/vigilantes/*")
-                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
-                // Permite consultar contratos de un vigilante
-                .requestMatchers(HttpMethod.GET, "/api/vigilantes/*/contratos")
-                .hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
-                // Consultas generales de lectura sobre la API
-                .requestMatchers(HttpMethod.GET, "/api/usuarios").hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").hasAnyAuthority("LECTURA", "LECTURA_DATOS_PROPIOS")
-                .requestMatchers(HttpMethod.GET, "/api/**")
-                .hasAuthority("LECTURA")
-                // Creación, modificación o eliminación requieren escritura - cambio password
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/password")
-                .authenticated()
-                .requestMatchers("/api/**")
-                .hasAuthority("ESCRITURA")
-                .requestMatchers("/error")
-                .permitAll()
-                .anyRequest()
-                .authenticated())
-                // Login mediante usuario/código + contraseña
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/**").access(autorizadorPermisos)
+                .anyRequest().denyAll()
+                )
                 .httpBasic(httpBasic -> {
                 });
 
@@ -91,6 +70,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
+
         // Para que admita peticiones desde el front
         configuration.setAllowedOrigins(List.of(allowedOrigin));
 

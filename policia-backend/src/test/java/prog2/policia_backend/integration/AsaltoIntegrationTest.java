@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -97,7 +98,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosCorrectamente() throws Exception {
         crearAsalto();
 
@@ -108,7 +109,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosVacios() throws Exception {
         mockMvc.perform(get("/api/asaltos"))
                 .andExpect(status().isOk())
@@ -116,7 +117,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void buscarAsaltoPorCodigo() throws Exception {
         crearAsalto();
 
@@ -128,14 +129,14 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void buscarAsaltoInexistente() throws Exception {
         mockMvc.perform(get("/api/asaltos/AST99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosPorAsaltante() throws Exception {
         crearAsalto();
 
@@ -146,14 +147,14 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void buscarAsaltosDeAsaltanteInexistente() throws Exception {
         mockMvc.perform(get("/api/asaltos/asaltante/ASS99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosPorSucursal() throws Exception {
         crearAsalto();
 
@@ -164,14 +165,14 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void buscarAsaltosDeSucursalInexistente() throws Exception {
         mockMvc.perform(get("/api/asaltos/sucursal/SUC99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void crearAsaltoCorrectamente() throws Exception {
         String json = """
                 {
@@ -194,7 +195,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void crearAsaltoSinAsaltantes() throws Exception {
         String json = """
                 {
@@ -214,7 +215,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoSinFecha() throws Exception {
         String json = """
                 {
@@ -232,7 +233,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoConFechaFutura() throws Exception {
         String json = """
                 {
@@ -251,7 +252,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoSinSucursal() throws Exception {
         String json = """
                 {
@@ -267,7 +268,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoConSucursalInexistente() throws Exception {
         String json = """
                 {
@@ -284,7 +285,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoConAsaltanteInexistente() throws Exception {
         String json = """
                 {
@@ -301,7 +302,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoConAsaltanteInactivo() throws Exception {
         asaltante.setActivo(false);
         asaltanteRepository.saveAndFlush(asaltante);
@@ -321,7 +322,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltoConSucursalCerrada() throws Exception {
         sucursal.setActivo(false);
         sucursalRepository.saveAndFlush(sucursal);
@@ -341,7 +342,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void impedirAsaltantesDuplicados() throws Exception {
         String json = """
                 {
@@ -358,7 +359,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void actualizarSucursalDelAsalto() throws Exception {
         crearAsalto();
 
@@ -389,7 +390,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void agregarAsaltanteAlAsalto() throws Exception {
         crearAsalto();
 
@@ -417,7 +418,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA")
+    @WithMockUser(authorities = "ESCRITURA_ASALTO")
     void quitarAsaltanteDelAsalto() throws Exception {
         crearAsalto();
 
@@ -439,7 +440,7 @@ class AsaltoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void impedirCreacionSinPermisoEscritura() throws Exception {
         String json = """
                 {
