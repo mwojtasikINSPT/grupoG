@@ -4,7 +4,7 @@ Aplicación web **full stack** de gestión policial desarrollada en **Java 21**,
 
 ## 🌐 Aplicación en línea
 
-🚀 **[Acceder al Sistema de Gestión Policial](https://grupog-front.onrender.com)**
+🚀 **[Acceder al Sistema de Gestión Policial](https://sistemapolicia.onrender.com/)**
 
 La aplicación está desplegada en la nube: **frontend en Render** y **backend y base de datos MySQL en DockHosting**. La instancia gratuita del frontend puede tardar unos segundos en iniciar tras un período de inactividad.
 
