@@ -12,8 +12,8 @@ La aplicación está desplegada en la nube: **frontend en Render** y **backend y
 
 Para explorar las funcionalidades del sistema en modo solo lectura, utilizá:
 
-- **Usuario:** `INV00001`
-- **Contraseña:** `prog2`
+- **Usuario:** `CHU00001`
+- **Contraseña:** `chusma`
 
 Para más permisos, investigar 🔎 o consultar ☎️ a los desarroladores.
 
@@ -205,7 +205,7 @@ El frontend también puede construirse y ejecutarse mediante su `Dockerfile`, pu
 
 | Componente | Plataforma | Dirección |
 | --- | --- | --- |
-| Frontend Vaadin | Render | [Abrir aplicación](https://grupog-front.onrender.com) |
+| Frontend Vaadin | Render | [Abrir aplicación](https://sistemapolicia.onrender.com/) |
 | Backend REST | DockHosting | [API pública](https://grupog.dockhosting.cloud/api) |
 | Base de datos MySQL | DockHosting | Conexión privada desde el backend |
 
