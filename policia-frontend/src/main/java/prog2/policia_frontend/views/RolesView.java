@@ -24,6 +24,8 @@ import java.util.Set;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.vaadin.flow.component.checkbox.Checkbox;
+
 import prog2.policia_frontend.clients.RolClient;
 import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.RolPermisoEntidadDTO;
@@ -121,9 +123,12 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         Dialog dialogo = new Dialog();
         dialogo.setWidth("600px");
         dialogo.setHeaderTitle(esCreacion ? "Nuevo rol" : "Modificar " + rol.getCodigo());
+
         TextField campoNombre = new TextField("Nombre");
         TextField campoPrefijo = new TextField("Prefijo");
         TextArea campoDescripcion = new TextArea("Descripción");
+        Checkbox cambiarContrasena = new Checkbox("Puede cambiar su contraseña");
+
         Select<String> tipoPermiso = new Select<>();
         tipoPermiso.setLabel("1. Elegí un permiso");
         tipoPermiso.setItems(PermisosApp.ESCRITURA, PermisosApp.LECTURA, PermisosApp.LECTURA_DATOS_PROPIOS);
@@ -136,9 +141,11 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         VerticalLayout opcionesEscritura = crearOpcionesEntidades(escritura, PermisosApp.ESCRITURA);
         VerticalLayout opcionesLectura = crearOpcionesEntidades(lectura, PermisosApp.LECTURA);
         VerticalLayout opcionesPropios = crearOpcionesEntidades(propios, PermisosApp.LECTURA_DATOS_PROPIOS);
+
         opcionesEscritura.setVisible(false);
         opcionesLectura.setVisible(false);
         opcionesPropios.setVisible(false);
+
         tipoPermiso.addValueChangeListener(evento -> {
             String seleccionado = evento.getValue();
             opcionesEscritura.setVisible(PermisosApp.ESCRITURA.equals(seleccionado));
@@ -180,6 +187,11 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                     if (permiso == null || permiso.getEntidad() == null) {
                         continue;
                     }
+
+                    if (PermisosApp.CAMBIAR_CONTRASENA_PROPIA.equals(permiso.getPermiso()) && "USUARIO".equals(permiso.getEntidad())) {
+                        cambiarContrasena.setValue(true);
+                    }
+
                     if (PermisosApp.ESCRITURA.equals(permiso.getPermiso())) {
                         escritura.select(permiso.getEntidad());
                     } else if (PermisosApp.LECTURA.equals(permiso.getPermiso())) {
@@ -230,6 +242,11 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
             agregarPermisos(permisos, PermisosApp.ESCRITURA, escritura.getSelectedItems());
             agregarPermisos(permisos, PermisosApp.LECTURA, lectura.getSelectedItems());
             agregarPermisos(permisos, PermisosApp.LECTURA_DATOS_PROPIOS, propios.getSelectedItems());
+
+            if (cambiarContrasena.getValue()) {
+                permisos.add(PermisosApp.CAMBIAR_CONTRASENA_PROPIA + " · USUARIO");
+            }
+
             boolean nombreVacio = nombre.isBlank();
             boolean prefijoVacio = prefijo.isBlank();
             boolean permisosVacios = permisos.isEmpty();
@@ -273,14 +290,12 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                         campoNombre,
                         campoPrefijo,
                         campoDescripcion,
+                        cambiarContrasena,
                         tipoPermiso,
                         opcionesEscritura,
                         opcionesLectura,
                         opcionesPropios,
-                        new HorizontalLayout(
-                                botonGuardar,
-                                botonCancelar
-                        )
+                        new HorizontalLayout(botonGuardar, botonCancelar)
                 )
         );
         dialogo.open();
@@ -527,6 +542,16 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
             grupo.setSpacing(false);
             contenido.add(grupo);
         }
+
+        if (rol.getPermisosPorEntidad() != null) {
+            for (RolPermisoEntidadDTO permiso : rol.getPermisosPorEntidad()) {
+                if (permiso != null && PermisosApp.CAMBIAR_CONTRASENA_PROPIA.equals(permiso.getPermiso()) && "USUARIO".equals(permiso.getEntidad())) {
+                    contenido.add(new Span("Puede cambiar su propia contraseña."));
+                    break;
+                }
+            }
+        }
+
         Button cerrar = new Button("Cerrar", evento -> dialogo.close());
         contenido.add(cerrar);
         dialogo.add(contenido);

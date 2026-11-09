@@ -58,9 +58,13 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
         if (ruta.equals("/api/usuarios/mi-perfil") || ruta.equals("/api/usuarios/mis-permisos")) {
             return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name()));
         }
+
         if (ruta.equals("/api/usuarios/password")) {
-            return new AuthorizationDecision(metodo.equals(HttpMethod.PATCH.name()));
+            boolean permitido = metodo.equals(HttpMethod.PATCH.name())
+                    && tienePermiso(usuario, Entidad.USUARIO, Permiso.CAMBIAR_CONTRASENA_PROPIA);
+            return new AuthorizationDecision(permitido);
         }
+
         Entidad entidad = obtenerEntidad(ruta);
         if (entidad == null) {
             return new AuthorizationDecision(false);

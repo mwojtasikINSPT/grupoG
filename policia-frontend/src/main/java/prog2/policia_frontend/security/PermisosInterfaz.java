@@ -163,4 +163,8 @@ public class PermisosInterfaz {
     public boolean puedeModificarUsuarios() {
         return puedeEscribir("USUARIO");
     }
+
+    public boolean puedeCambiarContrasena() {
+        return sesionUsuario.tienePermiso(PermisosApp.CAMBIAR_CONTRASENA_PROPIA + "_USUARIO");
+    }
 }

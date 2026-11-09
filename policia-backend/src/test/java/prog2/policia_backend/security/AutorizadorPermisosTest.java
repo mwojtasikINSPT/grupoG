@@ -85,4 +85,14 @@ class AutorizadorPermisosTest {
         assertFalse(permitido("POST", "/api/roles", "LECTURA_ROL"));
         assertFalse(permitido("POST", "/api/roles", "ROLE_ADMINISTRADOR"));
     }
+
+    @Test
+    void cambiarContrasenaPropiaRequiereSuPermiso() {
+        String ruta = "/api/usuarios/password";
+        assertTrue(permitido("PATCH", ruta, "CAMBIAR_CONTRASENA_PROPIA_USUARIO"));
+        assertFalse(permitido("PATCH", ruta, "LECTURA_USUARIO"));
+        assertFalse(permitido("PATCH", ruta, "ESCRITURA_USUARIO"));
+        assertFalse(permitido("PATCH", ruta));
+        assertFalse(permitido("GET", ruta, "CAMBIAR_CONTRASENA_PROPIA_USUARIO"));
+    }
 }

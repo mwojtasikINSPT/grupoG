@@ -53,7 +53,10 @@ INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad) VALUES
 (2, 'LECTURA', 'SENTENCIA_ASALTANTE'),
 (2, 'LECTURA', 'SUCURSAL'),
 (3, 'LECTURA_DATOS_PROPIOS', 'USUARIO'),
-(3, 'LECTURA_DATOS_PROPIOS', 'CONTRATO_VIGILANCIA');
+(3, 'LECTURA_DATOS_PROPIOS', 'CONTRATO_VIGILANCIA'),
+(1, 'CAMBIAR_CONTRASENA_PROPIA', 'USUARIO'),
+(2, 'CAMBIAR_CONTRASENA_PROPIA', 'USUARIO'),
+(3, 'CAMBIAR_CONTRASENA_PROPIA', 'USUARIO');
 
 
 -- =========================================================
@@ -142,7 +145,7 @@ INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codig
 -- =========================================================
 
 INSERT INTO juez (id, nombre, juez_desde, activo, codigo, creado_por, fecha_creacion) VALUES
-(1, 'Alberto Fernandez', '2012-03-15', true, 'JUE00001', 'SISTEMA', NOW()),
+(1, 'Viggo Pereyra', '2012-03-15', true, 'JUE00001', 'SISTEMA', NOW()),
 (2, 'Claudia Romero', '2015-08-20', true, 'JUE00002', 'SISTEMA', NOW()),
 (3, 'Ricardo Martinez', '2018-02-10', true, 'JUE00003', 'SISTEMA', NOW()),
 (4, 'Patricia Gomez', '2020-06-05', true, 'JUE00004', 'SISTEMA', NOW()),

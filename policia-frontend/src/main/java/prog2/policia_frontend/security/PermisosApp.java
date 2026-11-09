@@ -6,10 +6,9 @@ import java.util.List;
 public final class PermisosApp {
 
     public static final String LECTURA = "LECTURA";
-
     public static final String ESCRITURA = "ESCRITURA";
-
     public static final String LECTURA_DATOS_PROPIOS = "LECTURA_DATOS_PROPIOS";
+    public static final String CAMBIAR_CONTRASENA_PROPIA = "CAMBIAR_CONTRASENA_PROPIA";
 
     //Los permisos son fijos, los roles combinan uno o más.
     public static List<String> todos() {

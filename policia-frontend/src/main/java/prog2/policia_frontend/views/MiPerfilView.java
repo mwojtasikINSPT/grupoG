@@ -11,9 +11,6 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-
-import prog2.policia_frontend.utils.NotificacionUtils;
-
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -21,41 +18,33 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
 import java.time.format.DateTimeFormatter;
-
-import prog2.policia_frontend.dtos.UsuarioDTO;
-import prog2.policia_frontend.clients.UsuarioClient;
-import prog2.policia_frontend.layouts.MainLayout;
-import prog2.policia_frontend.security.SesionUsuario;
-
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
-
+import prog2.policia_frontend.clients.UsuarioClient;
+import prog2.policia_frontend.dtos.UsuarioDTO;
+import prog2.policia_frontend.layouts.MainLayout;
+import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.security.SesionUsuario;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
+import prog2.policia_frontend.utils.NotificacionUtils;
 
-/*
- * Pantalla donde el usuario puede consultar
- * sus propios datos y cambiar su contraseña.
- */
+// Permite consultar los datos propios y cambiar la contraseña.
 @Route(value = "mi-perfil", layout = MainLayout.class)
 @PageTitle("Mi perfil | Sistema Policial")
-public class MiPerfilView extends VerticalLayout
-        implements BeforeEnterObserver {
+public class MiPerfilView extends VerticalLayout implements BeforeEnterObserver {
 
-    private static final DateTimeFormatter FORMATO_FECHA
-            = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final SesionUsuario sesionUsuario;
     private final UsuarioClient usuarioClient;
+    private final PermisosInterfaz permisosInterfaz;
 
-    /* Encabezado de la tarjeta "Mi cuenta". */
     private final Avatar avatar = new Avatar();
     private final Span nombreDestacado = new Span();
     private final Span etiquetaRol = new Span();
     private final Span etiquetaEstado = new Span();
 
-    /* Datos de solo lectura. */
     private final Span campoCodigo = new Span();
     private final Span campoNombre = new Span();
     private final Span campoRol = new Span();
@@ -64,24 +53,13 @@ public class MiPerfilView extends VerticalLayout
     private final Span campoAlta = new Span();
     private final Div datoAlta = crearDato("Fecha de alta", campoAlta);
 
-    public MiPerfilView(
-            SesionUsuario sesionUsuario,
-            UsuarioClient usuarioClient) {
-
+    public MiPerfilView(SesionUsuario sesionUsuario, UsuarioClient usuarioClient, PermisosInterfaz permisosInterfaz) {
         this.sesionUsuario = sesionUsuario;
         this.usuarioClient = usuarioClient;
+        this.permisosInterfaz = permisosInterfaz;
 
-        H2 titulo = new H2("Mi perfil");
-
-        /*
-         * Dos tarjetas: una para consultar los datos
-         * y otra para la acción de seguridad.
-         * Quedan lado a lado y se apilan en pantallas angostas.
-         */
-        Div tarjetas = new Div(
-                crearTarjetaCuenta(),
-                crearTarjetaSeguridad()
-        );
+        // Organiza las tarjetas de cuenta y seguridad en un diseño responsive.
+        Div tarjetas = new Div(crearTarjetaCuenta(), crearTarjetaSeguridad());
         tarjetas.getStyle()
                 .set("display", "flex")
                 .set("flex-wrap", "wrap")
@@ -90,88 +68,79 @@ public class MiPerfilView extends VerticalLayout
                 .set("width", "100%")
                 .set("max-width", "1000px");
 
-        add(titulo, tarjetas);
+        add(new H2("Mi perfil"), tarjetas);
     }
 
-    /*
-     * Aplica el mismo aspecto sobrio a las dos tarjetas.
-     */
+    // Construye la tarjeta con los datos personales de solo lectura.
     private Div crearTarjetaCuenta() {
         avatar.getElement().getThemeList().add("xlarge");
         avatar.getStyle().set("--vaadin-avatar-size", "4rem");
         nombreDestacado.getStyle().set("font-size", "1.35rem").set("font-weight", "700");
+
         estilizarEtiqueta(etiquetaRol, "#b9e0ff", "rgba(17, 105, 171, 0.30)");
         estilizarEtiqueta(etiquetaEstado, "#8ff0b4", "rgba(30, 140, 80, 0.30)");
+
         HorizontalLayout etiquetas = new HorizontalLayout(etiquetaRol, etiquetaEstado);
         etiquetas.setSpacing(true);
         etiquetas.setPadding(false);
+
         VerticalLayout textos = new VerticalLayout(nombreDestacado, etiquetas);
         textos.setPadding(false);
         textos.setSpacing(false);
         textos.getStyle().set("gap", "0.4rem");
+
         HorizontalLayout cabecera = new HorizontalLayout(avatar, textos);
         cabecera.setAlignItems(HorizontalLayout.Alignment.CENTER);
         cabecera.setPadding(false);
         cabecera.getStyle().set("margin-bottom", "1rem");
+
         FormLayout datos = new FormLayout(
                 crearDato("Código", campoCodigo),
                 crearDato("Nombre", campoNombre),
                 crearDato("Rol", campoRol),
                 crearDato("Estado", campoEstado),
                 crearDato("Fecha de nacimiento", campoNacimiento),
-                datoAlta);
+                datoAlta
+        );
         datos.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("26em", 2));
+
         H3 subtitulo = new H3("Mi cuenta");
         subtitulo.getStyle().set("margin", "0 0 1rem");
+
         Div tarjeta = crearTarjeta(380);
         tarjeta.add(subtitulo, cabecera, datos);
         return tarjeta;
     }
 
-    /*
-     * Tarjeta "Seguridad": cambio de contraseña.
-     */
+    // Construye la tarjeta de seguridad según los permisos del usuario.
     private Div crearTarjetaSeguridad() {
-
         Icon candado = VaadinIcon.LOCK.create();
         candado.getStyle().set("color", "#54b0ff");
 
         H3 subtitulo = new H3("Seguridad");
         subtitulo.getStyle().set("margin", "0");
 
-        HorizontalLayout encabezado
-                = new HorizontalLayout(candado, subtitulo);
+        HorizontalLayout encabezado = new HorizontalLayout(candado, subtitulo);
         encabezado.setAlignItems(HorizontalLayout.Alignment.CENTER);
         encabezado.setPadding(false);
 
-        Paragraph explicacion = new Paragraph(
-                "Cambiá tu contraseña cuando lo necesites. "
-                + "Debe tener entre 4 y 20 caracteres."
-        );
-        explicacion.getStyle()
-                .set("margin", "0.75rem 0 1.25rem")
-                .set("color", "var(--aura-text-color-secondary, #9fb3c8)");
+        Paragraph explicacion = new Paragraph("Cambiá tu contraseña cuando lo necesites. Debe tener entre 4 y 20 caracteres.");
+        explicacion.getStyle().set("margin", "0.75rem 0 1.25rem").set("color", "var(--aura-text-color-secondary, #9fb3c8)");
 
-        Button botonCambiarPassword = new Button(
-                "Cambiar contraseña",
-                VaadinIcon.KEY.create(),
-                evento -> abrirCambioPassword()
-        );
+        Button botonCambiarPassword = new Button("Cambiar contraseña", VaadinIcon.KEY.create(), evento -> abrirCambioPassword());
+
+        if (!permisosInterfaz.puedeCambiarContrasena()) {
+            botonCambiarPassword.setVisible(false);
+            explicacion.setText("No tenes permiso para cambiar la contraseña.");
+        }
 
         Div tarjeta = crearTarjeta(280);
         tarjeta.add(encabezado, explicacion, botonCambiarPassword);
-
         return tarjeta;
     }
 
-    /*
-     * Da forma de etiqueta redondeada a un Span.
-     */
-    private void estilizarEtiqueta(
-            Span etiqueta,
-            String colorTexto,
-            String colorFondo) {
-
+    // Aplica el estilo de etiqueta redondeada.
+    private void estilizarEtiqueta(Span etiqueta, String colorTexto, String colorFondo) {
         etiqueta.getStyle()
                 .set("display", "inline-block")
                 .set("padding", "0.15rem 0.75rem")
@@ -182,34 +151,18 @@ public class MiPerfilView extends VerticalLayout
                 .set("background", colorFondo);
     }
 
+    // Abre el formulario de cambio de contraseña.
     private void abrirCambioPassword() {
-
         Dialog dialogo = new Dialog();
         dialogo.setHeaderTitle("Cambiar mi contraseña");
 
-        PasswordField campoActual
-                = new PasswordField("Contraseña actual");
-        PasswordField campoNueva
-                = new PasswordField("Nueva contraseña");
-        PasswordField campoConfirmacion
-                = new PasswordField("Confirmar nueva contraseña");
-
-        campoActual.setRequiredIndicatorVisible(true);
-        campoNueva.setRequiredIndicatorVisible(true);
-        campoConfirmacion.setRequiredIndicatorVisible(true);
-        campoActual.setRevealButtonVisible(false);
-        campoNueva.setRevealButtonVisible(false);
-        campoConfirmacion.setRevealButtonVisible(false);
+        PasswordField campoActual = crearCampoPassword("Contraseña actual");
+        PasswordField campoNueva = crearCampoPassword("Nueva contraseña");
+        PasswordField campoConfirmacion = crearCampoPassword("Confirmar nueva contraseña");
         campoNueva.setHelperText("Debe tener entre 4 y 20 caracteres.");
-        campoActual.setWidthFull();
-        campoNueva.setWidthFull();
-        campoConfirmacion.setWidthFull();
 
         Button botonGuardar = new Button("Guardar contraseña");
-        Button botonCancelar = new Button(
-                "Cancelar",
-                evento -> dialogo.close()
-        );
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonGuardar.addClickListener(evento -> {
             String actual = campoActual.getValue();
@@ -217,24 +170,15 @@ public class MiPerfilView extends VerticalLayout
             String confirmacion = campoConfirmacion.getValue();
 
             boolean actualVacia = actual == null || actual.isBlank();
-            boolean nuevaInvalida = nueva == null
-                    || nueva.length() < 4
-                    || nueva.length() > 20;
-            boolean confirmacionDistinta
-                    = !nuevaInvalida && !nueva.equals(confirmacion);
+            boolean nuevaInvalida = nueva == null || nueva.length() < 4 || nueva.length() > 20;
+            boolean confirmacionDistinta = !nuevaInvalida && !nueva.equals(confirmacion);
 
             campoActual.setInvalid(actualVacia);
-            campoActual.setErrorMessage(
-                    "La contraseña actual es obligatoria."
-            );
+            campoActual.setErrorMessage("La contraseña actual es obligatoria.");
             campoNueva.setInvalid(nuevaInvalida);
-            campoNueva.setErrorMessage(
-                    "La nueva contraseña debe tener entre 4 y 20 caracteres."
-            );
+            campoNueva.setErrorMessage("La nueva contraseña debe tener entre 4 y 20 caracteres.");
             campoConfirmacion.setInvalid(confirmacionDistinta);
-            campoConfirmacion.setErrorMessage(
-                    "Las contraseñas nuevas no coinciden."
-            );
+            campoConfirmacion.setErrorMessage("Las contraseñas nuevas no coinciden.");
 
             if (actualVacia || nuevaInvalida || confirmacionDistinta) {
                 return;
@@ -244,43 +188,38 @@ public class MiPerfilView extends VerticalLayout
                 usuarioClient.cambiarPasswordPropia(actual, nueva);
                 sesionUsuario.actualizarContrasena(nueva);
                 dialogo.close();
-                NotificacionUtils.mostrarExito(
-                        "Contraseña modificada correctamente."
-                );
+                NotificacionUtils.mostrarExito("Contraseña modificada correctamente.");
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorPassword(excepcion);
             } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
                 NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
-        dialogo.add(new VerticalLayout(
-                campoActual,
-                campoNueva,
-                campoConfirmacion,
-                new HorizontalLayout(botonGuardar, botonCancelar)
-        ));
+        dialogo.add(new VerticalLayout(campoActual, campoNueva, campoConfirmacion, new HorizontalLayout(botonGuardar, botonCancelar)));
         dialogo.open();
     }
 
-    private void mostrarErrorPassword(
-            RestClientResponseException excepcion) {
+    // Configura los campos de contraseña con las mismas propiedades.
+    private PasswordField crearCampoPassword(String etiqueta) {
+        PasswordField campo = new PasswordField(etiqueta);
+        campo.setRequiredIndicatorVisible(true);
+        campo.setRevealButtonVisible(false);
+        campo.setWidthFull();
+        return campo;
+    }
+
+    // Muestra los errores de contraseña devueltos por el backend.
+    private void mostrarErrorPassword(RestClientResponseException excepcion) {
         NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
-    /*
-     * Antes de mostrar los datos,
-     * comprueba que exista un usuario conectado.
-     */
+    // Verifica que exista una sesión autenticada antes de mostrar el perfil.
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
-
         if (!sesionUsuario.estaAutenticado()) {
-
             evento.rerouteTo(LoginView.class);
             return;
         }
@@ -288,13 +227,11 @@ public class MiPerfilView extends VerticalLayout
         mostrarDatos();
     }
 
-    /*
-     * Obtiene de la sesión los datos del usuario
-     * que inició sesión y los muestra en pantalla.
-     */
+    // Completa los datos del perfil utilizando la información de la sesión.
     private void mostrarDatos() {
         UsuarioDTO usuario = sesionUsuario.getUsuario();
         String estado;
+
         if (usuario.getActivo() == null) {
             estado = "No informado";
         } else if (usuario.getActivo()) {
@@ -302,39 +239,48 @@ public class MiPerfilView extends VerticalLayout
         } else {
             estado = "Inactivo";
         }
+
         avatar.setName(usuario.getNombre());
         nombreDestacado.setText(usuario.getNombre());
         etiquetaRol.setText(usuario.getRol());
         etiquetaEstado.setText(estado);
+
         if (Boolean.FALSE.equals(usuario.getActivo())) {
             etiquetaEstado.getStyle().set("color", "#ffb3b3").set("background", "rgba(190, 50, 50, 0.30)");
         }
+
         campoCodigo.setText(valorOVacio(usuario.getCodigo()));
         campoNombre.setText(valorOVacio(usuario.getNombre()));
         campoRol.setText(valorOVacio(usuario.getRol()));
         campoEstado.setText(estado);
-        campoNacimiento.setText(usuario.getFechaNacimiento() == null ? "No informada" : usuario.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        campoNacimiento.setText(usuario.getFechaNacimiento() == null ? "No informada" : usuario.getFechaNacimiento().format(FORMATO_FECHA));
+
         datoAlta.setVisible(usuario.getFechaCreacion() != null);
         if (usuario.getFechaCreacion() != null) {
-            campoAlta.setText(usuario.getFechaCreacion().format(FORMATO_FECHA));
+            campoAlta.setText(usuario.getFechaCreacion().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         }
     }
 
+    // Evita mostrar valores nulos en los datos personales.
     private String valorOVacio(String valor) {
         return valor == null ? "" : valor;
     }
 
+    // Crea un dato con etiqueta y valor.
     private Div crearDato(String titulo, Span valor) {
         Span etiqueta = new Span(titulo);
         etiqueta.getStyle().set("font-weight", "600");
+
         Div dato = new Div(etiqueta, valor);
         dato.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "0.25rem");
         return dato;
     }
 
+    // Crea una tarjeta reutilizable con el estilo de la vista.
     private Div crearTarjeta(int anchoMinimo) {
         Div tarjeta = new Div();
-        tarjeta.getStyle().set("flex", "1 1 " + anchoMinimo + "px")
+        tarjeta.getStyle()
+                .set("flex", "1 1 " + anchoMinimo + "px")
                 .set("box-sizing", "border-box")
                 .set("padding", "1.5rem")
                 .set("border-radius", "16px")
