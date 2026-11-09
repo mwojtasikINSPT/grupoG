@@ -1,5 +1,7 @@
 package prog2.policia_frontend.layouts;
 
+import java.util.Set;
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -13,10 +15,10 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-
-import java.util.Set;
+import com.vaadin.flow.component.applayout.DrawerToggle;
 
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.security.PermisosInterfaz;
 import prog2.policia_frontend.utils.NotificacionUtils;
 import prog2.policia_frontend.views.AsaltantesView;
 import prog2.policia_frontend.views.AsaltosView;
@@ -33,275 +35,149 @@ import prog2.policia_frontend.views.RolesView;
 import prog2.policia_frontend.views.SucursalesView;
 import prog2.policia_frontend.views.UsuariosView;
 
-import com.vaadin.flow.component.applayout.DrawerToggle;
-
-/*
- * Estructura general de todas las pantallas privadas.
- */
+// Estructura general de todas las pantallas privadas.
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
-    /*
-         * Pantallas que muestran información administrativa general.
-         * Para ingresar en ellas no alcanza con conocer la dirección:
-         * la sesión debe poseer el permiso LECTURA.
-     */
-    private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS = Set.of(
-            UsuariosView.class, RolesView.class, JuecesView.class, EntidadesBancariasView.class,
-            SucursalesView.class, ContratosVigilanciaView.class, MisContratosView.class,
-            BandasView.class, AsaltantesView.class, AsaltosView.class, CasosJudicialesView.class);
-
+    // Vistas que requieren autorización.
+    private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS = Set.of(UsuariosView.class, RolesView.class, JuecesView.class, EntidadesBancariasView.class, SucursalesView.class, ContratosVigilanciaView.class, MisContratosView.class, BandasView.class, AsaltantesView.class, AsaltosView.class, CasosJudicialesView.class);
     private final SesionUsuario sesionUsuario;
+    private final PermisosInterfaz permisosInterfaz;
 
-    /*
-         * Este texto mostrará el nombre y el rol
-         * del usuario que inició sesión.
-     */
+    // Este texto mostrará el nombre y el rol del usuario que inició sesión.
     private final Span datosUsuario = new Span();
 
-    public MainLayout(SesionUsuario sesionUsuario) {
-
+    public MainLayout(SesionUsuario sesionUsuario, PermisosInterfaz permisosInterfaz) {
         this.sesionUsuario = sesionUsuario;
+        this.permisosInterfaz = permisosInterfaz;
 
-        /*
-                 * AppLayout convierte normalmente el drawer en un panel superpuesto
-                 * cuando la ventana es angosta y lo cierra después de navegar.
-                 * En este sistema la navegación debe permanecer fija, por eso se
-                 * desactiva ese comportamiento responsive mediante la propiedad
-                 * oficial del componente.
-         */
+        // Configura la barra de navegación.
         setPrimarySection(AppLayout.Section.NAVBAR);
-
         crearEncabezado();
         crearMenuLateral();
     }
 
-    /*
-         * Crea la barra superior de la aplicación.
-     */
+    // Crea la barra superior de la aplicación.
     private void crearEncabezado() {
-
         H2 titulo = new H2("Sistema de Gestión Policial");
-
         Button botonCerrarSesion = new Button("Cerrar sesión");
-        // crea el boton cerrar secion, ycuando le hagan click ejecuta el metodo
         botonCerrarSesion.addClickListener(evento -> cerrarSesion());
-
-        // FILA!!!
         HorizontalLayout encabezado = new HorizontalLayout();
-        // sus datos
         encabezado.setWidthFull();
         encabezado.setAlignItems(HorizontalLayout.Alignment.CENTER);
 
-        /*
-                 * Hace que el título ocupe el espacio disponible
-                 * y empuja los datos del usuario hacia la derecha.
-         */
+        // Hace que el título ocupe el espacio disponible y empuja los datos del usuario hacia la derecha.
         DrawerToggle botonMenu = new DrawerToggle();
         botonMenu.setAriaLabel("Mostrar u ocultar el menú");
         botonMenu.setTooltipText("Mostrar u ocultar el menú");
 
         // Quita el margen propio del H2 para que el título quede pegado al botón
         titulo.getStyle().set("margin", "0");
-
         encabezado.expand(titulo);
-
         encabezado.add(botonMenu, titulo, datosUsuario, botonCerrarSesion);
-
         addToNavbar(encabezado);
     }
 
-    /*
-         * Crea el menú lateral fijo.
-     */
+    // Crea el menú lateral fijo.
     private void crearMenuLateral() {
-
-        /*
-                 * SideNav es el menú lateral oficial de Vaadin. Resalta
-                 * automáticamente la opción correspondiente a la vista actual.
-         */
+        // Crea el menú general.
         SideNav menuGeneral = new SideNav("General");
-
-        menuGeneral.addItem(
-                new SideNavItem("Inicio", InicioView.class, VaadinIcon.HOME.create()),
+        menuGeneral.addItem(new SideNavItem("Inicio", InicioView.class, VaadinIcon.HOME.create()),
                 new SideNavItem("Mi perfil", MiPerfilView.class, VaadinIcon.USER.create()));
-
         VerticalLayout menu = new VerticalLayout(menuGeneral);
         menu.setPadding(false);
         menu.setSpacing(false);
         menu.setWidthFull();
 
-        /*
-                 * Las secciones administrativas solo se agregan cuando existe
-                 * permiso de lectura. Los nuevos roles funcionan igual porque
-                 * la decisión depende del permiso, no del nombre del rol.
-         */
+        // Agrega secciones según los permisos de la sesión.
         SideNav menuAdministracion = new SideNav("Administración");
         boolean mostrarAdministracion = false;
-        if (puedeLeer("USUARIO")) {
+        if (permisosInterfaz.puedeAccederVista(UsuariosView.class)) {
             menuAdministracion.addItem(new SideNavItem("Usuarios", UsuariosView.class, VaadinIcon.USERS.create()));
             mostrarAdministracion = true;
         }
-        if (sesionUsuario.tieneRol("ADMINISTRADOR")) {
+        if (permisosInterfaz.puedeAccederVista(RolesView.class)) {
             menuAdministracion.addItem(new SideNavItem("Roles", RolesView.class, VaadinIcon.KEY.create()));
             mostrarAdministracion = true;
         }
         SideNav menuPersonal = new SideNav("Personal");
         boolean mostrarPersonal = false;
-        if (puedeLeer("JUEZ")) {
+        if (permisosInterfaz.puedeAccederVista(JuecesView.class)) {
             menuPersonal.addItem(new SideNavItem("Jueces", JuecesView.class, VaadinIcon.GAVEL.create()));
             mostrarPersonal = true;
         }
         SideNav menuBancos = new SideNav("Actividad bancaria");
         boolean mostrarBancos = false;
-        if (puedeLeer("ENTIDAD_BANCARIA")) {
+        if (permisosInterfaz.puedeAccederVista(EntidadesBancariasView.class)) {
             menuBancos.addItem(new SideNavItem("Entidades bancarias", EntidadesBancariasView.class, VaadinIcon.BUILDING.create()));
             mostrarBancos = true;
         }
-        if (puedeLeer("SUCURSAL")) {
+        if (permisosInterfaz.puedeAccederVista(SucursalesView.class)) {
             menuBancos.addItem(new SideNavItem("Sucursales", SucursalesView.class, VaadinIcon.BRIEFCASE.create()));
             mostrarBancos = true;
         }
-
-        if (sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso("LECTURA_CONTRATO_VIGILANCIA")) {
+        if (permisosInterfaz.puedeAccederVista(ContratosVigilanciaView.class)) {
             menuBancos.addItem(new SideNavItem("Contratos", ContratosVigilanciaView.class, VaadinIcon.FILE_TEXT.create()));
             mostrarBancos = true;
-        } else if (sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_CONTRATO_VIGILANCIA")) {
+        } else if (permisosInterfaz.puedeAccederVista(MisContratosView.class)) {
             menuBancos.addItem(new SideNavItem("Mis contratos", MisContratosView.class, VaadinIcon.FILE_TEXT.create()));
             mostrarBancos = true;
         }
-
         SideNav menuInvestigacion = new SideNav("Investigación policial");
         boolean mostrarInvestigacion = false;
-        if (puedeLeer("BANDA")) {
+        if (permisosInterfaz.puedeAccederVista(BandasView.class)) {
             menuInvestigacion.addItem(new SideNavItem("Bandas", BandasView.class, VaadinIcon.GROUP.create()));
             mostrarInvestigacion = true;
         }
-        if (puedeLeer("ASALTANTE")) {
+        if (permisosInterfaz.puedeAccederVista(AsaltantesView.class)) {
             menuInvestigacion.addItem(new SideNavItem("Asaltantes", AsaltantesView.class, VaadinIcon.WARNING.create()));
             mostrarInvestigacion = true;
         }
-        if (puedeLeer("ASALTO")) {
+        if (permisosInterfaz.puedeAccederVista(AsaltosView.class)) {
             menuInvestigacion.addItem(new SideNavItem("Asaltos", AsaltosView.class, VaadinIcon.SAFE.create()));
             mostrarInvestigacion = true;
         }
-        if (puedeLeer("CASO_JUDICIAL")) {
+        if (permisosInterfaz.puedeAccederVista(CasosJudicialesView.class)) {
             menuInvestigacion.addItem(new SideNavItem("Casos judiciales", CasosJudicialesView.class, VaadinIcon.SCALE.create()));
             mostrarInvestigacion = true;
         }
         if (mostrarAdministracion) {
             menu.add(menuAdministracion);
         }
-
         if (mostrarPersonal) {
             menu.add(menuPersonal);
         }
-
         if (mostrarBancos) {
             menu.add(menuBancos);
         }
-
         if (mostrarInvestigacion) {
             menu.add(menuInvestigacion);
         }
 
-        /*
-                 * Scroller también es un componente oficial de Vaadin y permite
-                 * recorrer el menú cuando la pantalla no tiene suficiente altura.
-         */
+        // Permite desplazar el menú lateral.
         Scroller desplazamiento = new Scroller(menu);
         desplazamiento.setSizeFull();
-
         addToDrawer(desplazamiento);
     }
 
-    private boolean puedeLeer(String entidad) {
-        return sesionUsuario.tieneRol("ADMINISTRADOR")
-                || sesionUsuario.tienePermiso("LECTURA_" + entidad)
-                || sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_" + entidad);
-    }
-
-    private boolean puedeEscribir(String entidad) {
-        return sesionUsuario.tienePermiso("ESCRITURA_" + entidad);
-    }
-
-    private boolean puedeAcceder(Class<?> vista) {
-        if (sesionUsuario.tieneRol("ADMINISTRADOR")) {
-            return true;
-        }
-        if (vista.equals(RolesView.class)) {
-            return sesionUsuario.tieneRol("ADMINISTRADOR");
-        }
-        if (vista.equals(UsuariosView.class)) {
-            return puedeLeer("USUARIO");
-        }
-        if (vista.equals(JuecesView.class)) {
-            return puedeLeer("JUEZ");
-        }
-        if (vista.equals(EntidadesBancariasView.class)) {
-            return puedeLeer("ENTIDAD_BANCARIA");
-        }
-        if (vista.equals(SucursalesView.class)) {
-            return puedeLeer("SUCURSAL");
-        }
-        if (vista.equals(ContratosVigilanciaView.class)) {
-            return sesionUsuario.tienePermiso("LECTURA_CONTRATO_VIGILANCIA");
-        }
-        if (vista.equals(MisContratosView.class)) {
-            return sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_CONTRATO_VIGILANCIA") || sesionUsuario.tienePermiso("LECTURA_CONTRATO_VIGILANCIA");
-        }
-        if (vista.equals(BandasView.class)) {
-            return puedeLeer("BANDA");
-        }
-        if (vista.equals(AsaltantesView.class)) {
-            return puedeLeer("ASALTANTE");
-        }
-        if (vista.equals(AsaltosView.class)) {
-            return puedeLeer("ASALTO");
-        }
-        if (vista.equals(CasosJudicialesView.class)) {
-            return puedeLeer("CASO_JUDICIAL");
-        }
-        return true;
-    }
-
-
-    /*
-         * Antes de mostrar una pantalla privada,
-         * comprueba que exista un usuario autenticado.
-     */
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
-
         if (!sesionUsuario.estaAutenticado()) {
-
             evento.rerouteTo(LoginView.class);
             return;
         }
-
-        /*
-                 * También controla el ingreso manual por URL. Ocultar un enlace
-                 * mejora la interfaz, pero por sí solo no impide la navegación.
-         */
-        if (VISTAS_ADMINISTRATIVAS.contains(evento.getNavigationTarget())
-                && !puedeAcceder(evento.getNavigationTarget())) {
-
+        
+        // También controla el ingreso manual por URL. Ocultar un enlace mejora la interfaz, pero por sí solo no impide la navegación.
+        if (VISTAS_ADMINISTRATIVAS.contains(evento.getNavigationTarget()) && !permisosInterfaz.puedeAccederVista(evento.getNavigationTarget())) {
             NotificacionUtils.mostrarAdvertencia("No tiene permiso para ingresar a esta sección.");
-
             evento.rerouteTo(InicioView.class);
             return;
         }
-
         String nombre = sesionUsuario.getUsuario().getNombre();
-
         String rol = sesionUsuario.getUsuario().getRol();
-
         datosUsuario.setText(nombre + " - " + rol);
     }
 
-    /*
-         * Borra los datos de la sesión
-         * y regresa al login.
-     */
+    // Borra los datos de la sesión y regresa al login.
     private void cerrarSesion() {
         sesionUsuario.cerrarSesion();
         UI.getCurrent().getSession().close();

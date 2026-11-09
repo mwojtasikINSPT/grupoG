@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.JuezDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
-/* Se comunica con los endpoints de jueces. */
+//Se comunica con los endpoints de jueces
 @Service
 @VaadinSessionScope
 public class JuezClient {
@@ -43,7 +43,8 @@ public class JuezClient {
                 })
                 .headers(sesionUsuario::aplicarAutenticacion)
                 .retrieve()
-                .body(new ParameterizedTypeReference<List<JuezDTO>>() {});
+                .body(new ParameterizedTypeReference<List<JuezDTO>>() {
+                });
 
         return jueces != null ? jueces : List.of();
     }
@@ -106,5 +107,14 @@ public class JuezClient {
         if (codigo == null || codigo.isBlank()) {
             throw new IllegalArgumentException("El código del juez es obligatorio.");
         }
+    }
+
+    public List<String> listarMotivosBaja() {
+        String[] motivos = restClient.get()
+                .uri("/jueces/motivos-baja")
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve()
+                .body(String[].class);
+        return motivos != null ? List.of(motivos) : List.of();
     }
 }

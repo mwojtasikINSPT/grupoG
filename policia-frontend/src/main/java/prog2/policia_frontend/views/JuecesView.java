@@ -16,55 +16,43 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.JuezClient;
 import prog2.policia_frontend.dtos.JuezDTO;
 import prog2.policia_frontend.layouts.MainLayout;
-import prog2.policia_frontend.security.PermisosApp;
-import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.security.PermisosInterfaz;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
-/*
- * Pantalla utilizada para administrar jueces con paginador de 10 elementos.
- */
-@Route(
-        value = "jueces",
-        layout = MainLayout.class
-)
+@Route(value = "jueces", layout = MainLayout.class)
 @PageTitle("Jueces | Sistema Policial")
-public class JuecesView
-        extends VerticalLayout
-        implements BeforeEnterObserver {
+public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
+
+    private static final int PAGE_SIZE = 10;
 
     private final JuezClient juezClient;
-    private final SesionUsuario sesionUsuario;
-
+    private final PermisosInterfaz permisosInterfaz;
     private final Grid<JuezDTO> tabla = new Grid<>(JuezDTO.class, false);
-
     private final TextField filtroNombre = new TextField("Buscar por nombre");
     private final Select<String> filtroEstado = new Select<>();
-
-    // Variables de paginación
-    private int paginaActual = 0;
-    private final int PAGE_SIZE = 10;
     private final Button btnAnterior = new Button("Anterior");
     private final Button btnSiguiente = new Button("Siguiente");
     private final Span lblPaginacion = new Span();
+
+    private int paginaActual = 0;
     private List<JuezDTO> listaCompletaJueces = new ArrayList<>();
 
-    public JuecesView(
-            JuezClient juezClient,
-            SesionUsuario sesionUsuario) {
-
+    public JuecesView(JuezClient juezClient, PermisosInterfaz permisosInterfaz) {
         this.juezClient = juezClient;
-        this.sesionUsuario = sesionUsuario;
-
+        this.permisosInterfaz = permisosInterfaz;
         configurarFiltros();
         configurarTabla();
         configurarPaginacion();
@@ -81,113 +69,62 @@ public class JuecesView
     }
 
     private void configurarTabla() {
-        tabla.addColumn(JuezDTO::getCodigo)
-                .setHeader("Código")
-                .setAutoWidth(true);
-
-        tabla.addColumn(JuezDTO::getNombre)
-                .setHeader("Nombre")
-                .setAutoWidth(true)
-                .setFlexGrow(1);
-
-        tabla.addColumn(JuezDTO::getJuezDesde)
-                .setHeader("Juez desde")
-                .setAutoWidth(true);
-
-        tabla.addColumn(juez
-                -> juez.getAniosServicio() != null
-                ? juez.getAniosServicio()
-                : 0
-        ).setHeader("Años de servicio")
-                .setAutoWidth(true);
-
-        tabla.addColumn(juez
-                -> Boolean.TRUE.equals(juez.getActivo())
-                ? "Activo"
-                : "Inactivo"
-        ).setHeader("Estado")
-                .setAutoWidth(true);
-
-        tabla.addColumn(juez
-                -> juez.getMotivoBaja() != null
-                ? juez.getMotivoBaja()
-                : "-"
-        ).setHeader("Motivo de baja")
-                .setAutoWidth(true);
-
-        tabla.addComponentColumn(juez -> {
-
-            Button botonVerCasos = new Button(
-                    "Ver casos",
-                    evento -> verCasos(juez)
-            );
-
-            botonVerCasos.setVisible(
-                    sesionUsuario.tieneRol("ADMINISTRADOR")
-                    || sesionUsuario.tienePermiso("LECTURA_CASO_JUDICIAL")
-            );
-
-            if (!puedeEscribir()) {
-                return botonVerCasos;
-            }
-
-            boolean estaActivo = Boolean.TRUE.equals(juez.getActivo());
-
-            Button botonModificar = new Button("Modificar");
-            botonModificar.setEnabled(estaActivo);
-
-            if (estaActivo) {
-                botonModificar.addClickListener(
-                        evento -> abrirFormulario(juez)
-                );
-            } else {
-                botonModificar.setTooltipText(
-                        "Debe reactivar al juez antes de modificarlo."
-                );
-            }
-
-            Button botonEstado = new Button();
-
-            if (estaActivo) {
-                botonEstado.setText("Dar de baja");
-                botonEstado.addClickListener(
-                        evento -> abrirDialogoBaja(juez)
-                );
-            } else if ("FALLECIMIENTO".equals(juez.getMotivoBaja())) {
-                botonEstado.setText("No reactivable");
-                botonEstado.setEnabled(false);
-                botonEstado.setTooltipText(
-                        "El motivo de baja fue fallecimiento."
-                );
-            } else {
-                botonEstado.setText("Reactivar");
-                botonEstado.addClickListener(
-                        evento -> reactivarJuez(juez)
-                );
-            }
-
-            return new HorizontalLayout(
-                    botonVerCasos,
-                    botonModificar,
-                    botonEstado
-            );
-
-        }).setHeader("Acciones")
-                .setAutoWidth(true);
-
+        tabla.addColumn(JuezDTO::getCodigo).setHeader("Código").setAutoWidth(true);
+        tabla.addColumn(JuezDTO::getNombre).setHeader("Nombre").setAutoWidth(true).setFlexGrow(1);
+        tabla.addColumn(JuezDTO::getJuezDesde).setHeader("Juez desde").setAutoWidth(true);
+        tabla.addColumn(juez -> juez.getAniosServicio() != null ? juez.getAniosServicio() : 0).setHeader("Años de servicio").setAutoWidth(true);
+        tabla.addColumn(juez -> Boolean.TRUE.equals(juez.getActivo()) ? "Activo" : "Inactivo").setHeader("Estado").setAutoWidth(true);
+        tabla.addColumn(juez -> juez.getMotivoBaja() != null ? juez.getMotivoBaja() : "-").setHeader("Motivo de baja").setAutoWidth(true);
+        tabla.addComponentColumn(this::crearBotonesAccion).setHeader("Acciones").setAutoWidth(true);
         tabla.setSizeFull();
     }
 
+    private com.vaadin.flow.component.Component crearBotonesAccion(JuezDTO juez) {
+        Button botonVerCasos = new Button("Ver casos", evento -> verCasos(juez));
+        botonVerCasos.setVisible(permisosInterfaz.puedeConsultarCasosJudiciales());
+
+        if (!puedeEscribir()) {
+            return botonVerCasos;
+        }
+
+        boolean estaActivo = Boolean.TRUE.equals(juez.getActivo());
+
+        Button botonModificar = new Button("Modificar");
+        botonModificar.setEnabled(estaActivo);
+
+        if (estaActivo) {
+            botonModificar.addClickListener(evento -> abrirFormulario(juez));
+        } else {
+            botonModificar.setTooltipText("Debe reactivar al juez antes de modificarlo.");
+        }
+
+        Button botonEstado = new Button();
+
+        if (estaActivo) {
+            botonEstado.setText("Dar de baja");
+            botonEstado.addClickListener(evento -> abrirDialogoBaja(juez));
+        } else if ("FALLECIMIENTO".equals(juez.getMotivoBaja())) {
+            botonEstado.setText("No reactivable");
+            botonEstado.setEnabled(false);
+            botonEstado.setTooltipText("El motivo de baja fue fallecimiento.");
+        } else {
+            botonEstado.setText("Reactivar");
+            botonEstado.addClickListener(evento -> reactivarJuez(juez));
+        }
+
+        return new HorizontalLayout(botonVerCasos, botonModificar, botonEstado);
+    }
+
     private void configurarPaginacion() {
-        btnAnterior.addClickListener(e -> {
+        btnAnterior.addClickListener(evento -> {
             if (paginaActual > 0) {
                 paginaActual--;
                 actualizarTabla();
             }
         });
 
-        btnSiguiente.addClickListener(e -> {
-            int totalPaginas = (int) Math.ceil((double) listaCompletaJueces.size() / PAGE_SIZE);
+        btnSiguiente.addClickListener(evento -> {
+            int totalPaginas = (listaCompletaJueces.size() + PAGE_SIZE - 1) / PAGE_SIZE;
             if (paginaActual < totalPaginas - 1) {
                 paginaActual++;
                 actualizarTabla();
@@ -196,52 +133,31 @@ public class JuecesView
     }
 
     private void verCasos(JuezDTO juez) {
-        UI.getCurrent().navigate(
-                CasosJudicialesView.class,
-                QueryParameters.simple(
-                        Map.of("juez", juez.getCodigo())
-                )
-        );
+        UI.getCurrent().navigate(CasosJudicialesView.class, QueryParameters.simple(Map.of("juez", juez.getCodigo())));
     }
 
     private void configurarVista() {
         H2 titulo = new H2("Jueces");
 
-        Button botonNuevo = new Button(
-                "Nuevo juez",
-                evento -> abrirFormulario(null)
-        );
-
+        Button botonNuevo = new Button("Nuevo juez", evento -> abrirFormulario(null));
         botonNuevo.setVisible(puedeEscribir());
 
-        Button botonBuscar = new Button(
-                "Buscar",
-                evento -> cargarJueces()
-        );
+        Button botonBuscar = new Button("Buscar", evento -> cargarJueces());
 
-        Button botonLimpiar = new Button(
-                "Limpiar",
-                evento -> {
-                    filtroNombre.clear();
-                    filtroEstado.setValue("Todos");
-                    cargarJueces();
-                }
-        );
+        Button botonLimpiar = new Button("Limpiar", evento -> {
+            filtroNombre.clear();
+            filtroEstado.setValue("Todos");
+            cargarJueces();
+        });
 
-        HorizontalLayout filtros = new HorizontalLayout(
-                filtroNombre,
-                filtroEstado,
-                botonBuscar,
-                botonLimpiar
-        );
+        HorizontalLayout filtros = new HorizontalLayout(filtroNombre, filtroEstado, botonBuscar, botonLimpiar);
+        filtros.setAlignItems(Alignment.END);
 
-        filtros.setAlignItems(HorizontalLayout.Alignment.END);
-
-        HorizontalLayout paginacionLayout = new HorizontalLayout(btnAnterior, lblPaginacion, btnSiguiente);
-        paginacionLayout.setAlignItems(Alignment.CENTER);
+        HorizontalLayout paginacion = new HorizontalLayout(btnAnterior, lblPaginacion, btnSiguiente);
+        paginacion.setAlignItems(Alignment.CENTER);
 
         setSizeFull();
-        add(titulo, botonNuevo, filtros, tabla, paginacionLayout);
+        add(titulo, botonNuevo, filtros, tabla, paginacion);
         expand(tabla);
     }
 
@@ -249,12 +165,7 @@ public class JuecesView
         boolean esCreacion = juez == null;
 
         Dialog dialogo = new Dialog();
-
-        dialogo.setHeaderTitle(
-                esCreacion
-                        ? "Nuevo juez"
-                        : "Modificar " + juez.getCodigo()
-        );
+        dialogo.setHeaderTitle(esCreacion ? "Nuevo juez" : "Modificar " + juez.getCodigo());
 
         TextField campoNombre = new TextField("Nombre");
         DatePicker campoJuezDesde = new DatePicker("Juez desde");
@@ -267,47 +178,27 @@ public class JuecesView
         campoJuezDesde.setWidthFull();
 
         if (!esCreacion) {
-            campoNombre.setValue(
-                    juez.getNombre() != null
-                    ? juez.getNombre()
-                    : ""
-            );
+            campoNombre.setValue(juez.getNombre() != null ? juez.getNombre() : "");
             campoJuezDesde.setValue(juez.getJuezDesde());
         }
 
-        Button botonGuardar = new Button(
-                esCreacion
-                        ? "Guardar"
-                        : "Guardar cambios"
-        );
-
-        Button botonCancelar = new Button(
-                "Cancelar",
-                evento -> dialogo.close()
-        );
+        Button botonGuardar = new Button(esCreacion ? "Guardar" : "Guardar cambios");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonGuardar.addClickListener(evento -> {
             boolean nombreVacio = campoNombre.getValue().isBlank();
-
-            boolean fechaInvalida = campoJuezDesde.getValue() == null
-                    || campoJuezDesde.getValue().isAfter(LocalDate.now());
+            boolean fechaInvalida = campoJuezDesde.getValue() == null || campoJuezDesde.getValue().isAfter(LocalDate.now());
 
             campoNombre.setInvalid(nombreVacio);
             campoNombre.setErrorMessage("El nombre es obligatorio.");
-
             campoJuezDesde.setInvalid(fechaInvalida);
-            campoJuezDesde.setErrorMessage(
-                    "La fecha debe ser de hoy o pasada."
-            );
+            campoJuezDesde.setErrorMessage("La fecha debe ser de hoy o pasada.");
 
             if (nombreVacio || fechaInvalida) {
                 return;
             }
 
-            JuezDTO datos = new JuezDTO(
-                    campoNombre.getValue().trim(),
-                    campoJuezDesde.getValue()
-            );
+            JuezDTO datos = new JuezDTO(campoNombre.getValue().trim(), campoJuezDesde.getValue());
 
             try {
                 if (esCreacion) {
@@ -318,12 +209,7 @@ public class JuecesView
 
                 dialogo.close();
                 cargarJueces();
-
-                NotificacionUtils.mostrarExito(
-                        esCreacion
-                                ? "Juez creado correctamente."
-                                : "Juez modificado correctamente."
-                );
+                NotificacionUtils.mostrarExito(esCreacion ? "Juez creado correctamente." : "Juez modificado correctamente.");
 
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
@@ -334,17 +220,7 @@ public class JuecesView
             }
         });
 
-        dialogo.add(
-                new VerticalLayout(
-                        campoNombre,
-                        campoJuezDesde,
-                        new HorizontalLayout(
-                                botonGuardar,
-                                botonCancelar
-                        )
-                )
-        );
-
+        dialogo.add(new VerticalLayout(campoNombre, campoJuezDesde, new HorizontalLayout(botonGuardar, botonCancelar)));
         dialogo.open();
     }
 
@@ -354,23 +230,27 @@ public class JuecesView
 
         Select<String> campoMotivo = new Select<>();
         campoMotivo.setLabel("Motivo de baja");
-        campoMotivo.setItems(
-                "FALLECIMIENTO",
-                "JUBILACION",
-                "LICENCIA",
-                "RENUNCIA",
-                "DESPIDO",
-                "ABANDONO_TRABAJO",
-                "INCAPACIDAD"
-        );
+
+        try {
+            List<String> motivos = juezClient.listarMotivosBaja();
+            if (motivos.isEmpty()) {
+                NotificacionUtils.mostrarInformacion("No hay motivos de baja disponibles.");
+                return;
+            }
+            campoMotivo.setItems(motivos);
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+            return;
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pueden consultar los motivos de baja.");
+            return;
+        }
+
         campoMotivo.setRequiredIndicatorVisible(true);
         campoMotivo.setWidthFull();
 
         Button botonConfirmar = new Button("Confirmar baja");
-        Button botonCancelar = new Button(
-                "Cancelar",
-                evento -> dialogo.close()
-        );
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonConfirmar.addClickListener(evento -> {
             String motivo = campoMotivo.getValue();
@@ -385,10 +265,8 @@ public class JuecesView
 
             try {
                 juezClient.darDeBaja(juez.getCodigo(), motivo);
-
                 dialogo.close();
                 cargarJueces();
-
                 NotificacionUtils.mostrarExito("Juez dado de baja correctamente.");
 
             } catch (RestClientResponseException excepcion) {
@@ -398,16 +276,7 @@ public class JuecesView
             }
         });
 
-        dialogo.add(
-                new VerticalLayout(
-                        campoMotivo,
-                        new HorizontalLayout(
-                                botonConfirmar,
-                                botonCancelar
-                        )
-                )
-        );
-
+        dialogo.add(new VerticalLayout(campoMotivo, new HorizontalLayout(botonConfirmar, botonCancelar)));
         dialogo.open();
     }
 
@@ -415,7 +284,6 @@ public class JuecesView
         try {
             juezClient.reactivar(juez.getCodigo());
             cargarJueces();
-
             NotificacionUtils.mostrarExito("Juez reactivado correctamente.");
 
         } catch (RestClientResponseException excepcion) {
@@ -437,15 +305,12 @@ public class JuecesView
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_JUEZ");
+        return permisosInterfaz.puedeModificarJueces();
     }
 
     private void cargarJueces() {
         try {
-            listaCompletaJueces = juezClient.listar(
-                    obtenerEstado(),
-                    filtroNombre.getValue()
-            );
+            listaCompletaJueces = juezClient.listar(obtenerEstado(), filtroNombre.getValue());
 
             if (listaCompletaJueces == null) {
                 listaCompletaJueces = new ArrayList<>();
@@ -465,33 +330,17 @@ public class JuecesView
 
     private void actualizarTabla() {
         int totalRegistros = listaCompletaJueces.size();
-        int totalPaginas = (int) Math.ceil((double) totalRegistros / PAGE_SIZE);
-        if (totalPaginas == 0) {
-            totalPaginas = 1;
-        }
-
+        int totalPaginas = Math.max(1, (totalRegistros + PAGE_SIZE - 1) / PAGE_SIZE);
         int desde = paginaActual * PAGE_SIZE;
         int hasta = Math.min(desde + PAGE_SIZE, totalRegistros);
 
-        if (totalRegistros == 0) {
-            tabla.setItems(new ArrayList<>());
-            btnAnterior.setEnabled(false);
-            btnSiguiente.setEnabled(false);
-            lblPaginacion.setText("Página 1 de 1 · 0 registros");
-            return;
-        }
-
         tabla.setItems(listaCompletaJueces.subList(desde, hasta));
-
         btnAnterior.setEnabled(paginaActual > 0);
         btnSiguiente.setEnabled(paginaActual < totalPaginas - 1);
-
-        lblPaginacion.setText(String.format("Página %d de %d · %d registros",
-                paginaActual + 1, totalPaginas, totalRegistros));
+        lblPaginacion.setText(String.format("Página %d de %d · %d registros", paginaActual + 1, totalPaginas, totalRegistros));
     }
 
-    private void mostrarErrorOperacion(
-            RestClientResponseException excepcion) {
+    private void mostrarErrorOperacion(RestClientResponseException excepcion) {
         NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 

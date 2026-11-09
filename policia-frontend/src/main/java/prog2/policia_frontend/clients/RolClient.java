@@ -1,4 +1,3 @@
-
 package prog2.policia_frontend.clients;
 
 import java.util.List;
@@ -9,6 +8,7 @@ import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
+
 /*
  * Se comunica con los endpoints de roles
  * disponibles en el backend.
@@ -56,9 +56,8 @@ public class RolClient {
                 )
                 .retrieve()
                 .body(
-                        new ParameterizedTypeReference
-                                <List<RolDTO>>() {
-                        }
+                        new ParameterizedTypeReference<List<RolDTO>>() {
+                }
                 );
 
         /*
@@ -165,5 +164,14 @@ public class RolClient {
                     "El código del rol es obligatorio."
             );
         }
+    }
+
+    public List<String> listarEntidades() {
+        String[] entidades = restClient.get()
+                .uri("/roles/entidades")
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve()
+                .body(String[].class);
+        return entidades != null ? List.of(entidades) : List.of();
     }
 }

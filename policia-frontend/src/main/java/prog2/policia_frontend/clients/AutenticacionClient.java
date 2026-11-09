@@ -19,8 +19,8 @@ public class AutenticacionClient {
         this.restClient = RestClient.builder().baseUrl(backendUrl).build();
     }
 
+    // Autentica al usuario y recupera su perfil y permisos.
     public ResultadoAutenticacion autenticar(String codigo, String password) {
-
         if (codigo == null || codigo.isBlank()) {
             throw new IllegalArgumentException("Debe ingresar su código.");
         }
@@ -41,14 +41,10 @@ public class AutenticacionClient {
                 .uri("/usuarios/mis-permisos")
                 .headers(headers -> headers.setBasicAuth(codigoNormalizado, password))
                 .retrieve()
-                .body(new ParameterizedTypeReference<List<String>>() {
-                });
+                .body(new ParameterizedTypeReference<List<String>>() {});
 
         Set<String> permisos = new HashSet<>();
-
-        if (permisosRecibidos != null) {
-            permisos.addAll(permisosRecibidos);
-        }
+        if (permisosRecibidos != null) permisos.addAll(permisosRecibidos);
 
         return new ResultadoAutenticacion(usuario, permisos);
     }

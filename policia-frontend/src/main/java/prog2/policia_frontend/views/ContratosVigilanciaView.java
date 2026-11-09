@@ -1,5 +1,10 @@
 package prog2.policia_frontend.views;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -15,10 +20,10 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import java.time.LocalDate;
-import java.util.List;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.ContratoVigilanciaClient;
 import prog2.policia_frontend.clients.SucursalClient;
 import prog2.policia_frontend.clients.UsuarioClient;
@@ -27,118 +32,62 @@ import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
-import prog2.policia_frontend.security.PermisosApp;
-import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.security.PermisosInterfaz;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
-/*
- * Pantalla utilizada para consultar y administrar
- * los contratos de vigilancia.
- */
-@Route(
-        value = "contratos-vigilancia",
-        layout = MainLayout.class
-)
+// Pantalla para consultar y administrar contratos de vigilancia.
+@Route(value = "contratos-vigilancia", layout = MainLayout.class)
 @PageTitle("Contratos de vigilancia | Sistema Policial")
-public class ContratosVigilanciaView
-        extends VerticalLayout
-        implements BeforeEnterObserver {
+public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ContratoVigilanciaClient contratoClient;
     private final UsuarioClient usuarioClient;
     private final SucursalClient sucursalClient;
-    private final SesionUsuario sesionUsuario;
+    private final PermisosInterfaz permisosInterfaz;
 
-    private final Grid<ContratoVigilanciaDTO> tabla
-            = new Grid<>(ContratoVigilanciaDTO.class, false);
+    private final Grid<ContratoVigilanciaDTO> tabla = new Grid<>(ContratoVigilanciaDTO.class, false);
+    private final PaginadorGrid<ContratoVigilanciaDTO> paginadorContratos = new PaginadorGrid<>(tabla, 10);
+    private final TextField filtroVigilante = new TextField("Buscar por vigilante");
+    private final Select<String> filtroTipoBusqueda = new Select<>();
+    private final Select<UsuarioDTO> filtroVigilanteExacto = new Select<>();
+    private final Select<SucursalDTO> filtroSucursalExacta = new Select<>();
+    private final Select<String> filtroEstado = new Select<>();
+    private final Button botonBuscar = new Button("Buscar");
+    private final Button botonLimpiar = new Button("Limpiar");
+    private final Button botonNuevoContrato = new Button("Nuevo contrato");
 
-    private final PaginadorGrid<ContratoVigilanciaDTO> paginadorContratos
-            = new PaginadorGrid<>(tabla, 10);
-
-    private final TextField filtroVigilante
-            = new TextField("Buscar por vigilante");
-
-    private final Select<String> filtroTipoBusqueda
-            = new Select<>();
-
-    private final Select<UsuarioDTO> filtroVigilanteExacto
-            = new Select<>();
-
-    private final Select<SucursalDTO> filtroSucursalExacta
-            = new Select<>();
-
-    private final Select<String> filtroEstado
-            = new Select<>();
-
-    private final Button botonBuscar
-            = new Button("Buscar");
-
-    private final Button botonLimpiar
-            = new Button("Limpiar");
-
-    private final Button botonNuevoContrato
-            = new Button("Nuevo contrato");
-
-    public ContratosVigilanciaView(
-            ContratoVigilanciaClient contratoClient,
-            UsuarioClient usuarioClient,
-            SucursalClient sucursalClient,
-            SesionUsuario sesionUsuario) {
-
+    public ContratosVigilanciaView(ContratoVigilanciaClient contratoClient, UsuarioClient usuarioClient, SucursalClient sucursalClient, PermisosInterfaz permisosInterfaz) {
         this.contratoClient = contratoClient;
         this.usuarioClient = usuarioClient;
         this.sucursalClient = sucursalClient;
-        this.sesionUsuario = sesionUsuario;
-
+        this.permisosInterfaz = permisosInterfaz;
         configurarFiltros();
         configurarTabla();
         configurarVista();
     }
 
-    /*
-     * Configura la búsqueda por nombre
-     * del vigilante y estado del contrato.
-     */
+    // Configura las búsquedas por vigilante, sucursal y estado.
     private void configurarFiltros() {
-
         filtroTipoBusqueda.setLabel("Tipo de búsqueda");
-        filtroTipoBusqueda.setItems(
-                "General",
-                "Por vigilante",
-                "Por sucursal"
-        );
+        filtroTipoBusqueda.setItems("General", "Por vigilante", "Por sucursal");
         filtroTipoBusqueda.setValue("General");
 
-        filtroVigilante.setPlaceholder(
-                "Ingrese una coincidencia del nombre"
-        );
-
+        filtroVigilante.setPlaceholder("Ingrese una coincidencia del nombre");
         filtroVigilante.setClearButtonVisible(true);
 
         filtroVigilanteExacto.setLabel("Vigilante");
-        filtroVigilanteExacto.setItemLabelGenerator(vigilante
-                -> vigilante.getCodigo()
-                + " - "
-                + vigilante.getNombre()
-        );
+        filtroVigilanteExacto.setItemLabelGenerator(vigilante -> vigilante.getCodigo() + " - " + vigilante.getNombre());
         filtroVigilanteExacto.setVisible(false);
 
         filtroSucursalExacta.setLabel("Sucursal");
-        filtroSucursalExacta.setItemLabelGenerator(sucursal
-                -> sucursal.getCodigo()
-                + " - "
-                + sucursal.getDomicilio()
-        );
+        filtroSucursalExacta.setItemLabelGenerator(sucursal -> sucursal.getCodigo() + " - " + sucursal.getDomicilio());
         filtroSucursalExacta.setVisible(false);
 
         filtroTipoBusqueda.addValueChangeListener(evento -> {
-
             boolean general = "General".equals(evento.getValue());
-            boolean porVigilante
-                    = "Por vigilante".equals(evento.getValue());
-            boolean porSucursal
-                    = "Por sucursal".equals(evento.getValue());
+            boolean porVigilante = "Por vigilante".equals(evento.getValue());
+            boolean porSucursal = "Por sucursal".equals(evento.getValue());
 
             filtroVigilante.setVisible(general);
             filtroVigilanteExacto.setVisible(porVigilante);
@@ -150,19 +99,12 @@ public class ContratosVigilanciaView
         });
 
         filtroEstado.setLabel("Estado");
-        filtroEstado.setItems(
-                "Todos",
-                "Activos",
-                "Finalizados"
-        );
+        filtroEstado.setItems("Todos", "Activos", "Finalizados");
         filtroEstado.setValue("Todos");
 
-        botonBuscar.addClickListener(
-                evento -> cargarContratos()
-        );
+        botonBuscar.addClickListener(evento -> cargarContratos());
 
         botonLimpiar.addClickListener(evento -> {
-
             filtroVigilante.clear();
             filtroTipoBusqueda.setValue("General");
             filtroVigilanteExacto.clear();
@@ -172,366 +114,157 @@ public class ContratosVigilanciaView
         });
     }
 
-    /*
-     * Define la información que se muestra
-     * en la tabla. No expone datos sensibles.
-     */
+    // Define las columnas sin exponer información sensible.
     private void configurarTabla() {
-
-        tabla.addColumn(
-                ContratoVigilanciaDTO::getCodigo
-        ).setHeader("Código")
-                .setAutoWidth(true);
-
-        tabla.addColumn(
-                ContratoVigilanciaDTO::getFecha
-        ).setHeader("Fecha")
-                .setAutoWidth(true);
-
-        tabla.addColumn(contrato
-                -> Boolean.TRUE.equals(
-                        contrato.getConArma()
-                )
-                ? "Sí"
-                : "No"
-        ).setHeader("Con arma")
-                .setAutoWidth(true);
-
-        tabla.addColumn(
-                ContratoVigilanciaDTO::getVigilanteCodigo
-        ).setHeader("Vigilante")
-                .setAutoWidth(true);
-
-        tabla.addColumn(
-                ContratoVigilanciaDTO::getSucursalCodigo
-        ).setHeader("Sucursal")
-                .setAutoWidth(true);
-
-        tabla.addColumn(this::obtenerEstadoVisible
-        ).setHeader("Estado")
-                .setAutoWidth(true);
-
-        tabla.addColumn(contrato
-                -> contrato.getMotivoBaja() != null
-                ? contrato.getMotivoBaja()
-                : "-"
-        ).setHeader("Motivo de baja")
-                .setAutoWidth(true);
-
-        /*
-         * Solamente permite modificar o cancelar contratos
-         * activos cuya fecha sea de hoy o futura.
-         */
-        tabla.addComponentColumn(contrato -> {
-
-            if (!puedeEscribir()) {
-                return new Span("Solo lectura");
-            }
-
-            Button botonModificar
-                    = new Button("Modificar");
-
-            Button botonCancelarContrato
-                    = new Button("Dar de baja");
-
-            boolean puedeOperarse
-                    = Boolean.TRUE.equals(
-                            contrato.getActivo()
-                    )
-                    && contrato.getFecha() != null
-                    && !contrato.getFecha()
-                            .isBefore(LocalDate.now());
-
-            botonModificar.setEnabled(puedeOperarse);
-            botonCancelarContrato.setEnabled(puedeOperarse);
-
-            if (puedeOperarse) {
-
-                botonModificar.addClickListener(
-                        evento
-                        -> abrirFormularioEdicion(contrato)
-                );
-
-                botonCancelarContrato.addClickListener(
-                        evento
-                        -> abrirConfirmacionCancelacion(contrato)
-                );
-
-            } else {
-
-                botonModificar.setTooltipText(
-                        "Los contratos cancelados o cumplidos no pueden modificarse."
-                );
-
-                botonCancelarContrato.setTooltipText(
-                        "Los contratos cancelados o cumplidos no pueden cancelarse."
-                );
-            }
-
-            return new HorizontalLayout(
-                    botonModificar,
-                    botonCancelarContrato
-            );
-
-        }).setHeader("Acciones")
-                .setAutoWidth(true);
-
+        tabla.addColumn(ContratoVigilanciaDTO::getCodigo).setHeader("Código").setAutoWidth(true);
+        tabla.addColumn(ContratoVigilanciaDTO::getFecha).setHeader("Fecha").setAutoWidth(true);
+        tabla.addColumn(contrato -> Boolean.TRUE.equals(contrato.getConArma()) ? "Sí" : "No").setHeader("Con arma").setAutoWidth(true);
+        tabla.addColumn(ContratoVigilanciaDTO::getVigilanteCodigo).setHeader("Vigilante").setAutoWidth(true);
+        tabla.addColumn(ContratoVigilanciaDTO::getSucursalCodigo).setHeader("Sucursal").setAutoWidth(true);
+        tabla.addColumn(this::obtenerEstadoVisible).setHeader("Estado").setAutoWidth(true);
+        tabla.addColumn(contrato -> contrato.getMotivoBaja() != null ? contrato.getMotivoBaja() : "-").setHeader("Motivo de baja").setAutoWidth(true);
+        tabla.addComponentColumn(this::crearBotonesAccion).setHeader("Acciones").setAutoWidth(true);
         tabla.setSizeFull();
     }
 
-    /*
-     * Organiza los componentes de la pantalla.
-     */
+    // Solo permite modificar o cancelar contratos activos de hoy o futuros.
+    private Component crearBotonesAccion(ContratoVigilanciaDTO contrato) {
+        if (!puedeEscribir()) {
+            return new Span("Solo lectura");
+        }
+
+        Button botonModificar = new Button("Modificar");
+        Button botonCancelarContrato = new Button("Dar de baja");
+
+        boolean puedeOperarse = Boolean.TRUE.equals(contrato.getActivo())
+                && contrato.getFecha() != null
+                && !contrato.getFecha().isBefore(LocalDate.now());
+
+        botonModificar.setEnabled(puedeOperarse);
+        botonCancelarContrato.setEnabled(puedeOperarse);
+
+        if (puedeOperarse) {
+            botonModificar.addClickListener(evento -> abrirFormulario(contrato));
+            botonCancelarContrato.addClickListener(evento -> abrirConfirmacionCancelacion(contrato));
+        } else {
+            botonModificar.setTooltipText("Los contratos cancelados o cumplidos no pueden modificarse.");
+            botonCancelarContrato.setTooltipText("Los contratos cancelados o cumplidos no pueden cancelarse.");
+        }
+
+        return new HorizontalLayout(botonModificar, botonCancelarContrato);
+    }
+
+    // Organiza los componentes de la pantalla.
     private void configurarVista() {
+        H2 titulo = new H2("Contratos de vigilancia");
+        HorizontalLayout filtros = new HorizontalLayout(filtroTipoBusqueda, filtroVigilante, filtroVigilanteExacto, filtroSucursalExacta, filtroEstado, botonBuscar, botonLimpiar);
+        filtros.setAlignItems(Alignment.END);
 
-        H2 titulo = new H2(
-                "Contratos de vigilancia"
-        );
-
-        HorizontalLayout filtros
-                = new HorizontalLayout(
-                        filtroTipoBusqueda,
-                        filtroVigilante,
-                        filtroVigilanteExacto,
-                        filtroSucursalExacta,
-                        filtroEstado,
-                        botonBuscar,
-                        botonLimpiar
-                );
-
-        filtros.setAlignItems(
-                HorizontalLayout.Alignment.END
-        );
-
-        botonNuevoContrato.addClickListener(
-                evento -> abrirFormularioNuevo()
-        );
+        botonNuevoContrato.addClickListener(evento -> abrirFormulario(null));
         botonNuevoContrato.setVisible(puedeEscribir());
 
         setSizeFull();
-
-        add(
-                titulo,
-                botonNuevoContrato,
-                filtros,
-                tabla,
-                paginadorContratos.getControles()
-        );
-
+        add(titulo, botonNuevoContrato, filtros, tabla, paginadorContratos.getControles());
         expand(tabla);
     }
 
-    /*
-     * Solicita una confirmación antes de cancelar
-     * definitivamente un contrato de vigilancia.
-     */
-    private void abrirConfirmacionCancelacion(
-            ContratoVigilanciaDTO contrato) {
-
+    // Solicita confirmación antes de cancelar definitivamente un contrato.
+    private void abrirConfirmacionCancelacion(ContratoVigilanciaDTO contrato) {
         Dialog dialogo = new Dialog();
-
-        dialogo.setHeaderTitle(
-                "Dar de baja "
-                + contrato.getCodigo()
-        );
-
-        Paragraph mensaje = new Paragraph(
-                "El contrato quedará cancelado y no podrá reactivarse. "
-                + "¿Desea continuar?"
-        );
-
-        Select<String> campoMotivo = new Select<>();
-        campoMotivo.setLabel("Motivo de baja");
-        campoMotivo.setItems("CANCELACION");
-        campoMotivo.setPlaceholder("Seleccione un motivo");
-        campoMotivo.setRequiredIndicatorVisible(true);
-
-        Paragraph aclaracion = new Paragraph(
-                "CIERRE_SUCURSAL se asigna automáticamente cuando se cierra una sucursal."
-        );
-
-        Button botonConfirmar
-                = new Button("Confirmar baja");
-
-        Button botonVolver
-                = new Button(
-                        "Volver",
-                        evento -> dialogo.close()
-                );
-
+        dialogo.setHeaderTitle("Dar de baja " + contrato.getCodigo());
+        Paragraph mensaje = new Paragraph("El contrato quedará cancelado y no podrá reactivarse. ¿Desea continuar?");
+        Button botonConfirmar = new Button("Confirmar baja");
+        Button botonVolver = new Button("Volver", evento -> dialogo.close());
         botonConfirmar.addClickListener(evento -> {
-
-            boolean motivoVacio = campoMotivo.getValue() == null;
-            campoMotivo.setInvalid(motivoVacio);
-            campoMotivo.setErrorMessage(
-                    "Debe seleccionar un motivo de baja."
-            );
-
-            if (motivoVacio) {
-                return;
-            }
-
             try {
-
-                contratoClient.cancelar(
-                        contrato.getCodigo()
-                );
-
+                contratoClient.cancelar(contrato.getCodigo());
                 dialogo.close();
                 cargarContratos();
-
-                NotificacionUtils.mostrarExito(
-                        "Contrato dado de baja por CANCELACION."
-                );
-
+                NotificacionUtils.mostrarExito("Contrato dado de baja correctamente.");
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
-
             } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
-
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonConfirmar,
-                        botonVolver
-                );
-
-        VerticalLayout contenido
-                = new VerticalLayout(
-                        mensaje,
-                        campoMotivo,
-                        aclaracion,
-                        botones
-                );
-
-        dialogo.add(contenido);
+        dialogo.add(new VerticalLayout(mensaje, new HorizontalLayout(botonConfirmar, botonVolver)));
         dialogo.open();
     }
 
-    /*
-     * Abre un formulario con los datos actuales
-     * de un contrato activo y no cumplido.
-     */
-    private void abrirFormularioEdicion(
-            ContratoVigilanciaDTO contrato) {
-
+    // Registra o modifica contratos utilizando vigilantes y sucursales activos.
+    private void abrirFormulario(ContratoVigilanciaDTO contrato) {
+        boolean esCreacion = contrato == null;
         List<UsuarioDTO> vigilantesActivos;
         List<SucursalDTO> sucursalesActivas;
 
         try {
-
-            vigilantesActivos = listarVigilantes(
-                    true,
-                    null
-            );
-
-            sucursalesActivas = sucursalClient.listar(
-                    true,
-                    null
-            );
-
+            vigilantesActivos = listarVigilantes(true, null);
+            sucursalesActivas = sucursalClient.listar(true, null);
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
             return;
-
         } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pueden consultar los datos necesarios.");
+            return;
+        }
 
-            NotificacionUtils.mostrarInformacion(
-                    "No se pueden consultar los datos necesarios."
-            );
+        if (esCreacion && vigilantesActivos.isEmpty()) {
+            NotificacionUtils.mostrarInformacion("No existen vigilantes activos.");
+            return;
+        }
+
+        if (esCreacion && sucursalesActivas.isEmpty()) {
+            NotificacionUtils.mostrarInformacion("No existen sucursales activas.");
             return;
         }
 
         Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle(esCreacion ? "Nuevo contrato de vigilancia" : "Modificar " + contrato.getCodigo());
 
-        dialogo.setHeaderTitle(
-                "Modificar "
-                + contrato.getCodigo()
-        );
-
-        DatePicker campoFecha
-                = new DatePicker("Fecha");
-
-        Select<UsuarioDTO> campoVigilante
-                = new Select<>();
-
-        Select<SucursalDTO> campoSucursal
-                = new Select<>();
-
-        Select<String> campoConArma
-                = new Select<>();
+        DatePicker campoFecha = new DatePicker("Fecha");
+        Select<UsuarioDTO> campoVigilante = new Select<>();
+        Select<SucursalDTO> campoSucursal = new Select<>();
+        Select<String> campoConArma = new Select<>();
 
         campoFecha.setMin(LocalDate.now());
-        campoFecha.setValue(contrato.getFecha());
         campoFecha.setRequiredIndicatorVisible(true);
 
         campoVigilante.setLabel("Vigilante");
         campoVigilante.setItems(vigilantesActivos);
-        campoVigilante.setItemLabelGenerator(vigilante
-                -> vigilante.getCodigo()
-                + " - "
-                + vigilante.getNombre()
-        );
+        campoVigilante.setItemLabelGenerator(vigilante -> vigilante.getCodigo() + " - " + vigilante.getNombre());
         campoVigilante.setRequiredIndicatorVisible(true);
-
-        UsuarioDTO vigilanteActual = null;
-        for (UsuarioDTO vigilante : vigilantesActivos) {
-            if (vigilante.getCodigo() != null && vigilante.getCodigo().equalsIgnoreCase(contrato.getVigilanteCodigo())) {
-                vigilanteActual = vigilante;
-                break;
-            }
-        }
-
-        if (vigilanteActual != null) {
-            campoVigilante.setValue(vigilanteActual);
-        }
 
         campoSucursal.setLabel("Sucursal");
         campoSucursal.setItems(sucursalesActivas);
-        campoSucursal.setItemLabelGenerator(sucursal
-                -> sucursal.getCodigo()
-                + " - "
-                + sucursal.getDomicilio()
-        );
+        campoSucursal.setItemLabelGenerator(sucursal -> sucursal.getCodigo() + " - " + sucursal.getDomicilio());
         campoSucursal.setRequiredIndicatorVisible(true);
-
-        SucursalDTO sucursalActual = null;
-        for (SucursalDTO sucursal : sucursalesActivas) {
-            if (sucursal.getCodigo() != null && sucursal.getCodigo().equalsIgnoreCase(contrato.getSucursalCodigo())) {
-                sucursalActual = sucursal;
-                break;
-            }
-        }
-
-        if (sucursalActual != null) {
-            campoSucursal.setValue(sucursalActual);
-        }
 
         campoConArma.setLabel("¿Con arma?");
         campoConArma.setItems("Sí", "No");
         campoConArma.setRequiredIndicatorVisible(true);
 
-        if (contrato.getConArma() != null) {
+        if (!esCreacion) {
+            campoFecha.setValue(contrato.getFecha());
 
-            campoConArma.setValue(
-                    Boolean.TRUE.equals(
-                            contrato.getConArma()
-                    )
-                    ? "Sí"
-                    : "No"
-            );
+            for (UsuarioDTO vigilante : vigilantesActivos) {
+                if (vigilante.getCodigo() != null && vigilante.getCodigo().equalsIgnoreCase(contrato.getVigilanteCodigo())) {
+                    campoVigilante.setValue(vigilante);
+                    break;
+                }
+            }
+
+            for (SucursalDTO sucursal : sucursalesActivas) {
+                if (sucursal.getCodigo() != null && sucursal.getCodigo().equalsIgnoreCase(contrato.getSucursalCodigo())) {
+                    campoSucursal.setValue(sucursal);
+                    break;
+                }
+            }
+
+            if (contrato.getConArma() != null) {
+                campoConArma.setValue(Boolean.TRUE.equals(contrato.getConArma()) ? "Sí" : "No");
+            }
         }
 
         campoFecha.setWidthFull();
@@ -539,346 +272,62 @@ public class ContratosVigilanciaView
         campoSucursal.setWidthFull();
         campoConArma.setWidthFull();
 
-        Button botonGuardar
-                = new Button("Guardar cambios");
-
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
+        Button botonGuardar = new Button(esCreacion ? "Guardar" : "Guardar cambios");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
 
         botonGuardar.addClickListener(evento -> {
-
-            boolean fechaInvalida
-                    = campoFecha.getValue() == null
-                    || campoFecha.getValue()
-                            .isBefore(LocalDate.now());
-
-            boolean vigilanteVacio
-                    = campoVigilante.getValue() == null;
-
-            boolean sucursalVacia
-                    = campoSucursal.getValue() == null;
-
-            boolean armaVacia
-                    = campoConArma.getValue() == null;
+            boolean fechaInvalida = campoFecha.getValue() == null || campoFecha.getValue().isBefore(LocalDate.now());
+            boolean vigilanteVacio = campoVigilante.getValue() == null;
+            boolean sucursalVacia = campoSucursal.getValue() == null;
+            boolean armaVacia = campoConArma.getValue() == null;
 
             campoFecha.setInvalid(fechaInvalida);
-            campoFecha.setErrorMessage(
-                    "La fecha debe ser de hoy o futura."
-            );
-
+            campoFecha.setErrorMessage("La fecha debe ser de hoy o futura.");
             campoVigilante.setInvalid(vigilanteVacio);
-            campoVigilante.setErrorMessage(
-                    "Debe seleccionar un vigilante."
-            );
-
+            campoVigilante.setErrorMessage("Debe seleccionar un vigilante.");
             campoSucursal.setInvalid(sucursalVacia);
-            campoSucursal.setErrorMessage(
-                    "Debe seleccionar una sucursal."
-            );
-
+            campoSucursal.setErrorMessage("Debe seleccionar una sucursal.");
             campoConArma.setInvalid(armaVacia);
-            campoConArma.setErrorMessage(
-                    "Debe indicar si el contrato requiere arma."
-            );
+            campoConArma.setErrorMessage("Debe indicar si el contrato requiere arma.");
 
-            if (fechaInvalida
-                    || vigilanteVacio
-                    || sucursalVacia
-                    || armaVacia) {
-
+            if (fechaInvalida || vigilanteVacio || sucursalVacia || armaVacia) {
                 return;
             }
 
-            ContratoVigilanciaDTO datos
-                    = new ContratoVigilanciaDTO(
-                            campoFecha.getValue(),
-                            "Sí".equals(
-                                    campoConArma.getValue()
-                            ),
-                            campoVigilante.getValue().getCodigo(),
-                            campoSucursal.getValue().getCodigo()
-                    );
+            ContratoVigilanciaDTO datos = new ContratoVigilanciaDTO(campoFecha.getValue(), "Sí".equals(campoConArma.getValue()), campoVigilante.getValue().getCodigo(), campoSucursal.getValue().getCodigo());
 
             try {
-
-                contratoClient.actualizar(
-                        contrato.getCodigo(),
-                        datos
-                );
+                if (esCreacion) {
+                    contratoClient.crear(datos);
+                } else {
+                    contratoClient.actualizar(contrato.getCodigo(), datos);
+                }
 
                 dialogo.close();
                 cargarContratos();
-
-                NotificacionUtils.mostrarExito(
-                        "Contrato modificado correctamente."
-                );
+                NotificacionUtils.mostrarExito(esCreacion ? "Contrato creado correctamente." : "Contrato modificado correctamente.");
 
             } catch (RestClientResponseException excepcion) {
-
                 mostrarErrorOperacion(excepcion);
-
             } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
+                NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
 
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonGuardar,
-                        botonCancelar
-                );
-
-        VerticalLayout formulario
-                = new VerticalLayout(
-                        campoFecha,
-                        campoVigilante,
-                        campoSucursal,
-                        campoConArma,
-                        botones
-                );
-
-        dialogo.add(formulario);
+        dialogo.add(new VerticalLayout(campoFecha, campoVigilante, campoSucursal, campoConArma, new HorizontalLayout(botonGuardar, botonCancelar)));
         dialogo.open();
     }
 
-    /*
-     * Abre un formulario y permite seleccionar
-     * solamente vigilantes y sucursales activos.
-     */
-    private void abrirFormularioNuevo() {
-
-        List<UsuarioDTO> vigilantesActivos;
-        List<SucursalDTO> sucursalesActivas;
-
-        try {
-
-            vigilantesActivos = listarVigilantes(
-                    true,
-                    null
-            );
-
-            sucursalesActivas = sucursalClient.listar(
-                    true,
-                    null
-            );
-
-        } catch (RestClientResponseException excepcion) {
-
-            mostrarErrorOperacion(excepcion);
-            return;
-
-        } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se pueden consultar los datos necesarios."
-            );
-            return;
-        }
-
-        if (vigilantesActivos.isEmpty()) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No existen vigilantes activos."
-            );
-            return;
-        }
-
-        if (sucursalesActivas.isEmpty()) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No existen sucursales activas."
-            );
-            return;
-        }
-
-        Dialog dialogo = new Dialog();
-
-        dialogo.setHeaderTitle(
-                "Nuevo contrato de vigilancia"
-        );
-
-        DatePicker campoFecha
-                = new DatePicker("Fecha");
-
-        Select<UsuarioDTO> campoVigilante
-                = new Select<>();
-
-        Select<SucursalDTO> campoSucursal
-                = new Select<>();
-
-        Select<String> campoConArma
-                = new Select<>();
-
-        campoFecha.setMin(LocalDate.now());
-        campoFecha.setRequiredIndicatorVisible(true);
-
-        campoVigilante.setLabel("Vigilante");
-        campoVigilante.setItems(vigilantesActivos);
-        campoVigilante.setItemLabelGenerator(vigilante
-                -> vigilante.getCodigo()
-                + " - "
-                + vigilante.getNombre()
-        );
-        campoVigilante.setRequiredIndicatorVisible(true);
-
-        campoSucursal.setLabel("Sucursal");
-        campoSucursal.setItems(sucursalesActivas);
-        campoSucursal.setItemLabelGenerator(sucursal
-                -> sucursal.getCodigo()
-                + " - "
-                + sucursal.getDomicilio()
-        );
-        campoSucursal.setRequiredIndicatorVisible(true);
-
-        campoConArma.setLabel("¿Con arma?");
-        campoConArma.setItems("Sí", "No");
-        campoConArma.setRequiredIndicatorVisible(true);
-
-        campoFecha.setWidthFull();
-        campoVigilante.setWidthFull();
-        campoSucursal.setWidthFull();
-        campoConArma.setWidthFull();
-
-        Button botonGuardar
-                = new Button("Guardar");
-
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
-
-        botonGuardar.addClickListener(evento -> {
-
-            boolean fechaInvalida
-                    = campoFecha.getValue() == null
-                    || campoFecha.getValue()
-                            .isBefore(LocalDate.now());
-
-            boolean vigilanteVacio
-                    = campoVigilante.getValue() == null;
-
-            boolean sucursalVacia
-                    = campoSucursal.getValue() == null;
-
-            boolean armaVacia
-                    = campoConArma.getValue() == null;
-
-            campoFecha.setInvalid(fechaInvalida);
-            campoFecha.setErrorMessage(
-                    "La fecha debe ser de hoy o futura."
-            );
-
-            campoVigilante.setInvalid(vigilanteVacio);
-            campoVigilante.setErrorMessage(
-                    "Debe seleccionar un vigilante."
-            );
-
-            campoSucursal.setInvalid(sucursalVacia);
-            campoSucursal.setErrorMessage(
-                    "Debe seleccionar una sucursal."
-            );
-
-            campoConArma.setInvalid(armaVacia);
-            campoConArma.setErrorMessage(
-                    "Debe indicar si el contrato requiere arma."
-            );
-
-            if (fechaInvalida
-                    || vigilanteVacio
-                    || sucursalVacia
-                    || armaVacia) {
-
-                return;
-            }
-
-            ContratoVigilanciaDTO datos
-                    = new ContratoVigilanciaDTO(
-                            campoFecha.getValue(),
-                            "Sí".equals(
-                                    campoConArma.getValue()
-                            ),
-                            campoVigilante.getValue().getCodigo(),
-                            campoSucursal.getValue().getCodigo()
-                    );
-
-            try {
-
-                contratoClient.crear(datos);
-
-                dialogo.close();
-                cargarContratos();
-
-                NotificacionUtils.mostrarExito(
-                        "Contrato creado correctamente."
-                );
-
-            } catch (RestClientResponseException excepcion) {
-
-                mostrarErrorOperacion(excepcion);
-
-            } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
-
-            } catch (IllegalArgumentException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        excepcion.getMessage()
-                );
-            }
-        });
-
-        HorizontalLayout botones
-                = new HorizontalLayout(
-                        botonGuardar,
-                        botonCancelar
-                );
-
-        VerticalLayout formulario
-                = new VerticalLayout(
-                        campoFecha,
-                        campoVigilante,
-                        campoSucursal,
-                        campoConArma,
-                        botones
-                );
-
-        dialogo.add(formulario);
-        dialogo.open();
-    }
-
-    /*
-     * Convierte los estados HTTP del backend
-     * en mensajes comprensibles para el usuario.
-     */
-    private void mostrarErrorOperacion(
-            RestClientResponseException excepcion) {
+    // Convierte los errores HTTP en mensajes comprensibles.
+    private void mostrarErrorOperacion(RestClientResponseException excepcion) {
         NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
-    /*
-     * Convierte la opción seleccionada al
-     * valor Boolean que espera el backend.
-     */
+    // Convierte el estado seleccionado al Boolean esperado por el backend.
     private Boolean obtenerEstado() {
-
         return switch (filtroEstado.getValue()) {
-
             case "Activos" ->
                 true;
             case "Finalizados" ->
@@ -888,9 +337,8 @@ public class ContratosVigilanciaView
         };
     }
 
-    private String obtenerEstadoVisible(
-            ContratoVigilanciaDTO contrato) {
-
+    // Determina el estado visible según actividad, motivo de baja y fecha.
+    private String obtenerEstadoVisible(ContratoVigilanciaDTO contrato) {
         if (Boolean.TRUE.equals(contrato.getActivo())) {
             return "ACTIVO";
         }
@@ -903,159 +351,93 @@ public class ContratosVigilanciaView
             return "BAJA POR CIERRE DE SUCURSAL";
         }
 
-        if (contrato.getFecha() != null
-                && contrato.getFecha().isBefore(LocalDate.now())) {
+        if (contrato.getFecha() != null && contrato.getFecha().isBefore(LocalDate.now())) {
             return "CUMPLIDO";
         }
 
         return "FINALIZADO";
     }
 
-    /*
-     * Consulta el backend utilizando
-     * los filtros seleccionados.
-     */
+    // Consulta los contratos aplicando los filtros seleccionados.
     private void cargarContratos() {
-
         try {
-
             String tipoBusqueda = filtroTipoBusqueda.getValue();
             Boolean estado = obtenerEstado();
-
             List<ContratoVigilanciaDTO> contratos;
 
             if ("Por vigilante".equals(tipoBusqueda)) {
-
-                UsuarioDTO vigilante
-                        = filtroVigilanteExacto.getValue();
+                UsuarioDTO vigilante = filtroVigilanteExacto.getValue();
 
                 if (vigilante == null) {
                     NotificacionUtils.mostrarInformacion("Seleccione un vigilante.");
                     return;
                 }
 
-                contratos = contratoClient.listarPorVigilante(
-                        vigilante.getCodigo()
-                );
+                contratos = contratoClient.listarPorVigilante(vigilante.getCodigo());
 
             } else if ("Por sucursal".equals(tipoBusqueda)) {
-
-                SucursalDTO sucursal
-                        = filtroSucursalExacta.getValue();
+                SucursalDTO sucursal = filtroSucursalExacta.getValue();
 
                 if (sucursal == null) {
                     NotificacionUtils.mostrarInformacion("Seleccione una sucursal.");
                     return;
                 }
 
-                contratos = contratoClient.listarPorSucursal(
-                        sucursal.getCodigo()
-                );
+                contratos = contratoClient.listarPorSucursal(sucursal.getCodigo());
 
             } else {
-
-                contratos = contratoClient.listar(
-                        estado,
-                        filtroVigilante.getValue()
-                );
+                contratos = contratoClient.listar(estado, filtroVigilante.getValue());
             }
 
-            /*
-             * Las búsquedas exactas devuelven todo el historial.
-             * El estado se combina localmente cuando fue seleccionado.
-             */
+            // Las búsquedas exactas incluyen el historial; el estado se filtra localmente.
             if (!"General".equals(tipoBusqueda) && estado != null) {
+                List<ContratoVigilanciaDTO> contratosFiltrados = new ArrayList<>();
 
-                List<ContratoVigilanciaDTO> contratosFiltrados = new java.util.ArrayList<>();
                 for (ContratoVigilanciaDTO contrato : contratos) {
                     if (estado.equals(contrato.getActivo())) {
                         contratosFiltrados.add(contrato);
                     }
                 }
+
                 contratos = contratosFiltrados;
             }
 
             paginadorContratos.setItems(contratos);
 
-            if ("General".equals(tipoBusqueda)
-                    && contratos.isEmpty()) {
+            if ("General".equals(tipoBusqueda) && contratos.isEmpty()) {
+                String nombreBuscado = filtroVigilante.getValue();
 
-                String nombreBuscado
-                        = filtroVigilante.getValue();
-
-                if (nombreBuscado != null
-                        && !nombreBuscado.isBlank()) {
-
-                    NotificacionUtils.mostrarInformacion(
-                            "No se encontraron contratos para un vigilante cuyo nombre coincida con: "
-                            + nombreBuscado.trim()
-                            + "."
-                    );
-
+                if (nombreBuscado != null && !nombreBuscado.isBlank()) {
+                    NotificacionUtils.mostrarInformacion("No se encontraron contratos para un vigilante cuyo nombre coincida con: " + nombreBuscado.trim() + ".");
                 } else if (estado != null) {
-
-                    NotificacionUtils.mostrarInformacion(
-                            "No existen contratos con el estado seleccionado."
-                    );
-
+                    NotificacionUtils.mostrarInformacion("No existen contratos con el estado seleccionado.");
                 } else {
-
-                    NotificacionUtils.mostrarInformacion(
-                            "No existen contratos de vigilancia cargados."
-                    );
+                    NotificacionUtils.mostrarInformacion("No existen contratos de vigilancia cargados.");
                 }
 
-            } else if (!"General".equals(tipoBusqueda)
-                    && contratos.isEmpty()) {
-
-                String recurso = "Por vigilante".equals(tipoBusqueda)
-                        ? "El vigilante seleccionado"
-                        : "La sucursal seleccionada";
-
-                String aclaracionEstado = estado != null
-                        ? " con el estado seleccionado"
-                        : "";
-
-                NotificacionUtils.mostrarInformacion(
-                        recurso
-                        + " no tiene contratos de vigilancia"
-                        + aclaracionEstado
-                        + "."
-                );
+            } else if (!"General".equals(tipoBusqueda) && contratos.isEmpty()) {
+                String recurso = "Por vigilante".equals(tipoBusqueda) ? "El vigilante seleccionado" : "La sucursal seleccionada";
+                String aclaracionEstado = estado != null ? " con el estado seleccionado" : "";
+                NotificacionUtils.mostrarInformacion(recurso + " no tiene contratos de vigilancia" + aclaracionEstado + ".");
             }
 
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
-
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
-
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "Debe iniciar sesión."
-            );
-
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         } catch (IllegalArgumentException excepcion) {
-
             NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
-    /*
-     * Carga vigilantes y sucursales existentes para evitar
-     * que el usuario tenga que escribir códigos manualmente.
-     */
+    // Carga vigilantes y sucursales para seleccionar sin escribir códigos.
     private void cargarOpcionesFiltros() {
-        List<String> opciones = new java.util.ArrayList<>();
+        List<String> opciones = new ArrayList<>();
         opciones.add("General");
 
-        boolean administrador = sesionUsuario.tieneRol("ADMINISTRADOR");
-
-        if (administrador || sesionUsuario.tienePermiso("LECTURA_USUARIO")) {
+        if (permisosInterfaz.puedeConsultarUsuarios()) {
             try {
                 filtroVigilanteExacto.setItems(listarVigilantes(null, null));
                 opciones.add("Por vigilante");
@@ -1066,7 +448,7 @@ public class ContratosVigilanciaView
             }
         }
 
-        if (administrador || sesionUsuario.tienePermiso("LECTURA_SUCURSAL")) {
+        if (permisosInterfaz.puedeConsultarSucursales()) {
             try {
                 filtroSucursalExacta.setItems(sucursalClient.listar(null, null));
                 opciones.add("Por sucursal");
@@ -1081,9 +463,10 @@ public class ContratosVigilanciaView
         filtroTipoBusqueda.setValue("General");
     }
 
+    // Obtiene únicamente los usuarios con rol VIGILANTE.
     private List<UsuarioDTO> listarVigilantes(Boolean activo, String nombre) {
         List<UsuarioDTO> usuarios = usuarioClient.listar(activo, nombre);
-        List<UsuarioDTO> vigilantes = new java.util.ArrayList<>();
+        List<UsuarioDTO> vigilantes = new ArrayList<>();
 
         for (UsuarioDTO usuario : usuarios) {
             if (usuario.getRol() != null && usuario.getRol().equalsIgnoreCase("VIGILANTE")) {
@@ -1095,17 +478,12 @@ public class ContratosVigilanciaView
     }
 
     private boolean puedeEscribir() {
-        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_CONTRATO_VIGILANCIA");
+        return permisosInterfaz.puedeModificarContratos();
     }
 
-    /*
-     * Carga los datos cada vez que
-     * se ingresa en esta dirección.
-     */
+    // Recarga las opciones y los contratos al ingresar a la vista.
     @Override
-    public void beforeEnter(
-            BeforeEnterEvent evento) {
-
+    public void beforeEnter(BeforeEnterEvent evento) {
         cargarOpcionesFiltros();
         cargarContratos();
     }

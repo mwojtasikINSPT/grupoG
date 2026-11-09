@@ -1,5 +1,7 @@
 package prog2.policia_frontend.views;
 
+import java.util.List;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -12,53 +14,40 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import java.util.List;
+
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
+
 import prog2.policia_frontend.clients.BandaClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.dtos.BandaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
-import prog2.policia_frontend.security.PermisosApp;
-import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.security.PermisosInterfaz;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
 /*
  * Pantalla utilizada para administrar bandas.
  */
-@Route(
-        value = "bandas",
-        layout = MainLayout.class
-)
+@Route(value = "bandas", layout = MainLayout.class)
 @PageTitle("Bandas | Sistema Policial")
-public class BandasView
-        extends VerticalLayout
-        implements BeforeEnterObserver {
+public class BandasView extends VerticalLayout implements BeforeEnterObserver {
 
     private final BandaClient bandaClient;
-    private final SesionUsuario sesionUsuario;
+    private final PermisosInterfaz permisosInterfaz;
 
-    private final Grid<BandaDTO> tabla
-            = new Grid<>(BandaDTO.class, false);
+    private final Grid<BandaDTO> tabla = new Grid<>(BandaDTO.class, false);
 
-    private final PaginadorGrid<BandaDTO> paginadorBandas
-            = new PaginadorGrid<>(tabla, 10);
+    private final PaginadorGrid<BandaDTO> paginadorBandas = new PaginadorGrid<>(tabla, 10);
 
-    private final Select<String> filtroEstado
-            = new Select<>();
+    private final Select<String> filtroEstado = new Select<>();
 
-    private final Button botonNueva
-            = new Button("Nueva banda");
+    private final Button botonNueva = new Button("Nueva banda");
 
-    public BandasView(
-            BandaClient bandaClient,
-            SesionUsuario sesionUsuario) {
-
+    public BandasView(BandaClient bandaClient, PermisosInterfaz permisosInterfaz) {
         this.bandaClient = bandaClient;
-        this.sesionUsuario = sesionUsuario;
-
+        this.permisosInterfaz = permisosInterfaz;
         configurarFiltro();
         configurarTabla();
         configurarVista();
@@ -67,43 +56,22 @@ public class BandasView
     private void configurarFiltro() {
 
         filtroEstado.setLabel("Estado");
-        filtroEstado.setItems(
-                "Todas",
-                "Activas",
-                "Inactivas"
-        );
+        filtroEstado.setItems("Todas", "Activas", "Inactivas");
         filtroEstado.setValue("Todas");
     }
 
     private void configurarTabla() {
 
-        tabla.addColumn(
-                BandaDTO::getCodigo
-        ).setHeader("Código")
-                .setAutoWidth(true);
+        tabla.addColumn(BandaDTO::getCodigo).setHeader("Código").setAutoWidth(true);
 
-        tabla.addColumn(banda ->
-                banda.getCantMiembros() != null
-                        ? banda.getCantMiembros()
-                        : 0
-        ).setHeader("Cantidad de miembros")
-                .setAutoWidth(true);
+        tabla.addColumn(banda -> banda.getCantMiembros() != null ? banda.getCantMiembros() : 0).setHeader("Cantidad de miembros").setAutoWidth(true);
 
-        tabla.addColumn(banda ->
-                Boolean.TRUE.equals(
-                        banda.getActivo()
-                )
-                        ? "Activa"
-                        : "Inactiva"
-        ).setHeader("Estado")
-                .setAutoWidth(true);
+        tabla.addColumn(banda -> Boolean.TRUE.equals(banda.getActivo()) ? "Activa" : "Inactiva").setHeader("Estado").setAutoWidth(true);
 
         tabla.addComponentColumn(banda -> {
 
-            Button botonIntegrantes = new Button(
-                    "Mostrar integrantes",
-                    evento -> mostrarIntegrantes(banda)
-            );
+            Button botonIntegrantes = new Button("Mostrar integrantes", evento -> mostrarIntegrantes(banda));
+            botonIntegrantes.setVisible(permisosInterfaz.puedeConsultarAsaltantes());
 
             if (!puedeEscribir()) {
                 return botonIntegrantes;
@@ -111,73 +79,46 @@ public class BandasView
 
             Button botonEstado = new Button();
 
-            if (Boolean.TRUE.equals(
-                    banda.getActivo()
-            )) {
-
+            if (Boolean.TRUE.equals(banda.getActivo())) {
                 botonEstado.setText("Dar de baja");
-                botonEstado.addClickListener(
-                        evento
-                                -> abrirConfirmacionBaja(banda)
-                );
+                botonEstado.addClickListener(evento -> abrirConfirmacionBaja(banda));
 
             } else {
-
                 botonEstado.setText("Reactivar");
-                botonEstado.addClickListener(
-                        evento
-                                -> reactivarBanda(banda)
-                );
+                botonEstado.addClickListener(evento -> reactivarBanda(banda));
             }
 
-            return new HorizontalLayout(
-                    botonIntegrantes,
-                    botonEstado
-            );
+            return new HorizontalLayout(botonIntegrantes, botonEstado);
 
-        }).setHeader("Acciones")
-                .setAutoWidth(true);
+        }).setHeader("Acciones").setAutoWidth(true);
 
         tabla.setSizeFull();
     }
 
     private void mostrarIntegrantes(BandaDTO banda) {
         try {
-            List<AsaltanteDTO> integrantes
-                    = bandaClient.listarIntegrantes(banda.getCodigo());
+            List<AsaltanteDTO> integrantes = bandaClient.listarIntegrantes(banda.getCodigo());
 
             Dialog dialogo = new Dialog();
-            dialogo.setHeaderTitle(
-                    "Integrantes de " + banda.getCodigo()
-            );
+            dialogo.setHeaderTitle("Integrantes de " + banda.getCodigo());
 
             VerticalLayout contenido = new VerticalLayout();
             contenido.setPadding(false);
 
             if (integrantes.isEmpty()) {
-                contenido.add(new Paragraph(
-                        "La banda no tiene integrantes activos."
-                ));
+                contenido.add(new Paragraph("La banda no tiene integrantes activos."));
             } else {
-                Grid<AsaltanteDTO> tablaIntegrantes
-                        = new Grid<>(AsaltanteDTO.class, false);
+                Grid<AsaltanteDTO> tablaIntegrantes = new Grid<>(AsaltanteDTO.class, false);
 
-                tablaIntegrantes.addColumn(AsaltanteDTO::getCodigo)
-                        .setHeader("Código")
-                        .setAutoWidth(true);
-                tablaIntegrantes.addColumn(AsaltanteDTO::getNombre)
-                        .setHeader("Nombre")
-                        .setAutoWidth(true);
+                tablaIntegrantes.addColumn(AsaltanteDTO::getCodigo).setHeader("Código").setAutoWidth(true);
+                tablaIntegrantes.addColumn(AsaltanteDTO::getNombre).setHeader("Nombre").setAutoWidth(true);
                 tablaIntegrantes.setItems(integrantes);
                 tablaIntegrantes.setAllRowsVisible(true);
 
                 contenido.add(tablaIntegrantes);
             }
 
-            contenido.add(new Button(
-                    "Cerrar",
-                    evento -> dialogo.close()
-            ));
+            contenido.add(new Button("Cerrar", evento -> dialogo.close()));
 
             dialogo.add(contenido);
             dialogo.open();
@@ -185,65 +126,32 @@ public class BandasView
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalArgumentException excepcion) {
-            NotificacionUtils.mostrarInformacion(
-                    excepcion.getMessage()
-            );
+            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
     private void configurarVista() {
 
-        H2 titulo = new H2(
-                "Bandas"
-        );
+        H2 titulo = new H2("Bandas");
 
-        Button botonBuscar = new Button(
-                "Buscar",
-                evento -> cargarBandas()
-        );
+        Button botonBuscar = new Button("Buscar", evento -> cargarBandas());
 
         Button botonLimpiar = new Button(
                 "Limpiar",
                 evento -> {
-
                     filtroEstado.setValue("Todas");
                     cargarBandas();
                 }
         );
 
-        botonNueva.addClickListener(
-                evento -> crearBanda()
-        );
-
-        botonNueva.setVisible(
-                puedeEscribir()
-        );
-
-        HorizontalLayout filtros
-                = new HorizontalLayout(
-                        filtroEstado,
-                        botonBuscar,
-                        botonLimpiar
-                );
-
-        filtros.setAlignItems(
-                HorizontalLayout.Alignment.END
-        );
-
+        botonNueva.addClickListener(evento -> crearBanda());
+        botonNueva.setVisible(puedeEscribir());
+        HorizontalLayout filtros = new HorizontalLayout(filtroEstado, botonBuscar, botonLimpiar);
+        filtros.setAlignItems(HorizontalLayout.Alignment.END);
         setSizeFull();
-
-        add(
-                titulo,
-                botonNueva,
-                filtros,
-                tabla,
-                paginadorBandas.getControles()
-        );
-
+        add(titulo, botonNueva, filtros, tabla, paginadorBandas.getControles());
         expand(tabla);
     }
 
@@ -253,108 +161,58 @@ public class BandasView
 
             bandaClient.crear();
             cargarBandas();
-
-            NotificacionUtils.mostrarExito(
-                    "Banda creada correctamente."
-            );
+            NotificacionUtils.mostrarExito("Banda creada correctamente.");
 
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
-    private void abrirConfirmacionBaja(
-            BandaDTO banda) {
+    private void abrirConfirmacionBaja(BandaDTO banda) {
 
         Dialog dialogo = new Dialog();
-
-        dialogo.setHeaderTitle(
-                "Dar de baja " + banda.getCodigo()
-        );
-
-        Paragraph mensaje = new Paragraph(
-                "Solo podrá darse de baja si no posee asaltantes activos."
-        );
-
-        Button botonConfirmar
-                = new Button("Confirmar baja");
-
-        Button botonCancelar
-                = new Button(
-                        "Cancelar",
-                        evento -> dialogo.close()
-                );
-
+        dialogo.setHeaderTitle("Dar de baja " + banda.getCodigo());
+        Paragraph mensaje = new Paragraph("Solo podrá darse de baja si no posee asaltantes activos.");
+        Button botonConfirmar = new Button("Confirmar baja");
+        Button botonCancelar = new Button("Cancelar", evento -> dialogo.close());
         botonConfirmar.addClickListener(evento -> {
 
             try {
 
-                bandaClient.darDeBaja(
-                        banda.getCodigo()
-                );
-
+                bandaClient.darDeBaja(banda.getCodigo());
                 dialogo.close();
                 cargarBandas();
-
-                NotificacionUtils.mostrarExito(
-                        "Banda dada de baja correctamente."
-                );
+                NotificacionUtils.mostrarExito("Banda dada de baja correctamente.");
 
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
 
             } catch (ResourceAccessException excepcion) {
-
-                NotificacionUtils.mostrarInformacion(
-                        "No se puede conectar con el backend."
-                );
+                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             }
         });
 
-        dialogo.add(
-                new VerticalLayout(
-                        mensaje,
-                        new HorizontalLayout(
-                                botonConfirmar,
-                                botonCancelar
-                        )
-                )
-        );
+        dialogo.add(new VerticalLayout(mensaje, new HorizontalLayout(botonConfirmar, botonCancelar)));
 
         dialogo.open();
     }
 
-    private void reactivarBanda(
-            BandaDTO banda) {
+    private void reactivarBanda(BandaDTO banda) {
 
         try {
 
-            bandaClient.reactivar(
-                    banda.getCodigo()
-            );
-
+            bandaClient.reactivar(banda.getCodigo());
             cargarBandas();
-
-            NotificacionUtils.mostrarExito(
-                    "Banda reactivada correctamente."
-            );
+            NotificacionUtils.mostrarExito("Banda reactivada correctamente.");
 
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         }
     }
 
@@ -362,54 +220,42 @@ public class BandasView
 
         return switch (filtroEstado.getValue()) {
 
-            case "Activas" -> true;
-            case "Inactivas" -> false;
-            default -> null;
+            case "Activas" ->
+                true;
+            case "Inactivas" ->
+                false;
+            default ->
+                null;
         };
     }
 
     private boolean puedeEscribir() {
-
-        return sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_BANDA");
+        return permisosInterfaz.puedeModificarBandas();
     }
 
     private void cargarBandas() {
 
         try {
-
-            List<BandaDTO> bandas = bandaClient.listar(
-                    obtenerEstado()
-            );
-
+            List<BandaDTO> bandas = bandaClient.listar(obtenerEstado());
             paginadorBandas.setItems(bandas);
 
         } catch (RestClientResponseException excepcion) {
-
             mostrarErrorOperacion(excepcion);
 
         } catch (ResourceAccessException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "No se puede conectar con el backend."
-            );
+            NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
 
         } catch (IllegalStateException excepcion) {
-
-            NotificacionUtils.mostrarInformacion(
-                    "Debe iniciar sesión."
-            );
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
 
-    private void mostrarErrorOperacion(
-            RestClientResponseException excepcion) {
+    private void mostrarErrorOperacion(RestClientResponseException excepcion) {
         NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
     }
 
     @Override
-    public void beforeEnter(
-            BeforeEnterEvent evento) {
-
+    public void beforeEnter(BeforeEnterEvent evento) {
         cargarBandas();
     }
 }

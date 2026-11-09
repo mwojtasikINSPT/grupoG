@@ -5,9 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 
-/**
- * Agrupa la identidad confirmada por el backend y los permisos de su rol.
- */
+//Agrupa la identidad confirmada por el backend y los permisos de su rol.
+ 
 public class ResultadoAutenticacion {
 
     private final UsuarioDTO usuario;

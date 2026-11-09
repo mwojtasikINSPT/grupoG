@@ -14,9 +14,7 @@ import com.vaadin.flow.router.Route;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.SesionUsuario;
 
-/**
- * Pantalla principal que recibe al usuario autenticado.
- */
+//Vista principal que recibe al usuario autenticado
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Inicio | Sistema Policial")
 public class InicioView extends VerticalLayout
