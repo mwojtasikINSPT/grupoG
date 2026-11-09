@@ -123,7 +123,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_ASALTANTE")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosSinAsaltos() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001/asaltos"))
                 .andExpect(status().isOk())
@@ -131,7 +131,7 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_ASALTANTE")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosJudicialesSinCasos() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001/casos-judiciales"))
                 .andExpect(status().isOk())

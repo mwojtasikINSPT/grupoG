@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 
 import prog2.policia_backend.DTOs.EntidadBancariaDTO;
 import prog2.policia_backend.DTOs.SucursalDTO;
+import prog2.policia_backend.models.MotivoBajaEntidadBancaria;
 import prog2.policia_backend.services.EntidadBancariaService;
 import prog2.policia_backend.services.SucursalService;
 import prog2.policia_backend.validations.OnCreate;
@@ -57,5 +58,10 @@ public class EntidadBancariaController {
     @PatchMapping("/{codigo}/reactivar")
     public ResponseEntity<EntidadBancariaDTO> reactivar(@PathVariable String codigo) {
         return ResponseEntity.ok(entidadBancariaService.reactivar(codigo));
+    }
+
+    @GetMapping("/motivos-baja")
+    public ResponseEntity<List<MotivoBajaEntidadBancaria>> listarMotivosBaja() {
+        return ResponseEntity.ok(List.of(MotivoBajaEntidadBancaria.values()));
     }
 }

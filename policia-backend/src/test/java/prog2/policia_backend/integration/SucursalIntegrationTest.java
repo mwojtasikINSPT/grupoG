@@ -14,6 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import prog2.policia_backend.models.EntidadBancaria;
 import prog2.policia_backend.models.MotivoCierreSucursal;
 import prog2.policia_backend.models.Sucursal;
+import prog2.policia_backend.models.ContratoVigilancia;
+import prog2.policia_backend.models.Rol;
+import prog2.policia_backend.models.Usuario;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
+import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.repositories.UsuarioRepository;
+import java.time.LocalDate;
 import prog2.policia_backend.repositories.EntidadBancariaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 
@@ -42,6 +49,15 @@ class SucursalIntegrationTest {
 
     @Autowired
     private EntidadBancariaRepository entidadRepository;
+
+    @Autowired
+    private ContratoVigilanciaRepository contratoRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private RolRepository rolRepository;
 
     private Sucursal sucursal;
     private EntidadBancaria entidad;
@@ -110,7 +126,7 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_SUCURSAL")
+    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosDeSucursalSinContratos() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001/contratos"))
                 .andExpect(status().isOk())
@@ -118,11 +134,58 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_SUCURSAL")
+    @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosDeSucursalSinAsaltos() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001/asaltos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
+    void lecturaDeSucursalesNoPermiteConsultarContratos() throws Exception {
+        mockMvc.perform(get("/api/sucursales/SUC00001/contratos"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "VIG00001", authorities = "LECTURA_DATOS_PROPIOS_CONTRATO_VIGILANCIA")
+    void lecturaPropiaEnSucursalSoloDevuelveContratosDelUsuario() throws Exception {
+        Rol rol = new Rol();
+        rol.setNombre("VIGILANTE");
+        rol.setPrefijo("VIG");
+        rol = rolRepository.saveAndFlush(rol);
+
+        Usuario propio = new Usuario();
+        propio.setCodigo("VIG00001");
+        propio.setNombre("Uno");
+        propio.setRol(rol);
+        propio = usuarioRepository.saveAndFlush(propio);
+
+        Usuario otro = new Usuario();
+        otro.setCodigo("VIG00002");
+        otro.setNombre("Dos");
+        otro.setRol(rol);
+        otro = usuarioRepository.saveAndFlush(otro);
+
+        ContratoVigilancia contratoPropio = new ContratoVigilancia();
+        contratoPropio.setCodigo("CDV00001");
+        contratoPropio.setFecha(LocalDate.now());
+        contratoPropio.setVigilante(propio);
+        contratoPropio.setSucursal(sucursal);
+        contratoRepository.saveAndFlush(contratoPropio);
+
+        ContratoVigilancia contratoAjeno = new ContratoVigilancia();
+        contratoAjeno.setCodigo("CDV00002");
+        contratoAjeno.setFecha(LocalDate.now());
+        contratoAjeno.setVigilante(otro);
+        contratoAjeno.setSucursal(sucursal);
+        contratoRepository.saveAndFlush(contratoAjeno);
+
+        mockMvc.perform(get("/api/sucursales/SUC00001/contratos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].codigo").value("CDV00001"));
     }
 
     @Test

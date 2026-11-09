@@ -1,7 +1,10 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.DTOs.SucursalDTO;
+import prog2.policia_backend.models.MotivoCierreSucursal;
 import prog2.policia_backend.services.AsaltoService;
 import prog2.policia_backend.services.SucursalService;
 import prog2.policia_backend.services.ContratoVigilanciaService;
@@ -38,8 +42,9 @@ public class SucursalController {
     }
 
     @GetMapping("/{codigo}/contratos")
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(@PathVariable String codigo) {
-        return ResponseEntity.ok(contratoVigilanciaService.listarPorSucursal(codigo));
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listarContratos(@PathVariable String codigo, Authentication authentication) {
+        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.listarPorSucursal(codigo);
+        return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
     }
 
     @GetMapping("/{codigo}/asaltos")
@@ -68,4 +73,8 @@ public class SucursalController {
         return ResponseEntity.ok(sucursalService.reactivar(codigo));
     }
 
+    @GetMapping("/motivos-cierre")
+    public ResponseEntity<List<MotivoCierreSucursal>> listarMotivosCierre() {
+        return ResponseEntity.ok(List.of(MotivoCierreSucursal.values()));
+    }
 }

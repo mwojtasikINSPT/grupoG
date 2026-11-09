@@ -1,5 +1,5 @@
 -- Carga de datos para tablas creadas previamente por Hibernate.
--- Ejecutar una sola vez sobre una base vacia. No incluye DDL ni borrado de tablas.
+-- Se ejecuta una sola vez sobre una base vacia. No incluye DDL ni borrado de tablas.
 
 -- =================================================================
 -- NOTA PARA DESARROLLADORES:
@@ -40,6 +40,8 @@ INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad) VALUES
 (1, 'ESCRITURA', 'SUCURSAL'),
 (1, 'LECTURA', 'USUARIO'),
 (1, 'ESCRITURA', 'USUARIO'),
+(1, 'LECTURA', 'ROL'),
+(1, 'ESCRITURA', 'ROL'),
 (2, 'LECTURA', 'ASALTANTE'),
 (2, 'LECTURA', 'ASALTO'),
 (2, 'LECTURA', 'BANDA'),
@@ -131,8 +133,8 @@ INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codig
 -- =========================================================
 
 INSERT INTO usuario (id, activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password) VALUES
-(22, true, NOW(), '1951-10-23', 1, 'ADM00001', 'SISTEMA', 'Charly Garcia', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
-(23, true, NOW(), '1963-03-13', 1, 'ADM00002', 'SISTEMA', 'Fito Paez', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(22, true, NOW(), '1951-10-23', 1, 'ADM00001', 'SISTEMA', 'Chano Moreno', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
+(23, true, NOW(), '1963-03-13', 1, 'ADM00002', 'SISTEMA', 'Adrián Dárgelos', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
 (24, true, NOW(), '1959-08-11', 1, 'ADM00003', 'SISTEMA', 'Gustavo Cerati', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'),
 (25, true, NOW(), '1961-08-22', 1, 'ADM00004', 'SISTEMA', 'Andres Calamaro', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy');
 -- =========================================================
@@ -160,7 +162,7 @@ INSERT INTO asaltante (id, codigo, nombre, banda_id, activo, motivo_baja, creado
 (5, 'ASS00005', 'Duque Mendizabal', 2, true, NULL, 'SISTEMA', NOW()),
 (6, 'ASS00006', 'Leia North', 4, true, NULL, 'SISTEMA', NOW()),
 (7, 'ASS00007', 'Isis Seiler', 4, true, NULL, 'SISTEMA', NOW()),
-(8, 'ASS00008', 'Pepito Gonzalez', 3, true, NULL, 'SISTEMA', NOW()),
+(8, 'ASS00008', 'Mamba Silva', 3, true, NULL, 'SISTEMA', NOW()),
 (9, 'ASS00009', 'Cony Nicastro', 2, true, NULL, 'SISTEMA', NOW()),
 (10, 'ASS00010', 'Emma Ancans', 1, true, NULL, 'SISTEMA', NOW()),
 (11, 'ASS00011', 'Nico Benitez', 4, false, 'FALLECIMIENTO', 'SISTEMA', NOW()),

@@ -34,10 +34,6 @@ public class UsuarioDetails implements UserDetails {
             authorities.add(new SimpleGrantedAuthority(autoridad));
         }
 
-        if ("ADMINISTRADOR".equals(nombreRol)) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"));
-        }
-
         return authorities;
     }
 

@@ -144,7 +144,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void listarSentenciasPendientesPorCaso() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/CJU00001/sentencias"))
                 .andExpect(status().isOk())
@@ -156,7 +156,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void listarSentenciasPorAsaltante() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/sentencias/asaltante/ASS00001"))
                 .andExpect(status().isOk())
@@ -165,21 +165,21 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void consultarSentenciasDeCasoInexistente() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/CJU99999/sentencias"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void consultarSentenciasDeAsaltanteInexistente() throws Exception {
         mockMvc.perform(get("/api/casos-judiciales/sentencias/asaltante/ASS99999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void registrarSentenciaCondenatoria() throws Exception {
         registrarSentencia();
 
@@ -193,7 +193,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void registrarSentenciaAbsolutoria() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +209,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void consultarSentenciaRegistrada() throws Exception {
         sentencia.registrarSentencia(true, 5);
         sentenciaRepository.saveAndFlush(sentencia);
@@ -222,7 +222,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirRegistrarSentenciaDuplicada() throws Exception {
         registrarSentencia();
 
@@ -235,7 +235,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirCondenaSinTiempoCarcel() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -246,7 +246,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirAbsolucionConTiempoCarcel() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -257,7 +257,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirTiempoCarcelNegativo() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -266,7 +266,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirSentenciaSinAsaltante() throws Exception {
         String json = """
                 {
@@ -282,7 +282,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirSentenciaSinCondenado() throws Exception {
         String json = """
                 {
@@ -298,7 +298,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirSentenciaDeAsaltanteInexistente() throws Exception {
         String json = """
                 {
@@ -316,7 +316,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirSentenciaDeAsaltanteNoParticipante() throws Exception {
         Asaltante otro = new Asaltante();
         otro.setCodigo("ASS00002");
@@ -340,7 +340,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirRegistrarSentenciaEnCasoInactivo() throws Exception {
         caso.actualizarActivo(false);
         casoJudicialRepository.saveAndFlush(caso);
@@ -352,7 +352,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void modificarSentenciaCondenatoria() throws Exception {
         registrarSentencia();
 
@@ -373,7 +373,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void modificarSentenciaAAbsolucion() throws Exception {
         registrarSentencia();
 
@@ -395,7 +395,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirModificarSentenciaPendiente() throws Exception {
         mockMvc.perform(put("/api/casos-judiciales/CJU00001/sentencias/ASS00001")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -404,7 +404,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "ESCRITURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"ESCRITURA_CASO_JUDICIAL", "ESCRITURA_SENTENCIA_ASALTANTE"})
     void impedirModificarSentenciaEnCasoInactivo() throws Exception {
         sentencia.registrarSentencia(true, 5);
         sentenciaRepository.saveAndFlush(sentencia);
@@ -419,7 +419,7 @@ class SentenciaAsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
+    @WithMockUser(authorities = {"LECTURA_CASO_JUDICIAL", "LECTURA_SENTENCIA_ASALTANTE"})
     void impedirRegistroSinPermisoEscritura() throws Exception {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)

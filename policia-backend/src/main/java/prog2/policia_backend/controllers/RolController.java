@@ -13,12 +13,11 @@ import prog2.policia_backend.services.RolService;
 
 import java.util.List;
 
-import org.springframework.security.access.prepost.PreAuthorize;
+import prog2.policia_backend.models.Entidad;
 
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMINISTRADOR')")
 public class RolController {
 
     private final RolService rolService;
@@ -53,5 +52,10 @@ public class RolController {
     public ResponseEntity<RolDTO> reactivar(@PathVariable String codigo) {
 
         return ResponseEntity.ok(rolService.reactivar(codigo));
+    }
+
+    @GetMapping("/entidades")
+    public ResponseEntity<List<Entidad>> listarEntidades() {
+        return ResponseEntity.ok(List.of(Entidad.values()));
     }
 }

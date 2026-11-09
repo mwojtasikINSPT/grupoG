@@ -1,4 +1,3 @@
-
 package prog2.policia_backend.integration;
 
 import tools.jackson.databind.ObjectMapper;
@@ -80,7 +79,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "LECTURA_ROL")
     void listarRolesCorrectamente() throws Exception {
         mockMvc.perform(get("/api/roles"))
                 .andExpect(status().isOk())
@@ -88,7 +87,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "LECTURA_ROL")
     void buscarRolPorCodigo() throws Exception {
         mockMvc.perform(get("/api/roles/ROL00001"))
                 .andExpect(status().isOk())
@@ -96,7 +95,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "LECTURA_ROL")
     void listarRolesActivos() throws Exception {
         mockMvc.perform(get("/api/roles?activo=true"))
                 .andExpect(status().isOk())
@@ -104,7 +103,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "ESCRITURA_ROL")
     void crearRolCorrectamente() throws Exception {
         RolDTO dto = crearDTO("OPERADOR", "OPE");
 
@@ -122,7 +121,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "ESCRITURA_ROL")
     void actualizarRolCorrectamente() throws Exception {
         RolDTO dto = new RolDTO();
         dto.setDescripcion("Descripcion Actualizada");
@@ -138,7 +137,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "ESCRITURA_ROL")
     void darDeBajaRolCorrectamente() throws Exception {
         mockMvc.perform(patch("/api/roles/ROL00001/baja"))
                 .andExpect(status().isNoContent());
@@ -148,7 +147,7 @@ class RolIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMINISTRADOR")
+    @WithMockUser(authorities = "ESCRITURA_ROL")
     void reactivarRolCorrectamente() throws Exception {
         rol.setActivo(false);
         rolRepository.saveAndFlush(rol);

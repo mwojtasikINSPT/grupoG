@@ -109,7 +109,7 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
+    @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void listarSucursalesDeEntidadSinSucursales() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias/EBA00001/sucursales"))
                 .andExpect(status().isOk())

@@ -97,7 +97,7 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_JUEZ")
+    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosJudicialesSinCasos() throws Exception {
         mockMvc.perform(get("/api/jueces/JUE00001/casos-judiciales"))
                 .andExpect(status().isOk())

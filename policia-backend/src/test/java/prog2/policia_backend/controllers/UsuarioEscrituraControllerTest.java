@@ -99,7 +99,7 @@ class UsuarioEscrituraControllerTest {
 
     @Test
     void administradorPuedeRegistrarUsuarios() throws Exception {
-        UsuarioDetails usuario = crearUsuario("ADM00001", "ADMINISTRADOR");
+        UsuarioDetails usuario = crearUsuario("USR00001", "OPERADOR", Permiso.ESCRITURA);
 
         String json = """
         {
@@ -121,7 +121,7 @@ class UsuarioEscrituraControllerTest {
 
     @Test
     void administradorPuedeActualizarUsuarios() throws Exception {
-        UsuarioDetails usuario = crearUsuario("ADM00001", "ADMINISTRADOR");
+        UsuarioDetails usuario = crearUsuario("USR00001", "OPERADOR", Permiso.ESCRITURA);
 
         String json = """
         {

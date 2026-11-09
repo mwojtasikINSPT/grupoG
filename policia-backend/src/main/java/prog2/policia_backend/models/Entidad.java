@@ -8,9 +8,8 @@ public enum Entidad {
     CONTRATO_VIGILANCIA,
     ENTIDAD_BANCARIA,
     JUEZ,
+    ROL,
     SENTENCIA_ASALTANTE,
     SUCURSAL,
     USUARIO
 }
-
-//No incluimos Rol porque su administración esta reservada exclusivamente al administrador

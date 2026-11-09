@@ -1,7 +1,9 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.JuezDTO;
+import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.services.CasoJudicialService;
 import prog2.policia_backend.services.JuezService;
 import prog2.policia_backend.validations.OnCreate;
@@ -71,4 +74,8 @@ public class JuezController {
         return ResponseEntity.ok(juezService.reactivar(codigo));
     }
 
+    @GetMapping("/motivos-baja")
+    public ResponseEntity<List<MotivoBajaPersona>> listarMotivosBaja() {
+        return ResponseEntity.ok(List.of(MotivoBajaPersona.values()));
+    }
 }
