@@ -18,9 +18,11 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.PollEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.shared.Registration;
 
 import prog2.policia_frontend.clients.AutenticacionClient;
@@ -45,6 +47,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private final LoginForm formularioLogin = new LoginForm();
     private final Span mensajeConexion = new Span("Conectando con el servidor...");
+    private final Button botonIniciar = new Button("Iniciar sistema");
 
     public LoginView(AutenticacionClient autenticacionClient, SesionUsuario sesionUsuario,
             EstadoBackendClient estadoBackendClient) {
@@ -79,7 +82,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         formularioLogin.addClassName("login-formulario");
         formularioLogin.setVisible(false);
 
-        VerticalLayout tarjeta = new VerticalLayout(titulo, subtitulo, mensajeConexion, formularioLogin);
+        mensajeConexion.setVisible(false);
+        botonIniciar.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
+            @Override
+            public void onComponentEvent(ClickEvent<Button> evento) {
+                botonIniciar.setVisible(false);
+                mensajeConexion.setVisible(true);
+                UI.getCurrent().getPage().executeJs("fetch($0, {mode: 'no-cors', cache: 'no-store'}).catch(function() {});", estadoBackendClient.getUrlEstado());
+                iniciarComprobacion();
+            }
+        });
+
+        VerticalLayout tarjeta = new VerticalLayout(titulo, subtitulo, botonIniciar, mensajeConexion, formularioLogin);
         tarjeta.setAlignItems(Alignment.CENTER);
         tarjeta.setPadding(true);
         tarjeta.setWidth("410px");
@@ -207,7 +221,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         uiConexion = evento.getUI();
         intervaloAnterior = uiConexion.getPollInterval();
 
-        mensajeConexion.setVisible(true);
+        mensajeConexion.setVisible(false);
+
         formularioLogin.setVisible(false);
 
         registroConsulta = uiConexion.addPollListener(new ComponentEventListener<PollEvent>() {
@@ -222,7 +237,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         });
 
         uiConexion.setPollInterval(1000);
-        iniciarComprobacion();
+        //iniciarComprobacion();
     }
 
     @Override

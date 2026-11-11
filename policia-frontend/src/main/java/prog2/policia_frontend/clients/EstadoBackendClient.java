@@ -44,4 +44,8 @@ public class EstadoBackendClient {
             return false;
         }
     }
+    
+    public String getUrlEstado() {
+    return backendUrl + "/estado";
+}
 }
