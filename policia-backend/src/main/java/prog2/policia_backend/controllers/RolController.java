@@ -3,6 +3,7 @@ package prog2.policia_backend.controllers;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +13,7 @@ import prog2.policia_backend.services.RolService;
 
 import java.util.List;
 
-import org.springframework.validation.annotation.Validated;
-
-import lombok.Builder.Default;
+import jakarta.validation.groups.Default;
 
 import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.validations.OnCreate;

@@ -2,7 +2,8 @@ package prog2.policia_backend.controllers;
 
 import java.util.List;
 
-import lombok.Builder.Default;
+import jakarta.validation.groups.Default;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
