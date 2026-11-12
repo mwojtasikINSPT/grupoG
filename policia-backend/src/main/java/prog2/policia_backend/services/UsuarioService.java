@@ -261,7 +261,13 @@ public class UsuarioService {
             throw new RecursoNoEncontradoException("Rol", nombreRol);
         }
 
-        return resultado.get();
+        Rol rol = resultado.get();
+
+        if (!Boolean.TRUE.equals(rol.getActivo())) {
+            throw new OperacionNoPermitidaException("No se puede crear un usuario con un rol inactivo.");
+        }
+
+        return rol;
     }
 
     @Transactional
