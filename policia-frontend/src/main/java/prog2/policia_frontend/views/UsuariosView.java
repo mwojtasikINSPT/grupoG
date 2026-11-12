@@ -152,29 +152,38 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
         return new HorizontalLayout(botonModificar, botonEstado);
     }
 
-    // Crea el selector de fecha de nacimiento.
+    // Crea el selector de fecha de nacimiento (se puede escribir manual tambien).
     private DatePicker crearCampoFechaNacimiento() {
         DatePicker campo = new DatePicker("Fecha de nacimiento");
+        campo.setLocale(java.util.Locale.of("es", "AR"));
+        campo.setPlaceholder("dd/mm/aaaa");
+        campo.setHelperText("Escribí la fecha: día/mes/año.");
         campo.setRequiredIndicatorVisible(true);
         campo.setMax(LocalDate.now());
         campo.setWidthFull();
         return campo;
     }
 
-    // Valida mayoría de edad y límite de 65 años para vigilantes.
-    private boolean fechaNacimientoInvalida(LocalDate fecha, boolean vigilante) {
+    // Valida que la edad esté entre 18 y 70 años para nuevos usuarios.
+    private boolean fechaNacimientoInvalida(LocalDate fecha) {
         if (fecha == null || fecha.isAfter(LocalDate.now())) {
             return true;
         }
-
         int edad = Period.between(fecha, LocalDate.now()).getYears();
-        return edad < 18 || (vigilante && edad > 65);
+        return edad < 18 || edad > 70;
     }
 
-    private void validarCampoFecha(DatePicker campo, boolean vigilante) {
-        boolean invalida = fechaNacimientoInvalida(campo.getValue(), vigilante);
-        campo.setInvalid(invalida);
-        campo.setErrorMessage(vigilante ? "El vigilante debe tener entre 18 y 65 años." : "El usuario debe tener al menos 18 años.");
+    private void validarCampoFecha(DatePicker campo) {
+        LocalDate fecha = campo.getValue();
+
+        if (fecha == null) {
+            campo.setInvalid(true);
+            campo.setErrorMessage("Ingresá una fecha válida");
+            return;
+        }
+
+        campo.setInvalid(fechaNacimientoInvalida(fecha));
+        campo.setErrorMessage("El usuario debe tener entre 18 y 70 años.");
     }
 
     // Modifica los datos del usuario y opcionalmente su contraseña.
@@ -205,7 +214,7 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
             String nuevaPassword = campoPassword.getValue();
             boolean passwordInvalida = !nuevaPassword.isBlank() && (nuevaPassword.length() < 4 || nuevaPassword.length() > 20);
 
-            validarCampoFecha(campoFechaNacimiento, esVigilante(usuario));
+            validarCampoFecha(campoFechaNacimiento);
             campoNombre.setInvalid(nombreVacio);
             campoNombre.setErrorMessage("El nombre es obligatorio.");
             campoPassword.setInvalid(passwordInvalida);
@@ -286,7 +295,6 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
             boolean passwordVacio = campoPassword.getValue().isBlank();
             boolean passwordInvalida = passwordVacio || campoPassword.getValue().length() < 4 || campoPassword.getValue().length() > 20;
             boolean rolVacio = campoRol.getValue() == null;
-            boolean rolVigilante = esRolVigilante(campoRol.getValue());
 
             campoNombre.setInvalid(nombreVacio);
             campoNombre.setErrorMessage("El nombre es obligatorio.");
@@ -294,7 +302,7 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
             campoPassword.setErrorMessage("La contraseña debe tener entre 4 y 20 caracteres.");
             campoRol.setInvalid(rolVacio);
             campoRol.setErrorMessage("Debe seleccionar un rol.");
-            validarCampoFecha(campoFechaNacimiento, rolVigilante);
+            validarCampoFecha(campoFechaNacimiento);
 
             if (nombreVacio || passwordInvalida || rolVacio || campoFechaNacimiento.isInvalid()) {
                 return;
@@ -502,14 +510,6 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
 
     private boolean puedeEscribir() {
         return permisosInterfaz.puedeModificarUsuarios();
-    }
-
-    private boolean esVigilante(UsuarioDTO usuario) {
-        return usuario.getRol() != null && usuario.getRol().equalsIgnoreCase("VIGILANTE");
-    }
-
-    private boolean esRolVigilante(RolDTO rol) {
-        return rol != null && rol.getNombre() != null && rol.getNombre().equalsIgnoreCase("VIGILANTE");
     }
 
     private void mostrarErrorOperacion(RestClientResponseException excepcion) {

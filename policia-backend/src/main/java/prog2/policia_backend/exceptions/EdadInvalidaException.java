@@ -3,6 +3,6 @@ package prog2.policia_backend.exceptions;
 public class EdadInvalidaException extends RuntimeException {
 
     public EdadInvalidaException() {
-        super("La edad no puede ser inferior a 18 años ni superar los 65");
+        super("Revise la edad ingresada. Debe ser mayor de edad y menor a 70");
     }
 }

@@ -111,7 +111,7 @@ public class UsuarioService {
         String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
         Rol rol = obtenerRol(nombreRol);
 
-        ValidadorEdad.validar(dto.getFechaNacimiento(), 18, Integer.MAX_VALUE);
+        ValidadorEdad.validar(dto.getFechaNacimiento(), 18, 70);
 
         Usuario usuario = new Usuario();
         usuario.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
@@ -149,7 +149,7 @@ public class UsuarioService {
         }
 
         if (dto.getFechaNacimiento() != null) {
-            ValidadorEdad.validar(dto.getFechaNacimiento(), 18, Integer.MAX_VALUE);
+            ValidadorEdad.validar(dto.getFechaNacimiento(), 18, 70);
             usuario.setFechaNacimiento(dto.getFechaNacimiento());
         }
 
