@@ -122,7 +122,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
 
         Dialog dialogo = new Dialog();
         dialogo.setWidth("600px");
-        dialogo.setHeaderTitle(esCreacion ? "Nuevo rol" : "Modificar " + rol.getCodigo());
+        dialogo.setHeaderTitle(rol == null ? "Nuevo rol" : "Modificar " + rol.getCodigo());
 
         TextField campoNombre = new TextField("Nombre");
         TextField campoPrefijo = new TextField("Prefijo");
@@ -175,7 +175,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         campoPrefijo.setWidthFull();
         campoDescripcion.setWidthFull();
         campoPrefijo.setHelperText("Se utiliza para generar códigos de usuarios del rol.");
-        if (!esCreacion) {
+        if (rol != null) {
             campoNombre.setValue(valorSeguro(rol.getNombre()));
             campoPrefijo.setValue(valorSeguro(rol.getPrefijo()));
             campoDescripcion.setValue(valorSeguro(rol.getDescripcion()));
@@ -224,6 +224,11 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                     lecturasFaltantes.add("JUEZ");
                 }
             }
+
+            if (escritura.getSelectedItems().contains("USUARIO") && !lectura.getSelectedItems().contains("ROL")) {
+                lecturasFaltantes.add("ROL");
+            }
+
             if (!lecturasFaltantes.isEmpty()) {
                 Dialog aviso = new Dialog();
                 aviso.setHeaderTitle("Permisos de lectura necesarios");
@@ -231,7 +236,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                 Button aceptar = new Button("Agregar permisos", clic -> {
                     lectura.select(lecturasFaltantes);
                     aviso.close();
-                    NotificacionUtils.mostrarInformacion("Lecturas agregadas. Revisá los permisos y presioná Guardar.");
+                    botonGuardar.click();
                 });
                 Button cancelar = new Button("Cancelar", clic -> aviso.close());
                 aviso.add(new VerticalLayout(mensaje, new HorizontalLayout(aceptar, cancelar)));
@@ -269,7 +274,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                 datos.setPrefijo(prefijo);
                 datos.setDescripcion(campoDescripcion.getValue().trim());
                 datos.setPermisosPorEntidad(convertirPermisos(permisos));
-                if (esCreacion) {
+                if (rol == null) {
                     rolClient.crear(datos);
                 } else {
                     rolClient.actualizar(rol.getCodigo(), datos);
@@ -370,18 +375,6 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
             }
         }
         return opciones;
-    }
-
-    private Set<String> etiquetasPermisos(Set<RolPermisoEntidadDTO> permisos) {
-        Set<String> etiquetas = new HashSet<>();
-        if (permisos != null) {
-            for (RolPermisoEntidadDTO permiso : permisos) {
-                if (permiso != null && permiso.getPermiso() != null && permiso.getEntidad() != null) {
-                    etiquetas.add(permiso.getPermiso() + " · " + permiso.getEntidad());
-                }
-            }
-        }
-        return etiquetas;
     }
 
     private Set<RolPermisoEntidadDTO> convertirPermisos(Set<String> seleccionados) {
