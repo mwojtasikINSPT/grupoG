@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.Builder.Default;
+
 import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
 import prog2.policia_backend.DTOs.SucursalDTO;
@@ -17,6 +19,7 @@ import prog2.policia_backend.models.MotivoCierreSucursal;
 import prog2.policia_backend.services.AsaltoService;
 import prog2.policia_backend.services.SucursalService;
 import prog2.policia_backend.services.ContratoVigilanciaService;
+import prog2.policia_backend.validations.OnCreate;
 
 @RestController
 @RequestMapping("/api/sucursales")
@@ -53,7 +56,7 @@ public class SucursalController {
     }
 
     @PostMapping
-    public ResponseEntity<SucursalDTO> guardar(@Validated @RequestBody SucursalDTO dto) {
+    public ResponseEntity<SucursalDTO> guardar(@Validated({OnCreate.class, Default.class}) @RequestBody SucursalDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(sucursalService.guardar(dto));
     }
 

@@ -215,6 +215,7 @@ public class RolService {
         exigirLectura(combinaciones, Entidad.ASALTO, Entidad.SUCURSAL);
         exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.ASALTO);
         exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.JUEZ);
+        exigirLectura(combinaciones, Entidad.SUCURSAL, Entidad.ENTIDAD_BANCARIA);
 
         Iterator<RolPermisoEntidad> iterator = rol.getPermisosPorEntidad().iterator();
 

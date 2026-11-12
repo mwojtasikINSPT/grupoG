@@ -229,6 +229,10 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                 lecturasFaltantes.add("ROL");
             }
 
+            if (escritura.getSelectedItems().contains("SUCURSAL") && !lectura.getSelectedItems().contains("ENTIDAD_BANCARIA")) {
+                lecturasFaltantes.add("ENTIDAD_BANCARIA");
+            }
+
             if (!lecturasFaltantes.isEmpty()) {
                 Dialog aviso = new Dialog();
                 aviso.setHeaderTitle("Permisos de lectura necesarios");
