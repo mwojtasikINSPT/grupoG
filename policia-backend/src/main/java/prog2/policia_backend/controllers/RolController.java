@@ -1,6 +1,5 @@
 package prog2.policia_backend.controllers;
 
-import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +12,12 @@ import prog2.policia_backend.services.RolService;
 
 import java.util.List;
 
+import org.springframework.validation.annotation.Validated;
+
+import lombok.Builder.Default;
+
 import prog2.policia_backend.models.Entidad;
+import prog2.policia_backend.validations.OnCreate;
 
 @RestController
 @RequestMapping("/api/roles")
@@ -33,7 +37,7 @@ public class RolController {
     }
 
     @PostMapping
-    public ResponseEntity<RolDTO> guardar(@Valid @RequestBody RolDTO rolDTO) {
+    public ResponseEntity<RolDTO> guardar(@Validated({OnCreate.class, Default.class}) @RequestBody RolDTO rolDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(rolService.guardar(rolDTO));
     }
 

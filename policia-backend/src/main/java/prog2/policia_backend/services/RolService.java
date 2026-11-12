@@ -19,6 +19,8 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.RolExistenteException;
 import prog2.policia_backend.exceptions.RolYaActivoException;
 import prog2.policia_backend.exceptions.RolYaInactivoException;
+import prog2.policia_backend.models.Entidad;
+import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.RolPermisoEntidad;
 import prog2.policia_backend.repositories.RolRepository;
@@ -208,6 +210,12 @@ public class RolService {
             }
         }
 
+        exigirLectura(combinaciones, Entidad.USUARIO, Entidad.ROL);
+        exigirLectura(combinaciones, Entidad.ASALTO, Entidad.ASALTANTE);
+        exigirLectura(combinaciones, Entidad.ASALTO, Entidad.SUCURSAL);
+        exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.ASALTO);
+        exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.JUEZ);
+
         Iterator<RolPermisoEntidad> iterator = rol.getPermisosPorEntidad().iterator();
 
         while (iterator.hasNext()) {
@@ -238,4 +246,14 @@ public class RolService {
             }
         }
     }
+
+    // Exige la lectura necesaria para una entidad con permiso de escritura.
+    private void exigirLectura(Set<String> combinaciones, Entidad entidadEscritura, Entidad entidadLectura) {
+        String escritura = Permiso.ESCRITURA.name() + ":" + entidadEscritura.name();
+        String lectura = Permiso.LECTURA.name() + ":" + entidadLectura.name();
+        if (combinaciones.contains(escritura) && !combinaciones.contains(lectura)) {
+            throw new OperacionNoPermitidaException("La escritura de " + entidadEscritura + " requiere lectura de " + entidadLectura + ".");
+        }
+    }
+
 }
