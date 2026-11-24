@@ -7,9 +7,6 @@ import prog2.policia_backend.models.CasoJudicial;
 
 // Gestiona las consultas de persistencia de los casos judiciales.
 public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long> {
-
-    List<CasoJudicial> findByActivo(boolean activo);
-
     boolean existsByAsalto_Id(Long asaltoId);
 
     boolean existsByJuez_Id(Long juezId);

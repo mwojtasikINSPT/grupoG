@@ -33,7 +33,7 @@ public class UsuarioController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LECTURA_USUARIO', 'LECTURA_DATOS_PROPIOS_USUARIO')")
-    public ResponseEntity<List<UsuarioDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String nombre, Authentication authentication) {
+    public ResponseEntity<List<UsuarioDTO>> listar(@RequestParam(required = false) Boolean activo, Authentication authentication) {
 
         boolean tieneLecturaCompleta = false;
 
@@ -47,11 +47,7 @@ public class UsuarioController {
         }
 
         if (!tieneLecturaCompleta) {
-            return ResponseEntity.ok(usuarioService.listarPropio(authentication.getName(), activo, nombre));
-        }
-
-        if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(usuarioService.buscarPorNombre(nombre, activo));
+            return ResponseEntity.ok(usuarioService.listarPropio(authentication.getName(), activo));
         }
 
         return ResponseEntity.ok(usuarioService.listar(activo));

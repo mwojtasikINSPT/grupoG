@@ -28,25 +28,14 @@ public class JuezClient {
         this.sesionUsuario = sesionUsuario;
     }
 
-    public List<JuezDTO> listar(Boolean activo, String nombre) {
-
-        List<JuezDTO> jueces = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/jueces");
-                    if (activo != null) {
-                        constructor.queryParam("activo", activo);
-                    }
-                    if (nombre != null && !nombre.isBlank()) {
-                        constructor.queryParam("nombre", nombre.trim());
-                    }
-                    return constructor.build();
-                })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<JuezDTO>>() {
-                });
-
-        return jueces != null ? jueces : List.of();
+    public List<JuezDTO> listar(Boolean activo) {
+        String ruta = "/jueces";
+        if (activo != null) { ruta += "?activo=" + activo; }
+        List<JuezDTO> jueces = restClient.get().uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                }).retrieve().body(new ParameterizedTypeReference<List<JuezDTO>>() {});
+        return jueces == null ? List.of() : jueces;
     }
 
     public JuezDTO crear(JuezDTO datos) {

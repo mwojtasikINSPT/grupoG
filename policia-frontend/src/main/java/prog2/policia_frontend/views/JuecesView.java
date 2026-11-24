@@ -41,7 +41,9 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
     private final JuezClient juezClient;
     private final PermisosInterfaz permisosInterfaz;
     private final Grid<JuezDTO> tabla = new Grid<>(JuezDTO.class, false);
-    private final TextField filtroNombre = new TextField("Buscar por nombre");
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<JuezDTO> datosBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
     private final Button btnAnterior = new Button("Anterior");
     private final Button btnSiguiente = new Button("Siguiente");
@@ -60,9 +62,7 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void configurarFiltros() {
-        filtroNombre.setPlaceholder("Ingrese una coincidencia");
-        filtroNombre.setClearButtonVisible(true);
-
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todos", "Activos", "Inactivos");
         filtroEstado.setValue("Todos");
@@ -142,15 +142,7 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
         Button botonNuevo = new Button("Nuevo juez", evento -> abrirFormulario(null));
         botonNuevo.setVisible(puedeEscribir());
 
-        Button botonBuscar = new Button("Buscar", evento -> cargarJueces());
-
-        Button botonLimpiar = new Button("Limpiar", evento -> {
-            filtroNombre.clear();
-            filtroEstado.setValue("Todos");
-            cargarJueces();
-        });
-
-        HorizontalLayout filtros = new HorizontalLayout(filtroNombre, filtroEstado, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(Alignment.END);
 
         HorizontalLayout paginacion = new HorizontalLayout(btnAnterior, lblPaginacion, btnSiguiente);
@@ -309,21 +301,19 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void cargarJueces() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            listaCompletaJueces = juezClient.listar(obtenerEstado(), filtroNombre.getValue());
-
-            if (listaCompletaJueces == null) {
-                listaCompletaJueces = new ArrayList<>();
-            }
-
-            paginaActual = 0;
-            actualizarTabla();
-
+            datosBusqueda = juezClient.listar(null);
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
@@ -347,5 +337,71 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
         cargarJueces();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Nombre", "Juez desde", "Años de servicio", "Motivo de baja");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<JuezDTO> filtrados = new java.util.ArrayList<>();
+        for (JuezDTO dato : datosBusqueda) {
+            if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        listaCompletaJueces = filtrados;
+        paginaActual = 0;
+        actualizarTabla();
+    }
+
+    private boolean coincideCriterio(JuezDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
+        if ("Juez desde".equals(criterio)) { return normalizarBusqueda(dato.getJuezDesde()).contains(texto); }
+        if ("Años de servicio".equals(criterio)) { return normalizarBusqueda(dato.getAniosServicio()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

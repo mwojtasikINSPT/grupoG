@@ -57,25 +57,6 @@ public class JuezService {
         return convertirADTO(obtenerJuez(codigo));
     }
 
-    public List<JuezDTO> buscarPorNombre(String nombre, Boolean activo) {
-        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-        List<Juez> jueces;
-
-        if (activo == null) {
-            jueces = juezRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
-        } else {
-            jueces = juezRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
-        }
-
-        List<JuezDTO> resultado = new ArrayList<>();
-
-        for (Juez juez : jueces) {
-            resultado.add(convertirADTO(juez));
-        }
-
-        return resultado;
-    }
-
     @Transactional
     public JuezDTO guardar(JuezDTO dto) {
         Juez juez = convertirAEntidad(dto);

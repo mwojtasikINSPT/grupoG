@@ -23,16 +23,8 @@ public class ContratoVigilanciaController {
     private final ContratoVigilanciaService contratoVigilanciaService;
 
     @GetMapping
-    public ResponseEntity<List<ContratoVigilanciaDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String vigilante, Authentication authentication) {
-
-        List<ContratoVigilanciaDTO> contratos;
-
-        if (vigilante != null && !vigilante.isBlank()) {
-            contratos = contratoVigilanciaService.buscarPorNombreVigilante(vigilante, activo);
-        } else {
-            contratos = contratoVigilanciaService.listar(activo);
-        }
-
+    public ResponseEntity<List<ContratoVigilanciaDTO>> listar(Authentication authentication) {
+        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.listar();
         return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
     }
 

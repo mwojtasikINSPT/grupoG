@@ -207,7 +207,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
         List<EntidadBancariaDTO> entidadesActivas;
 
         try {
-            entidadesActivas = entidadClient.listar(true, null, null);
+            entidadesActivas = entidadClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
             return;
@@ -475,7 +475,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
         }
 
         try {
-            entidadesDisponibles = entidadClient.listar(null, null, null);
+            entidadesDisponibles = entidadClient.listar(null);
             filtroEntidad.setItems(entidadesDisponibles);
             filtroTipoBusqueda.setItems("Todas", "Código", "Domicilio", "Entidad bancaria");
             filtroTipoBusqueda.setValue("Todas");

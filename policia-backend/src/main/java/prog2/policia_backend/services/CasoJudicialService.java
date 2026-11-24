@@ -13,7 +13,6 @@ import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.SentenciaAsaltanteDTO;
 import prog2.policia_backend.exceptions.AsaltanteNoParticipaEnAsaltoException;
 import prog2.policia_backend.exceptions.CasoCondenadoSinCarcelException;
-import prog2.policia_backend.exceptions.CasoJudicialActivoException;
 import prog2.policia_backend.exceptions.CasoJudicialYaExistenteException;
 import prog2.policia_backend.exceptions.CasoSentenciadoException;
 import prog2.policia_backend.exceptions.CasoSinCondenaConCarcelException;
@@ -47,21 +46,12 @@ public class CasoJudicialService {
     private final SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
 
     @Transactional(readOnly = true)
-    public List<CasoJudicialDTO> listar(Boolean activo) {
-        List<CasoJudicial> casos;
-
-        if (activo == null) {
-            casos = casoJudicialRepository.findAll();
-        } else {
-            casos = casoJudicialRepository.findByActivo(activo);
-        }
-
+    public List<CasoJudicialDTO> listar() {
+        List<CasoJudicial> casos = casoJudicialRepository.findAll();
         List<CasoJudicialDTO> resultado = new ArrayList<>();
-
-        for (CasoJudicial caso : casos) {
-            resultado.add(convertirADTO(caso));
+        for (CasoJudicial entidad : casos) {
+            resultado.add(convertirADTO(entidad));
         }
-
         return resultado;
     }
 

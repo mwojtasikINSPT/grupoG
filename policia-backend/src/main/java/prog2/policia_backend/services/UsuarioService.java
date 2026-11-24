@@ -62,7 +62,7 @@ public class UsuarioService {
         return resultado;
     }
 
-    public List<UsuarioDTO> listarPropio(String codigo, Boolean activo, String nombre) {
+    public List<UsuarioDTO> listarPropio(String codigo, Boolean activo) {
         Usuario usuario = obtenerUsuario(codigo);
         List<UsuarioDTO> resultado = new ArrayList<>();
 
@@ -70,35 +70,7 @@ public class UsuarioService {
             return resultado;
         }
 
-        if (nombre != null && !nombre.isBlank()) {
-            String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-            String nombreUsuario = NormalizadorTexto.normalizarParaBuscar(usuario.getNombre());
-
-            if (!nombreUsuario.contains(nombreNormalizado)) {
-                return resultado;
-            }
-        }
-
         resultado.add(convertirADTO(usuario));
-
-        return resultado;
-    }
-
-    public List<UsuarioDTO> buscarPorNombre(String nombre, Boolean activo) {
-        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-        List<Usuario> usuarios;
-
-        if (activo == null) {
-            usuarios = usuarioRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
-        } else {
-            usuarios = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
-        }
-
-        List<UsuarioDTO> resultado = new ArrayList<>();
-
-        for (Usuario usuario : usuarios) {
-            resultado.add(convertirADTO(usuario));
-        }
 
         return resultado;
     }

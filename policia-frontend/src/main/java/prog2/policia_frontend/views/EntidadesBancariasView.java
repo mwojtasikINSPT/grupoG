@@ -41,11 +41,10 @@ public class EntidadesBancariasView extends VerticalLayout implements BeforeEnte
     private final PaginadorGrid<EntidadBancariaDTO> paginadorEntidades = new PaginadorGrid<>(tabla, 10);
 
     // Permite buscar por nombre o domicilio.
-    private final Select<String> tipoBusqueda = new Select<>();
-    private final TextField textoBusqueda = new TextField("Buscar");
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<EntidadBancariaDTO> datosBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
-    private final Button botonBuscar = new Button("Buscar");
-    private final Button botonLimpiar = new Button("Limpiar");
     private final Button botonNuevaEntidad = new Button("Nueva entidad bancaria");
 
     public EntidadesBancariasView(EntidadBancariaClient entidadClient, PermisosInterfaz permisosInterfaz) {
@@ -58,32 +57,17 @@ public class EntidadesBancariasView extends VerticalLayout implements BeforeEnte
 
     // Configura las opciones de búsqueda.
     private void configurarFiltros() {
-        tipoBusqueda.setLabel("Buscar por");
-        tipoBusqueda.setItems("Nombre", "Domicilio");
-        tipoBusqueda.setValue("Nombre");
-
-        textoBusqueda.setPlaceholder("Ingrese una coincidencia");
-        textoBusqueda.setClearButtonVisible(true);
-
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todos", "Activos", "Inactivos");
         filtroEstado.setValue("Todos");
-
-        botonBuscar.addClickListener(evento -> cargarEntidades());
-
-        botonLimpiar.addClickListener(evento -> {
-            tipoBusqueda.setValue("Nombre");
-            textoBusqueda.clear();
-            filtroEstado.setValue("Todos");
-            cargarEntidades();
-        });
     }
 
     // Organiza visualmente la pantalla.
     private void configurarVista() {
         H2 titulo = new H2("Entidades Bancarias");
 
-        HorizontalLayout filtros = new HorizontalLayout(tipoBusqueda, textoBusqueda, filtroEstado, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(Alignment.END);
 
         botonNuevaEntidad.addClickListener(evento -> abrirFormulario(null));
@@ -298,30 +282,87 @@ public class EntidadesBancariasView extends VerticalLayout implements BeforeEnte
 
     // Consulta las entidades bancarias aplicando los filtros seleccionados.
     private void cargarEntidades() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            String texto = textoBusqueda.getValue();
-            String nombre = null;
-            String domicilio = null;
-
-            if ("Nombre".equals(tipoBusqueda.getValue())) {
-                nombre = texto;
-            } else {
-                domicilio = texto;
-            }
-
-            List<EntidadBancariaDTO> entidades = entidadClient.listar(obtenerEstado(), nombre, domicilio);
-            paginadorEntidades.setItems(entidades);
-
+            datosBusqueda = entidadClient.listar(null);
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
 
     private boolean puedeEscribir() {
         return permisosInterfaz.puedeModificarEntidadesBancarias();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Nombre", "Domicilio", "Motivo de baja");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<EntidadBancariaDTO> filtrados = new java.util.ArrayList<>();
+        for (EntidadBancariaDTO dato : datosBusqueda) {
+            if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        paginadorEntidades.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(EntidadBancariaDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
+        if ("Domicilio".equals(criterio)) { return normalizarBusqueda(dato.getDomicilioCentral()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

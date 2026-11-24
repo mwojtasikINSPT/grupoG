@@ -1,6 +1,9 @@
 
 package prog2.policia_frontend.views;
 
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,6 +25,11 @@ import prog2.policia_frontend.utils.NotificacionUtils;
 @Route(value = "mis-contratos", layout = MainLayout.class)
 @PageTitle("Mis contratos | Sistema Policial")
 public class MisContratosView extends VerticalLayout implements BeforeEnterObserver {
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<ContratoVigilanciaDTO> datosBusqueda = List.of();
+    private final Select<String> filtroEstado = new Select<>();
+
 
     private final ContratoVigilanciaClient contratoClient;
     private final SesionUsuario sesionUsuario;
@@ -36,7 +44,8 @@ public class MisContratosView extends VerticalLayout implements BeforeEnterObser
         configurarTabla();
         setSizeFull();
 
-        add(new H2("Mis contratos de vigilancia"), tabla, paginadorContratos.getControles());
+        configurarBusqueda();
+        add(new H2("Mis contratos de vigilancia"), crearBarraBusqueda(), tabla, paginadorContratos.getControles());
 
         expand(tabla);
     }
@@ -61,12 +70,15 @@ public class MisContratosView extends VerticalLayout implements BeforeEnterObser
     }
 
     private void cargarContratos() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
             String codigo = sesionUsuario.getUsuario().getCodigo();
 
             List<ContratoVigilanciaDTO> contratos = contratoClient.listarPorVigilante(codigo);
 
-            paginadorContratos.setItems(contratos);
+            datosBusqueda = contratos;
+            aplicarFiltros();
 
         } catch (RestClientResponseException excepcion) {
             NotificacionUtils.mostrarAdvertencia(ErrorBackendUtils.obtenerMensaje(excepcion));
@@ -77,5 +89,73 @@ public class MisContratosView extends VerticalLayout implements BeforeEnterObser
         } catch (IllegalStateException excepcion) {
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Fecha", "Sucursal", "Con arma");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+        filtroEstado.setLabel("Estado");
+        filtroEstado.setItems("Todos", "Activos", "Inactivos");
+        filtroEstado.setValue("Todos");
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<ContratoVigilanciaDTO> filtrados = new java.util.ArrayList<>();
+        for (ContratoVigilanciaDTO dato : datosBusqueda) {
+            if ("Activos".equals(filtroEstado.getValue()) && !Boolean.TRUE.equals(dato.getActivo())) { continue; }
+            if ("Inactivos".equals(filtroEstado.getValue()) && !Boolean.FALSE.equals(dato.getActivo())) { continue; }
+            if (coincideCriterio(dato, criterio, texto)) { filtrados.add(dato); }
+        }
+        paginadorContratos.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(ContratoVigilanciaDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
+        if ("Con arma".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } else if (valor instanceof java.time.LocalDateTime) {
+            texto += " " + ((java.time.LocalDateTime) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

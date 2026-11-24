@@ -25,8 +25,8 @@ public class CasoJudicialController {
     private final CasoJudicialService casoJudicialService;
 
     @GetMapping
-    public ResponseEntity<List<CasoJudicialDTO>> listar(@RequestParam(required = false) Boolean activo) {
-        return ResponseEntity.ok(casoJudicialService.listar(activo));
+    public ResponseEntity<List<CasoJudicialDTO>> listar() {
+        return ResponseEntity.ok(casoJudicialService.listar());
     }
 
     @GetMapping("/asaltante/{codigo}")

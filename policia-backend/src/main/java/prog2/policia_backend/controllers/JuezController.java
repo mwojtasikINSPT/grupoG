@@ -27,12 +27,7 @@ public class JuezController {
 
     @GetMapping
     public ResponseEntity<List<JuezDTO>> listar(
-            @RequestParam(required = false) Boolean activo,
-            @RequestParam(required = false) String nombre) {
-
-        if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(juezService.buscarPorNombre(nombre, activo));
-        }
+            @RequestParam(required = false) Boolean activo) {
 
         return ResponseEntity.ok(juezService.listar(activo));
     }

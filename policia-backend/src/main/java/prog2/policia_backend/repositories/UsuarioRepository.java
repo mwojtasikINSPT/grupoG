@@ -22,10 +22,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findConBloqueoByCodigo(String codigo);
 
     List<Usuario> findByActivo(Boolean activo);
-
-    List<Usuario> findByNombreContainingIgnoreCase(String nombre);
-
-    List<Usuario> findByNombreContainingIgnoreCaseAndActivo(String nombre, boolean activo);
-
     boolean existsByRol_IdAndActivoTrue(Long rolId);
 }

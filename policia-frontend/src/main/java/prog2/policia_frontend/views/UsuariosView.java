@@ -5,8 +5,6 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.Comparator;
 
 import com.vaadin.flow.component.Component;
@@ -53,12 +51,11 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
 
     private final Grid<UsuarioDTO> tablaUsuarios = new Grid<>(UsuarioDTO.class, false);
     private final PaginadorGrid<UsuarioDTO> paginadorUsuarios = new PaginadorGrid<>(tablaUsuarios, 10);
-    private final TextField filtroNombre = new TextField("Buscar por nombre");
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<UsuarioDTO> datosBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
-    private final Select<RolDTO> filtroRol = new Select<>();
-    private final Button botonBuscar = new Button("Buscar");
     private final Button botonNuevoUsuario = new Button("Nuevo usuario");
-    private final Button botonLimpiar = new Button("Limpiar");
 
     public UsuariosView(UsuarioClient usuarioClient, RolClient rolClient, PermisosInterfaz permisosInterfaz) {
         this.usuarioClient = usuarioClient;
@@ -71,31 +68,16 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
 
     // Configura los filtros por nombre, estado y rol.
     private void configurarFiltros() {
-        filtroNombre.setPlaceholder("Ejemplo: Laura");
-        filtroNombre.setClearButtonVisible(true);
-
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todos", "Activos", "Inactivos");
         filtroEstado.setValue("Todos");
-
-        filtroRol.setLabel("Tipo de usuario");
-        filtroRol.setItemLabelGenerator(RolDTO::getNombre);
-        filtroRol.setPlaceholder("Todos los roles");
-
-        botonBuscar.addClickListener(evento -> cargarUsuarios());
-
-        botonLimpiar.addClickListener(evento -> {
-            filtroNombre.clear();
-            filtroEstado.setValue("Todos");
-            filtroRol.clear();
-            cargarUsuarios();
-        });
     }
 
     // Organiza los componentes de la pantalla.
     private void configurarVista() {
         H2 titulo = new H2("Usuarios");
-        HorizontalLayout barraFiltros = new HorizontalLayout(filtroNombre, filtroEstado, filtroRol, botonBuscar, botonLimpiar);
+        HorizontalLayout barraFiltros = crearBarraBusqueda();
         barraFiltros.setAlignItems(Alignment.END);
 
         botonNuevoUsuario.addClickListener(evento -> abrirFormularioNuevo());
@@ -409,35 +391,7 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
     }
 
     // Carga roles disponibles o los obtiene de los usuarios si no hay permiso de consulta.
-    private void cargarOpcionesFiltros() {
-        try {
-            if (permisosInterfaz.puedeAccederVista(RolesView.class)) {
-                filtroRol.setItems(rolClient.listar(null));
-                return;
-            }
 
-            List<UsuarioDTO> usuarios = usuarioClient.listar(null, null);
-            List<RolDTO> roles = new ArrayList<>();
-            Set<String> nombresAgregados = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-
-            for (UsuarioDTO usuario : usuarios) {
-                String nombreRol = usuario.getRol();
-
-                if (nombreRol != null && !nombreRol.isBlank() && nombresAgregados.add(nombreRol)) {
-                    RolDTO rol = new RolDTO();
-                    rol.setNombre(nombreRol);
-                    roles.add(rol);
-                }
-            }
-
-            filtroRol.setItems(roles);
-
-        } catch (RestClientResponseException excepcion) {
-            mostrarErrorOperacion(excepcion);
-        } catch (ResourceAccessException excepcion) {
-            NotificacionUtils.mostrarInformacion("No se pudieron cargar los roles para los filtros.");
-        }
-    }
 
     private Boolean obtenerEstadoSeleccionado() {
         return switch (filtroEstado.getValue()) {
@@ -452,59 +406,19 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
 
     // Filtra los usuarios por nombre, estado y rol, ordenándolos por código.
     private void cargarUsuarios() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            Boolean estadoSeleccionado = obtenerEstadoSeleccionado();
-            String nombreIngresado = filtroNombre.getValue();
-            RolDTO rolSeleccionado = filtroRol.getValue();
-
-            List<UsuarioDTO> todosLosUsuarios = usuarioClient.listar(estadoSeleccionado, nombreIngresado);
-            List<UsuarioDTO> usuariosFiltrados = new ArrayList<>();
-
-            for (UsuarioDTO usuario : todosLosUsuarios) {
-                if (rolSeleccionado == null) {
-                    usuariosFiltrados.add(usuario);
-                    continue;
-                }
-
-                if (usuario.getRol() == null) {
-                    continue;
-                }
-
-                boolean coincideCodigo = usuario.getRol().equalsIgnoreCase(rolSeleccionado.getCodigo());
-                boolean coincideNombre = usuario.getRol().equalsIgnoreCase(rolSeleccionado.getNombre());
-
-                if (coincideCodigo || coincideNombre) {
-                    usuariosFiltrados.add(usuario);
-                }
-            }
-
-            usuariosFiltrados.sort(new Comparator<UsuarioDTO>() {
-                @Override
-                public int compare(UsuarioDTO primero, UsuarioDTO segundo) {
-                    String codigoPrimero = primero.getCodigo();
-                    String codigoSegundo = segundo.getCodigo();
-
-                    if (codigoPrimero == null && codigoSegundo == null) {
-                        return 0;
-                    }
-                    if (codigoPrimero == null) {
-                        return 1;
-                    }
-                    if (codigoSegundo == null) {
-                        return -1;
-                    }
-
-                    return codigoPrimero.compareToIgnoreCase(codigoSegundo);
-                }
-            });
-
-            paginadorUsuarios.setItems(usuariosFiltrados);
-
+            datosBusqueda = usuarioClient.listar(null);
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
@@ -520,7 +434,81 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
     // Carga los filtros y usuarios al ingresar a la vista.
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
-        cargarOpcionesFiltros();
         cargarUsuarios();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Nombre", "Rol", "Edad", "Fecha de nacimiento", "Motivo de baja");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<UsuarioDTO> filtrados = new java.util.ArrayList<>();
+        for (UsuarioDTO dato : datosBusqueda) {
+            if ((obtenerEstadoSeleccionado() == null || obtenerEstadoSeleccionado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        filtrados.sort(new Comparator<UsuarioDTO>() {
+            @Override public int compare(UsuarioDTO primero, UsuarioDTO segundo) {
+                String a = primero.getCodigo();
+                String b = segundo.getCodigo();
+                if (a == null && b == null) { return 0; }
+                if (a == null) { return 1; }
+                if (b == null) { return -1; }
+                return a.compareToIgnoreCase(b);
+            }
+        });
+        paginadorUsuarios.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(UsuarioDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
+        if ("Rol".equals(criterio)) { return normalizarBusqueda(dato.getRol()).contains(texto); }
+        if ("Edad".equals(criterio)) { return normalizarBusqueda(dato.getEdad()).contains(texto); }
+        if ("Fecha de nacimiento".equals(criterio)) { return normalizarBusqueda(dato.getFechaNacimiento()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

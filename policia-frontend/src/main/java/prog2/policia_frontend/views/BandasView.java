@@ -41,6 +41,9 @@ public class BandasView extends VerticalLayout implements BeforeEnterObserver {
 
     private final PaginadorGrid<BandaDTO> paginadorBandas = new PaginadorGrid<>(tabla, 10);
 
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<BandaDTO> datosBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
 
     private final Button botonNueva = new Button("Nueva banda");
@@ -54,7 +57,7 @@ public class BandasView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void configurarFiltro() {
-
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todas", "Activas", "Inactivas");
         filtroEstado.setValue("Todas");
@@ -136,19 +139,9 @@ public class BandasView extends VerticalLayout implements BeforeEnterObserver {
 
         H2 titulo = new H2("Bandas");
 
-        Button botonBuscar = new Button("Buscar", evento -> cargarBandas());
-
-        Button botonLimpiar = new Button(
-                "Limpiar",
-                evento -> {
-                    filtroEstado.setValue("Todas");
-                    cargarBandas();
-                }
-        );
-
         botonNueva.addClickListener(evento -> crearBanda());
         botonNueva.setVisible(puedeEscribir());
-        HorizontalLayout filtros = new HorizontalLayout(filtroEstado, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(HorizontalLayout.Alignment.END);
         setSizeFull();
         add(titulo, botonNueva, filtros, tabla, paginadorBandas.getControles());
@@ -234,18 +227,19 @@ public class BandasView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void cargarBandas() {
-
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            List<BandaDTO> bandas = bandaClient.listar(obtenerEstado());
-            paginadorBandas.setItems(bandas);
-
+            datosBusqueda = bandaClient.listar(null);
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
-
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
-
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
     }
@@ -257,5 +251,66 @@ public class BandasView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
         cargarBandas();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Cantidad de miembros");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todas");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<BandaDTO> filtrados = new java.util.ArrayList<>();
+        for (BandaDTO dato : datosBusqueda) {
+            if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        paginadorBandas.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(BandaDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Cantidad de miembros".equals(criterio)) { return normalizarBusqueda(dato.getCantMiembros()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

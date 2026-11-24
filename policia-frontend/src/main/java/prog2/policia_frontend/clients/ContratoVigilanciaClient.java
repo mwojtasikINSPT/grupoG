@@ -23,35 +23,19 @@ public class ContratoVigilanciaClient {
         this.sesionUsuario = sesionUsuario;
     }
 
-    // Consulta contratos filtrando opcionalmente por estado y vigilante.
-    public List<ContratoVigilanciaDTO> listar(Boolean activo, String vigilante) {
-        List<ContratoVigilanciaDTO> contratos = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/contratos-vigilancia");
-                    if (activo != null) {
-                        constructor.queryParam("activo", activo);
-                    }
-                    if (vigilante != null && !vigilante.isBlank()) {
-                        constructor.queryParam("vigilante", vigilante.trim());
-                    }
-                    return constructor.build();
-                })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<ContratoVigilanciaDTO>>() {
-                });
-
-        return contratos != null ? contratos : List.of();
+    // Consulta contratos autorizados; los filtros visuales se aplican en la vista.
+    public List<ContratoVigilanciaDTO> listar() {
+        String ruta = "/contratos-vigilancia";
+        List<ContratoVigilanciaDTO> contratos = restClient.get().uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                }).retrieve().body(new ParameterizedTypeReference<List<ContratoVigilanciaDTO>>() {});
+        return contratos == null ? List.of() : contratos;
     }
 
     // Consulta los contratos asociados a un vigilante.
     public List<ContratoVigilanciaDTO> listarPorVigilante(String codigoVigilante) {
         return listarPorRuta("/contratos-vigilancia/vigilante/{codigo}", codigoVigilante, "vigilante");
-    }
-
-    // Consulta los contratos asociados a una sucursal.
-    public List<ContratoVigilanciaDTO> listarPorSucursal(String codigoSucursal) {
-        return listarPorRuta("/contratos-vigilancia/sucursal/{codigo}", codigoSucursal, "sucursal");
     }
 
     // Ejecuta consultas de contratos mediante una ruta y un código.

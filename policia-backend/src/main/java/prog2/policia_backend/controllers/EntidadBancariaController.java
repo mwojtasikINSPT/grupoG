@@ -25,8 +25,8 @@ public class EntidadBancariaController {
     private final SucursalService sucursalService;
 
     @GetMapping
-    public ResponseEntity<List<EntidadBancariaDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String nombre, @RequestParam(required = false) String domicilio) {
-        return ResponseEntity.ok(entidadBancariaService.buscarConFiltros(nombre, domicilio, activo));
+    public ResponseEntity<List<EntidadBancariaDTO>> listar(@RequestParam(required = false) Boolean activo) {
+        return ResponseEntity.ok(entidadBancariaService.listar(activo));
     }
 
     @GetMapping("/{codigo}")

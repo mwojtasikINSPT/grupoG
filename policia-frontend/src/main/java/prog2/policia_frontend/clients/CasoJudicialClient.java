@@ -23,41 +23,13 @@ public class CasoJudicialClient {
         this.sesionUsuario = sesionUsuario;
     }
 
-    // Consulta casos judiciales filtrando opcionalmente por estado.
-    public List<CasoJudicialDTO> listar(Boolean activo) {
+    // Consulta casos judiciales; los filtros visuales se aplican en la vista.
+    public List<CasoJudicialDTO> listar() {
         List<CasoJudicialDTO> casos = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/casos-judiciales");
-                    if (activo != null) {
-                        constructor.queryParam("activo", activo);
-                    }
-                    return constructor.build();
+                .uri("/casos-judiciales")
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
                 })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<CasoJudicialDTO>>() {
-                });
-
-        return casos != null ? casos : List.of();
-    }
-
-    // Consulta los casos asociados a un asaltante.
-    public List<CasoJudicialDTO> listarPorAsaltante(String codigo) {
-        return listarPorRuta("/casos-judiciales/asaltante/{codigo}", codigo, "asaltante");
-    }
-
-    // Consulta los casos asignados a un juez.
-    public List<CasoJudicialDTO> listarPorJuez(String codigo) {
-        return listarPorRuta("/casos-judiciales/juez/{codigo}", codigo, "juez");
-    }
-
-    // Ejecuta consultas de casos judiciales por código.
-    private List<CasoJudicialDTO> listarPorRuta(String ruta, String codigo, String tipo) {
-        validarCodigo(codigo, tipo);
-
-        List<CasoJudicialDTO> casos = restClient.get()
-                .uri(ruta, codigo.trim().toUpperCase())
-                .headers(sesionUsuario::aplicarAutenticacion)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<CasoJudicialDTO>>() {
                 });

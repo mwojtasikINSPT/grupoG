@@ -53,13 +53,11 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     private final PermisosInterfaz permisosInterfaz;
     private final Grid<CasoJudicialDTO> tabla = new Grid<>(CasoJudicialDTO.class, false);
     private final PaginadorGrid<CasoJudicialDTO> paginadorCasos = new PaginadorGrid<>(tabla, 10);
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<CasoJudicialDTO> datosBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
-    private final Select<String> filtroRelacion = new Select<>();
-    private final Select<JuezDTO> filtroJuez = new Select<>();
-    private final Select<AsaltanteDTO> filtroAsaltante = new Select<>();
     private final Button botonVolver = new Button("Volver");
-    private List<JuezDTO> juecesDisponibles = List.of();
-    private List<AsaltanteDTO> asaltantesDisponibles = List.of();
     private String rutaVolver;
 
     public CasosJudicialesView(CasoJudicialClient casoJudicialClient, AsaltoClient asaltoClient, AsaltanteClient asaltanteClient, JuezClient juezClient, PermisosInterfaz permisosInterfaz, PruebaDefensaClient pruebaDefensaClient) {
@@ -81,24 +79,10 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     }
 
     private void configurarFiltros() {
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todos", "En trámite", "Cerrados", "Reabiertos por apelación");
         filtroEstado.setValue("Todos");
-        filtroRelacion.setLabel("Buscar casos");
-        filtroRelacion.setItems("Todos", "Por juez", "Por asaltante");
-        filtroRelacion.setValue("Todos");
-        filtroJuez.setLabel("Juez");
-        filtroJuez.setItemLabelGenerator(juez -> juez.getCodigo() + " - " + juez.getNombre());
-        filtroJuez.setVisible(false);
-        filtroAsaltante.setLabel("Asaltante");
-        filtroAsaltante.setItemLabelGenerator(asaltante -> asaltante.getCodigo() + " - " + asaltante.getNombre());
-        filtroAsaltante.setVisible(false);
-        filtroRelacion.addValueChangeListener(evento -> {
-            filtroJuez.setVisible("Por juez".equals(evento.getValue()));
-            filtroAsaltante.setVisible("Por asaltante".equals(evento.getValue()));
-            filtroJuez.clear();
-            filtroAsaltante.clear();
-        });
     }
 
     private void configurarTabla() {
@@ -144,15 +128,9 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
         H2 titulo = new H2("Casos Judiciales");
         Button botonNuevo = new Button("Nuevo caso", evento -> abrirFormulario(null));
         botonNuevo.setVisible(permisosInterfaz.puedeModificarCasos());
-        Button botonBuscar = new Button("Buscar", evento -> cargarCasos());
-        Button botonLimpiar = new Button("Limpiar", evento -> {
-            filtroEstado.setValue("Todos");
-            filtroRelacion.setValue("Todos");
-            filtroJuez.clear();
-            filtroAsaltante.clear();
-            cargarCasos();
-        });
-        HorizontalLayout filtros = new HorizontalLayout(filtroRelacion, filtroJuez, filtroAsaltante, filtroEstado, botonBuscar, botonLimpiar);
+
+
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(HorizontalLayout.Alignment.END);
         setSizeFull();
         add(titulo, botonVolver, botonNuevo, filtros, tabla, paginadorCasos.getControles());
@@ -165,7 +143,7 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
         List<JuezDTO> jueces;
         try {
             asaltos = asaltoClient.listar();
-            jueces = juezClient.listar(true, null);
+            jueces = juezClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
             return;
@@ -255,7 +233,7 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
         if (permisosInterfaz.puedeConsultarAsaltantes()) {
             List<AsaltanteDTO> asaltantes = new java.util.ArrayList<>();
             try {
-                asaltantes.addAll(asaltanteClient.listar(null, null));
+                asaltantes.addAll(asaltanteClient.listar(null));
             } catch (RestClientResponseException | ResourceAccessException excepcion) {
                 NotificacionUtils.mostrarInformacion("No se pudieron cargar los nombres de los asaltantes.");
             }
@@ -358,15 +336,6 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
         return null;
     }
 
-    private AsaltanteDTO buscarAsaltante(List<AsaltanteDTO> asaltantes, String codigo) {
-        for (AsaltanteDTO asaltante : asaltantes) {
-            if (codigo.equalsIgnoreCase(asaltante.getCodigo())) {
-                return asaltante;
-            }
-        }
-        return null;
-    }
-
     private JuezDTO buscarJuez(List<JuezDTO> jueces, String codigo) {
         for (JuezDTO juez : jueces) {
             if (juez.getCodigo() != null && juez.getCodigo().equalsIgnoreCase(codigo)) {
@@ -440,84 +409,21 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     }
 
     private void cargarCasos() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            Boolean estado = obtenerEstadoSeleccionado();
-            String estadoExacto = obtenerEstadoExactoSeleccionado();
-            String tipo = filtroRelacion.getValue();
-            List<CasoJudicialDTO> casos;
-            if ("Por juez".equals(tipo)) {
-                if (filtroJuez.getValue() == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione un juez.");
-                    return;
-                }
-                casos = casoJudicialClient.listarPorJuez(filtroJuez.getValue().getCodigo());
-            } else if ("Por asaltante".equals(tipo)) {
-                if (filtroAsaltante.getValue() == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione un asaltante.");
-                    return;
-                }
-                casos = casoJudicialClient.listarPorAsaltante(filtroAsaltante.getValue().getCodigo());
-            } else {
-                casos = casoJudicialClient.listar(estado);
-            }
-            if (estadoExacto != null) {
-                List<CasoJudicialDTO> filtrados = new java.util.ArrayList<>();
-                for (CasoJudicialDTO caso : casos) {
-                    if (estadoExacto.equals(obtenerEstado(caso))) {
-                        filtrados.add(caso);
-                    }
-                }
-                casos = filtrados;
-            }
-            paginadorCasos.setItems(casos);
-            if (!"Todos".equals(tipo) && casos.isEmpty()) {
-                NotificacionUtils.mostrarInformacion("No se encontraron casos judiciales.");
-            }
+            datosBusqueda = casoJudicialClient.listar();
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
+        } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
+            NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
         }
-    }
-
-    private void cargarOpcionesFiltros() {
-        List<String> opciones = new java.util.ArrayList<>();
-        opciones.add("Todos");
-        if (permisosInterfaz.puedeConsultarJueces()) {
-            try {
-                juecesDisponibles = juezClient.listar(null, null);
-                filtroJuez.setItems(juecesDisponibles);
-                opciones.add("Por juez");
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar los jueces.");
-            }
-        }
-        if (permisosInterfaz.puedeConsultarAsaltantes()) {
-            try {
-                asaltantesDisponibles = asaltanteClient.listar(null, null);
-                filtroAsaltante.setItems(asaltantesDisponibles);
-                opciones.add("Por asaltante");
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar los asaltantes.");
-            }
-        }
-        filtroRelacion.setItems(opciones);
-        filtroRelacion.setValue("Todos");
-    }
-
-    private Boolean obtenerEstadoSeleccionado() {
-        return switch (filtroEstado.getValue()) {
-            case "En trámite", "Reabiertos por apelación" ->
-                true;
-            case "Cerrados" ->
-                false;
-            default ->
-                null;
-        };
     }
 
     private String obtenerEstadoExactoSeleccionado() {
@@ -561,29 +467,22 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
 
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
-        cargarOpcionesFiltros();
         aplicarFiltroRecibido(evento);
         cargarCasos();
     }
 
     private void aplicarFiltroRecibido(BeforeEnterEvent evento) {
         Map<String, List<String>> parametros = evento.getLocation().getQueryParameters().getParameters();
-        String codigoAsaltante = primerParametro(parametros, "asaltante");
-        String codigoJuez = primerParametro(parametros, "juez");
-        if (codigoAsaltante != null) {
-            AsaltanteDTO asaltante = buscarAsaltante(asaltantesDisponibles, codigoAsaltante);
-            if (asaltante != null) {
-                filtroRelacion.setValue("Por asaltante");
-                filtroAsaltante.setValue(asaltante);
-                configurarRegreso("asaltantes", "Volver a asaltantes");
-            }
-        } else if (codigoJuez != null) {
-            JuezDTO juez = buscarJuez(juecesDisponibles, codigoJuez);
-            if (juez != null) {
-                filtroRelacion.setValue("Por juez");
-                filtroJuez.setValue(juez);
-                configurarRegreso("jueces", "Volver a jueces");
-            }
+        String asaltante = primerParametro(parametros, "asaltante");
+        String juez = primerParametro(parametros, "juez");
+        if (asaltante != null && permisosInterfaz.puedeConsultarAsaltantes()) {
+            criterioBusqueda.setValue("Asaltante");
+            valorBusqueda.setValue(asaltante);
+            configurarRegreso("asaltantes", "Volver a asaltantes");
+        } else if (juez != null && permisosInterfaz.puedeConsultarJueces()) {
+            criterioBusqueda.setValue("Juez");
+            valorBusqueda.setValue(juez);
+            configurarRegreso("jueces", "Volver a jueces");
         }
     }
 
@@ -596,5 +495,70 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     private String primerParametro(Map<String, List<String>> parametros, String nombre) {
         List<String> valores = parametros.get(nombre);
         return valores == null || valores.isEmpty() ? null : valores.get(0);
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Asalto", "Juez", "Asaltante", "Sentenciado", "Motivo de reapertura");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<CasoJudicialDTO> filtrados = new java.util.ArrayList<>();
+        for (CasoJudicialDTO dato : datosBusqueda) {
+            if ((obtenerEstadoExactoSeleccionado() == null || obtenerEstadoExactoSeleccionado().equals(obtenerEstado(dato))) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        paginadorCasos.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(CasoJudicialDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Asalto".equals(criterio)) { return normalizarBusqueda(dato.getAsaltoCodigo()).contains(texto); }
+        if ("Juez".equals(criterio)) { return normalizarBusqueda(dato.getJuezCodigo()).contains(texto); }
+        if ("Asaltante".equals(criterio)) { return normalizarBusqueda(dato.getAsaltanteCodigos()).contains(texto); }
+        if ("Sentenciado".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getSentenciado()) ? "Sí" : "No").contains(texto); }
+        if ("Motivo de reapertura".equals(criterio)) { return normalizarBusqueda(dato.getMotivoReapertura()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }

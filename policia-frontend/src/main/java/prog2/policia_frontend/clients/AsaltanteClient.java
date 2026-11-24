@@ -57,44 +57,14 @@ public class AsaltanteClient {
                 .headers(autenticacion).retrieve().body(ResultadoAsignacionAbogadoDTO.class);
     }
 
-    public List<AsaltanteDTO> listar(
-            Boolean activo,
-            String nombre) {
-
-        List<AsaltanteDTO> asaltantes
-                = restClient.get()
-                        .uri(constructor -> {
-
-                            constructor.path("/asaltantes");
-
-                            if (activo != null) {
-                                constructor.queryParam("activo", activo);
-                            }
-
-                            if (nombre != null
-                                    && !nombre.isBlank()) {
-
-                                constructor.queryParam(
-                                        "nombre",
-                                        nombre.trim()
-                                );
-                            }
-
-                            return constructor.build();
-                        })
-                        .headers(
-                                sesionUsuario::aplicarAutenticacion
-                        )
-                        .retrieve()
-                        .body(
-                                new ParameterizedTypeReference
-                                        <List<AsaltanteDTO>>() {
-                                }
-                        );
-
-        return asaltantes != null
-                ? asaltantes
-                : List.of();
+    public List<AsaltanteDTO> listar(Boolean activo) {
+        String ruta = "/asaltantes";
+        if (activo != null) { ruta += "?activo=" + activo; }
+        List<AsaltanteDTO> asaltantes = restClient.get().uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                }).retrieve().body(new ParameterizedTypeReference<List<AsaltanteDTO>>() {});
+        return asaltantes == null ? List.of() : asaltantes;
     }
 
     public AsaltanteDTO crear(

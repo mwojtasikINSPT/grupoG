@@ -12,9 +12,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigilancia, Long> {
-
-    List<ContratoVigilancia> findByActivo(Boolean activo);
-
     boolean existsByVigilante_IdAndFechaAndActivoTrue(
             Long vigilanteId,
             LocalDate fecha
@@ -49,14 +46,4 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
     @Transactional
     @Query("UPDATE ContratoVigilancia c SET c.activo = false WHERE c.fecha < :hoy AND c.activo = true")
     int desactivarContratosVencidos(@Param("hoy") LocalDate hoy);
-
-    @Query("""
-    SELECT c FROM ContratoVigilancia c
-    WHERE LOWER(c.vigilante.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))
-    AND (:activo IS NULL OR c.activo = :activo)
-    """)
-    List<ContratoVigilancia> buscarPorNombreVigilante(
-            @Param("nombre") String nombre,
-            @Param("activo") Boolean activo
-    );
 }

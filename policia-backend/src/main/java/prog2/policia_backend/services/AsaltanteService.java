@@ -57,37 +57,6 @@ public class AsaltanteService {
         return convertirADTO(obtenerAsaltante(codigo));
     }
 
-    public List<AsaltanteDTO> buscarPorNombre(String nombre, Boolean activo) {
-
-        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-
-        List<Asaltante> asaltantes;
-
-        if (activo == null) {
-            asaltantes = asaltanteRepository.findByNombreContainingIgnoreCase(nombreNormalizado);
-        } else {
-            asaltantes = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo(nombreNormalizado, activo);
-        }
-
-        List<AsaltanteDTO> resultado = new java.util.ArrayList<>();
-
-        for (Asaltante asaltante : asaltantes) {
-
-            if (activo != null && asaltante.isActivo() != activo) {
-                continue;
-            }
-
-            String nombreAsaltante = NormalizadorTexto.normalizarParaBuscar(
-                    asaltante.getNombre());
-
-            if (nombreAsaltante.contains(nombreNormalizado)) {
-                resultado.add(convertirADTO(asaltante));
-            }
-        }
-
-        return resultado;
-    }
-
     @Transactional
     public AsaltanteDTO guardar(AsaltanteDTO dto) {
         Asaltante asaltante = convertirAEntidad(dto);

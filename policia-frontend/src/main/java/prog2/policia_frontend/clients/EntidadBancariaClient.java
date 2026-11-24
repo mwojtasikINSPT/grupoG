@@ -25,29 +25,14 @@ public class EntidadBancariaClient {
     }
 
     // Consulta entidades bancarias utilizando filtros opcionales.
-    public List<EntidadBancariaDTO> listar(Boolean activo, String nombre, String domicilio) {
-        List<EntidadBancariaDTO> entidades = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/entidades-bancarias");
-
-                    if (activo != null) {
-                        constructor.queryParam("activo", activo);
-                    }
-
-                    if (nombre != null && !nombre.isBlank()) {
-                        constructor.queryParam("nombre", nombre.trim());
-                    } else if (domicilio != null && !domicilio.isBlank()) {
-                        constructor.queryParam("domicilio", domicilio.trim());
-                    }
-
-                    return constructor.build();
-                })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<EntidadBancariaDTO>>() {
-                });
-
-        return entidades != null ? entidades : List.of();
+    public List<EntidadBancariaDTO> listar(Boolean activo) {
+        String ruta = "/entidades-bancarias";
+        if (activo != null) { ruta += "?activo=" + activo; }
+        List<EntidadBancariaDTO> entidades = restClient.get().uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                }).retrieve().body(new ParameterizedTypeReference<List<EntidadBancariaDTO>>() {});
+        return entidades == null ? List.of() : entidades;
     }
 
     // Crea una entidad bancaria.

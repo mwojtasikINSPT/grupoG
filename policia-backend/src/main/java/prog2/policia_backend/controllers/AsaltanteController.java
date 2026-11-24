@@ -27,10 +27,7 @@ public class AsaltanteController {
     private final AsaltoService asaltoService;
 
     @GetMapping
-    public ResponseEntity<List<AsaltanteDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String nombre) {
-        if (nombre != null && !nombre.isBlank()) {
-            return ResponseEntity.ok(asaltanteService.buscarPorNombre(nombre, activo));
-        }
+    public ResponseEntity<List<AsaltanteDTO>> listar(@RequestParam(required = false) Boolean activo) {
         return ResponseEntity.ok(asaltanteService.listar(activo));
     }
 

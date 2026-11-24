@@ -22,10 +22,5 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
     boolean existsByBanda_IdAndActivoTrue(Long bandaId);
 
     Optional<Asaltante> findByCodigo(String codigo);
-
-    List<Asaltante> findByNombreContainingIgnoreCase(String nombre);
-
-    List<Asaltante> findByNombreContainingIgnoreCaseAndActivo(String nombre, boolean activo);
-
     List<Asaltante> findByBanda_IdAndActivoTrue(Long bandaId);
 }

@@ -29,23 +29,15 @@ public class UsuarioClient {
         this.sesionUsuario = sesionUsuario;
     }
 
-    // Consulta usuarios por estado y coincidencias de nombre.
-    // activo: null = todos, true = activos, false = inactivos.
-    // nombre: null o vacío = sin filtro; con contenido = busca coincidencias.
-    public List<UsuarioDTO> listar(Boolean activo, String nombre) {
-        List<UsuarioDTO> usuarios = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/usuarios");
-                    if (activo != null) constructor.queryParam("activo", activo);
-                    if (nombre != null && !nombre.isBlank()) constructor.queryParam("nombre", nombre.trim());
-                    return constructor.build();
-                })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<UsuarioDTO>>() {});
-
-        // Devuelve una lista vacía si el backend no envía contenido.
-        return usuarios != null ? usuarios : List.of();
+    // Consulta los usuarios autorizados; el estado se conserva para formularios.
+    public List<UsuarioDTO> listar(Boolean activo) {
+        String ruta = "/usuarios";
+        if (activo != null) { ruta += "?activo=" + activo; }
+        List<UsuarioDTO> usuarios = restClient.get().uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                }).retrieve().body(new ParameterizedTypeReference<List<UsuarioDTO>>() {});
+        return usuarios == null ? List.of() : usuarios;
     }
 
     // Realiza la baja lógica del usuario, conservándolo como inactivo.

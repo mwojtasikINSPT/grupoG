@@ -1,19 +1,21 @@
 package prog2.policia_frontend.components;
 
+import java.util.List;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.upload.Upload;
@@ -39,6 +41,10 @@ import prog2.policia_frontend.utils.NotificacionUtils;
 
 /** Consulta compartida; solo el defensor autorizado dispone del formulario de presentacion. */
 public class PruebasDefensaDialog extends Dialog {
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<PruebaDefensaDTO> datosBusqueda = List.of();
+
     private final PruebaDefensaClient client;
     private final String asaltante;
     private final String caso;
@@ -57,12 +63,13 @@ public class PruebasDefensaDialog extends Dialog {
         this.client = client; this.asaltante = asaltante; this.caso = caso;
         setHeaderTitle("Pruebas de " + asaltante + " · " + caso);
         setWidth("1050px"); setMaxWidth("95vw");
+        configurarBusqueda();
         configurarTabla();
         Button actualizar = new Button("Actualizar", new ComponentEventListener<ClickEvent<Button>>() {
             @Override
             public void onComponentEvent(ClickEvent<Button> evento) { cargarPruebas(); }
         });
-        VerticalLayout cuerpo = new VerticalLayout(actualizar, tabla);
+        VerticalLayout cuerpo = new VerticalLayout(actualizar, crearBarraBusqueda(), tabla);
         cuerpo.setPadding(false);
         if (permisos.puedePresentarPruebas() && casoAbierto) {
             cuerpo.add(crearFormulario());
@@ -248,7 +255,7 @@ public class PruebasDefensaDialog extends Dialog {
     }
 
     private void cargarPruebas() {
-        try { tabla.setItems(client.consultar(asaltante, caso)); }
+        try { datosBusqueda = client.consultar(asaltante, caso); aplicarFiltros(); }
         catch (RestClientResponseException | ResourceAccessException ex) { tabla.setItems(java.util.List.of()); mostrarError(ex); }
     }
 
@@ -281,4 +288,70 @@ public class PruebasDefensaDialog extends Dialog {
         return ex.getMessage();
     }
     private void mostrarError(RuntimeException ex) { NotificacionUtils.mostrarAdvertencia(mensajeError(ex)); }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Identificador", "Descripción", "Fecha de presentación", "Autor original", "Archivo");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<PruebaDefensaDTO> filtrados = new java.util.ArrayList<>();
+        for (PruebaDefensaDTO dato : datosBusqueda) {
+
+            if (coincideCriterio(dato, criterio, texto)) { filtrados.add(dato); }
+        }
+        tabla.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(PruebaDefensaDTO dato, String criterio, String texto) {
+        if ("Identificador".equals(criterio)) { return normalizarBusqueda(dato.getId()).contains(texto); }
+        if ("Descripción".equals(criterio)) { return normalizarBusqueda(dato.getDescripcion()).contains(texto); }
+        if ("Fecha de presentación".equals(criterio)) { return normalizarBusqueda(dato.getFechaPresentacion()).contains(texto); }
+        if ("Autor original".equals(criterio)) { return normalizarBusqueda(dato.getAbogadoCodigo()).contains(texto); }
+        if ("Archivo".equals(criterio)) { return normalizarBusqueda(dato.getNombreArchivo()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } else if (valor instanceof java.time.LocalDateTime) {
+            texto += " " + ((java.time.LocalDateTime) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
+    }
 }

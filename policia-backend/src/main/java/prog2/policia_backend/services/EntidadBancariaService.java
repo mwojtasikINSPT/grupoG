@@ -53,33 +53,6 @@ public class EntidadBancariaService {
         return convertirADTO(obtenerEntidad(codigo));
     }
 
-    public List<EntidadBancariaDTO> buscarPorNombre(String nombre, Boolean activo) {
-        return buscarConFiltros(nombre, null, activo);
-    }
-
-    public List<EntidadBancariaDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
-        return buscarConFiltros(null, domicilio, activo);
-    }
-
-    public List<EntidadBancariaDTO> buscarConFiltros(String nombre, String domicilio, Boolean activo) {
-        String nombreNormalizado = nombre != null && !nombre.isBlank()
-                ? NormalizadorTexto.normalizarParaBuscar(nombre) : null;
-
-        String domicilioNormalizado = domicilio != null && !domicilio.isBlank()
-                ? NormalizadorTexto.normalizarParaBuscar(domicilio) : null;
-
-        List<EntidadBancaria> entidades = entidadBancariaRepository.buscarConFiltros(
-                nombreNormalizado, domicilioNormalizado, activo);
-
-        List<EntidadBancariaDTO> resultado = new ArrayList<>();
-
-        for (EntidadBancaria entidad : entidades) {
-            resultado.add(convertirADTO(entidad));
-        }
-
-        return resultado;
-    }
-
     @Transactional
     public EntidadBancariaDTO guardar(EntidadBancariaDTO dto) {
         EntidadBancaria entidad = convertirAEntidad(dto);

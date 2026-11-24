@@ -30,7 +30,6 @@ import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.utils.GeneradorCodigo;
-import prog2.policia_backend.utils.NormalizadorTexto;
 
 @Service
 @RequiredArgsConstructor
@@ -41,43 +40,17 @@ public class ContratoVigilanciaService {
     private final SucursalRepository sucursalRepository;
     private final AutorizadorPermisos autorizadorPermisos;
 
-    public List<ContratoVigilanciaDTO> listar(Boolean activo) {
-
-        List<ContratoVigilancia> contratos;
-
-        if (activo == null) {
-            contratos = contratoVigilanciaRepository.findAll();
-        } else {
-            contratos = contratoVigilanciaRepository.findByActivo(activo);
-        }
-
+    public List<ContratoVigilanciaDTO> listar() {
+        List<ContratoVigilancia> contratos = contratoVigilanciaRepository.findAll();
         List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
-
-        for (ContratoVigilancia contrato : contratos) {
-            resultado.add(convertirADTO(contrato));
+        for (ContratoVigilancia entidad : contratos) {
+            resultado.add(convertirADTO(entidad));
         }
-
         return resultado;
     }
 
     public ContratoVigilanciaDTO buscarPorCodigo(String codigo) {
         return convertirADTO(obtenerContrato(codigo));
-    }
-
-    public List<ContratoVigilanciaDTO> buscarPorNombreVigilante(String nombre, Boolean activo) {
-
-        String nombreNormalizado = NormalizadorTexto.normalizarParaBuscar(nombre);
-
-        List<ContratoVigilancia> contratos
-                = contratoVigilanciaRepository.buscarPorNombreVigilante(nombreNormalizado, activo);
-
-        List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
-
-        for (ContratoVigilancia contrato : contratos) {
-            resultado.add(convertirADTO(contrato));
-        }
-
-        return resultado;
     }
 
     @Transactional

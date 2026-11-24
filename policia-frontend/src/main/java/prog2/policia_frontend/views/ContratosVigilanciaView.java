@@ -48,13 +48,11 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
     private final Grid<ContratoVigilanciaDTO> tabla = new Grid<>(ContratoVigilanciaDTO.class, false);
     private final PaginadorGrid<ContratoVigilanciaDTO> paginadorContratos = new PaginadorGrid<>(tabla, 10);
-    private final TextField filtroVigilante = new TextField("Buscar por vigilante");
-    private final Select<String> filtroTipoBusqueda = new Select<>();
-    private final Select<UsuarioDTO> filtroVigilanteExacto = new Select<>();
-    private final Select<SucursalDTO> filtroSucursalExacta = new Select<>();
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<ContratoVigilanciaDTO> datosBusqueda = List.of();
+    private List<UsuarioDTO> vigilantesBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
-    private final Button botonBuscar = new Button("Buscar");
-    private final Button botonLimpiar = new Button("Limpiar");
     private final Button botonNuevoContrato = new Button("Nuevo contrato");
 
     public ContratosVigilanciaView(ContratoVigilanciaClient contratoClient, UsuarioClient usuarioClient, SucursalClient sucursalClient, PermisosInterfaz permisosInterfaz) {
@@ -69,49 +67,10 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
     // Configura las búsquedas por vigilante, sucursal y estado.
     private void configurarFiltros() {
-        filtroTipoBusqueda.setLabel("Tipo de búsqueda");
-        filtroTipoBusqueda.setItems("General", "Por vigilante", "Por sucursal");
-        filtroTipoBusqueda.setValue("General");
-
-        filtroVigilante.setPlaceholder("Ingrese una coincidencia del nombre");
-        filtroVigilante.setClearButtonVisible(true);
-
-        filtroVigilanteExacto.setLabel("Vigilante");
-        filtroVigilanteExacto.setItemLabelGenerator(vigilante -> vigilante.getCodigo() + " - " + vigilante.getNombre());
-        filtroVigilanteExacto.setVisible(false);
-
-        filtroSucursalExacta.setLabel("Sucursal");
-        filtroSucursalExacta.setItemLabelGenerator(sucursal -> sucursal.getCodigo() + " - " + sucursal.getDomicilio());
-        filtroSucursalExacta.setVisible(false);
-
-        filtroTipoBusqueda.addValueChangeListener(evento -> {
-            boolean general = "General".equals(evento.getValue());
-            boolean porVigilante = "Por vigilante".equals(evento.getValue());
-            boolean porSucursal = "Por sucursal".equals(evento.getValue());
-
-            filtroVigilante.setVisible(general);
-            filtroVigilanteExacto.setVisible(porVigilante);
-            filtroSucursalExacta.setVisible(porSucursal);
-
-            filtroVigilante.clear();
-            filtroVigilanteExacto.clear();
-            filtroSucursalExacta.clear();
-        });
-
+        configurarBusqueda();
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todos", "Activos", "Finalizados");
         filtroEstado.setValue("Todos");
-
-        botonBuscar.addClickListener(evento -> cargarContratos());
-
-        botonLimpiar.addClickListener(evento -> {
-            filtroVigilante.clear();
-            filtroTipoBusqueda.setValue("General");
-            filtroVigilanteExacto.clear();
-            filtroSucursalExacta.clear();
-            filtroEstado.setValue("Todos");
-            cargarContratos();
-        });
     }
 
     // Define las columnas sin exponer información sensible.
@@ -157,7 +116,7 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     // Organiza los componentes de la pantalla.
     private void configurarVista() {
         H2 titulo = new H2("Contratos de vigilancia");
-        HorizontalLayout filtros = new HorizontalLayout(filtroTipoBusqueda, filtroVigilante, filtroVigilanteExacto, filtroSucursalExacta, filtroEstado, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(Alignment.END);
 
         botonNuevoContrato.addClickListener(evento -> abrirFormulario(null));
@@ -200,7 +159,7 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         List<SucursalDTO> sucursalesActivas;
 
         try {
-            vigilantesActivos = listarVigilantes(true, null);
+            vigilantesActivos = listarVigilantes(true);
             sucursalesActivas = sucursalClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
@@ -360,112 +319,35 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
     // Consulta los contratos aplicando los filtros seleccionados.
     private void cargarContratos() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            String tipoBusqueda = filtroTipoBusqueda.getValue();
-            Boolean estado = obtenerEstado();
-            List<ContratoVigilanciaDTO> contratos;
-
-            if ("Por vigilante".equals(tipoBusqueda)) {
-                UsuarioDTO vigilante = filtroVigilanteExacto.getValue();
-
-                if (vigilante == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione un vigilante.");
-                    return;
-                }
-
-                contratos = contratoClient.listarPorVigilante(vigilante.getCodigo());
-
-            } else if ("Por sucursal".equals(tipoBusqueda)) {
-                SucursalDTO sucursal = filtroSucursalExacta.getValue();
-
-                if (sucursal == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione una sucursal.");
-                    return;
-                }
-
-                contratos = contratoClient.listarPorSucursal(sucursal.getCodigo());
-
-            } else {
-                contratos = contratoClient.listar(estado, filtroVigilante.getValue());
-            }
-
-            // Las búsquedas exactas incluyen el historial; el estado se filtra localmente.
-            if (!"General".equals(tipoBusqueda) && estado != null) {
-                List<ContratoVigilanciaDTO> contratosFiltrados = new ArrayList<>();
-
-                for (ContratoVigilanciaDTO contrato : contratos) {
-                    if (estado.equals(contrato.getActivo())) {
-                        contratosFiltrados.add(contrato);
-                    }
-                }
-
-                contratos = contratosFiltrados;
-            }
-
-            paginadorContratos.setItems(contratos);
-
-            if ("General".equals(tipoBusqueda) && contratos.isEmpty()) {
-                String nombreBuscado = filtroVigilante.getValue();
-
-                if (nombreBuscado != null && !nombreBuscado.isBlank()) {
-                    NotificacionUtils.mostrarInformacion("No se encontraron contratos para un vigilante cuyo nombre coincida con: " + nombreBuscado.trim() + ".");
-                } else if (estado != null) {
-                    NotificacionUtils.mostrarInformacion("No existen contratos con el estado seleccionado.");
-                } else {
-                    NotificacionUtils.mostrarInformacion("No existen contratos de vigilancia cargados.");
-                }
-
-            } else if (!"General".equals(tipoBusqueda) && contratos.isEmpty()) {
-                String recurso = "Por vigilante".equals(tipoBusqueda) ? "El vigilante seleccionado" : "La sucursal seleccionada";
-                String aclaracionEstado = estado != null ? " con el estado seleccionado" : "";
-                NotificacionUtils.mostrarInformacion(recurso + " no tiene contratos de vigilancia" + aclaracionEstado + ".");
-            }
-
+            datosBusqueda = contratoClient.listar();
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
-        } catch (IllegalArgumentException excepcion) {
-            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
     }
 
     // Carga vigilantes y sucursales para seleccionar sin escribir códigos.
     private void cargarOpcionesFiltros() {
-        List<String> opciones = new ArrayList<>();
-        opciones.add("General");
-
-        if (permisosInterfaz.puedeConsultarUsuarios()) {
-            try {
-                filtroVigilanteExacto.setItems(listarVigilantes(null, null));
-                opciones.add("Por vigilante");
-            } catch (RestClientResponseException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar los vigilantes.");
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
-            }
-        }
-
-        if (permisosInterfaz.puedeConsultarSucursales()) {
-            try {
-                filtroSucursalExacta.setItems(sucursalClient.listar(null));
-                opciones.add("Por sucursal");
-            } catch (RestClientResponseException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar las sucursales.");
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
-            }
-        }
-
-        filtroTipoBusqueda.setItems(opciones);
-        filtroTipoBusqueda.setValue("General");
+        vigilantesBusqueda = List.of();
+        if (!permisosInterfaz.puedeConsultarUsuarios()) { return; }
+        try { vigilantesBusqueda = listarVigilantes(null); }
+        catch (RestClientResponseException excepcion) { mostrarErrorOperacion(excepcion); }
+        catch (ResourceAccessException excepcion) { NotificacionUtils.mostrarInformacion("No se pudieron cargar los vigilantes."); }
     }
 
     // Obtiene únicamente los usuarios con rol VIGILANTE.
-    private List<UsuarioDTO> listarVigilantes(Boolean activo, String nombre) {
-        List<UsuarioDTO> usuarios = usuarioClient.listar(activo, nombre);
+    private List<UsuarioDTO> listarVigilantes(Boolean activo) {
+        List<UsuarioDTO> usuarios = usuarioClient.listar(activo);
         List<UsuarioDTO> vigilantes = new ArrayList<>();
 
         for (UsuarioDTO usuario : usuarios) {
@@ -486,5 +368,80 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     public void beforeEnter(BeforeEnterEvent evento) {
         cargarOpcionesFiltros();
         cargarContratos();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Fecha", "Vigilante", "Sucursal", "Con arma", "Motivo de baja");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+                filtroEstado.setValue("Todos");
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, filtroEstado, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<ContratoVigilanciaDTO> filtrados = new java.util.ArrayList<>();
+        for (ContratoVigilanciaDTO dato : datosBusqueda) {
+            if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        paginadorContratos.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(ContratoVigilanciaDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
+        if ("Vigilante".equals(criterio)) { return normalizarBusqueda(textoVigilante(dato)).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
+        if ("Con arma".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
+    }
+
+    private String textoVigilante(ContratoVigilanciaDTO contrato) {
+        String codigo = contrato.getVigilanteCodigo();
+        for (UsuarioDTO usuario : vigilantesBusqueda) {
+            if (usuario.getCodigo() != null && usuario.getCodigo().equals(codigo)) {
+                return codigo + " " + usuario.getNombre();
+            }
+        }
+        return codigo;
     }
 }

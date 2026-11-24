@@ -44,12 +44,13 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
     private final AsaltanteClient asaltanteClient;
     private final SucursalClient sucursalClient;
     private final PermisosInterfaz permisosInterfaz;
+    private final Select<String> criterioBusqueda = new Select<>();
+    private final com.vaadin.flow.component.textfield.TextField valorBusqueda = new com.vaadin.flow.component.textfield.TextField("Buscar");
+    private List<AsaltoDTO> datosBusqueda = List.of();
+
     private final Grid<AsaltoDTO> tabla = new Grid<>(AsaltoDTO.class, false);
     private final PaginadorGrid<AsaltoDTO> paginadorAsaltos = new PaginadorGrid<>(tabla, 10);
     private final Button botonNuevo = new Button("Nuevo asalto");
-    private final Select<String> filtroTipoBusqueda = new Select<>();
-    private final Select<AsaltanteDTO> filtroAsaltante = new Select<>();
-    private final Select<SucursalDTO> filtroSucursal = new Select<>();
 
     public AsaltosView(AsaltoClient asaltoClient, AsaltanteClient asaltanteClient, SucursalClient sucursalClient, PermisosInterfaz permisosInterfaz) {
         this.asaltoClient = asaltoClient;
@@ -62,23 +63,8 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void configurarFiltros() {
-        filtroTipoBusqueda.setLabel("Buscar asaltos");
-        filtroTipoBusqueda.setItems("Todos");
-        filtroTipoBusqueda.setValue("Todos");
-        filtroAsaltante.setLabel("Asaltante");
-        filtroAsaltante.setItemLabelGenerator(asaltante -> asaltante.getCodigo() + " - " + asaltante.getNombre());
-        filtroAsaltante.setVisible(false);
-        filtroSucursal.setLabel("Sucursal");
-        filtroSucursal.setItemLabelGenerator(sucursal -> sucursal.getCodigo() + " - " + sucursal.getDomicilio());
-        filtroSucursal.setVisible(false);
-        filtroTipoBusqueda.addValueChangeListener(evento -> {
-            boolean porAsaltante = "Por asaltante".equals(evento.getValue());
-            boolean porSucursal = "Por sucursal".equals(evento.getValue());
-            filtroAsaltante.setVisible(porAsaltante);
-            filtroSucursal.setVisible(porSucursal);
-            filtroAsaltante.clear();
-            filtroSucursal.clear();
-        });
+        configurarBusqueda();
+
     }
 
     private void configurarTabla() {
@@ -114,7 +100,7 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
             if (codigos == null || codigos.isEmpty()) {
                 contenido.add(new Span("Sin participantes."));
             } else {
-                List<AsaltanteDTO> asaltantes = asaltanteClient.listar(null, null);
+                List<AsaltanteDTO> asaltantes = asaltanteClient.listar(null);
                 for (String codigo : codigos) {
                     String nombre = null;
                     for (AsaltanteDTO asaltante : asaltantes) {
@@ -140,20 +126,12 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
     private void configurarVista() {
         H2 titulo = new H2("Asaltos");
         Button botonActualizar = new Button("Actualizar", evento -> cargarAsaltos());
-        Button botonBuscar = new Button("Buscar", evento -> cargarAsaltos());
-        Button botonLimpiar = new Button(
-                "Limpiar",
-                evento -> {
-                    filtroTipoBusqueda.setValue("Todos");
-                    filtroAsaltante.clear();
-                    filtroSucursal.clear();
-                    cargarAsaltos();
-                }
-        );
+
+
         botonNuevo.addClickListener(evento -> abrirFormulario(null));
         botonNuevo.setVisible(permisosInterfaz.puedeModificarAsaltos());
         setSizeFull();
-        HorizontalLayout filtros = new HorizontalLayout(filtroTipoBusqueda, filtroAsaltante, filtroSucursal, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = crearBarraBusqueda();
         filtros.setAlignItems(HorizontalLayout.Alignment.END);
         add(titulo, new HorizontalLayout(botonNuevo, botonActualizar), filtros, tabla, paginadorAsaltos.getControles());
         expand(tabla);
@@ -164,7 +142,7 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
         List<AsaltanteDTO> asaltantesActivos;
         List<SucursalDTO> sucursalesActivas;
         try {
-            asaltantesActivos = asaltanteClient.listar(true, null);
+            asaltantesActivos = asaltanteClient.listar(true);
             sucursalesActivas = sucursalClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
@@ -275,69 +253,21 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void cargarAsaltos() {
+        datosBusqueda = List.of();
+        aplicarFiltros();
         try {
-            String tipoBusqueda = filtroTipoBusqueda.getValue();
-            List<AsaltoDTO> asaltos;
-            if ("Por asaltante".equals(tipoBusqueda)) {
-                AsaltanteDTO asaltante = filtroAsaltante.getValue();
-                if (asaltante == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione un asaltante.");
-                    return;
-                }
-                asaltos = asaltoClient.listarPorAsaltante(asaltante.getCodigo());
-            } else if ("Por sucursal".equals(tipoBusqueda)) {
-                SucursalDTO sucursal = filtroSucursal.getValue();
-                if (sucursal == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione una sucursal.");
-                    return;
-                }
-                asaltos = asaltoClient.listarPorSucursal(sucursal.getCodigo());
-            } else {
-                asaltos = asaltoClient.listar();
-            }
-            paginadorAsaltos.setItems(asaltos);
-            if (!"Todos".equals(tipoBusqueda) && asaltos.isEmpty()) {
-                String recurso = "Por asaltante".equals(tipoBusqueda)
-                        ? "El asaltante seleccionado"
-                        : "La sucursal seleccionada";
-                NotificacionUtils.mostrarInformacion(recurso + " no tiene asaltos registrados.");
-            }
+            datosBusqueda = asaltoClient.listar();
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            datosBusqueda = List.of();
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
+            datosBusqueda = List.of();
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
-        } catch (IllegalArgumentException excepcion) {
-            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
-    }
-
-    private void cargarOpcionesFiltros() {
-        List<String> opciones = new java.util.ArrayList<>();
-        opciones.add("Todos");
-        if (permisosInterfaz.puedeConsultarAsaltantes()) {
-            try {
-                filtroAsaltante.setItems(asaltanteClient.listar(null, null));
-                opciones.add("Por asaltante");
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar los asaltantes.");
-            }
-        }
-        if (permisosInterfaz.puedeConsultarSucursales()) {
-            try {
-                filtroSucursal.setItems(sucursalClient.listar(null));
-                opciones.add("Por sucursal");
-            } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
-            } catch (ResourceAccessException excepcion) {
-                NotificacionUtils.mostrarInformacion("No se pudieron cargar las sucursales.");
-            }
-        }
-        filtroTipoBusqueda.setItems(opciones);
-        filtroTipoBusqueda.setValue("Todos");
     }
 
     private void mostrarErrorOperacion(RestClientResponseException excepcion) {
@@ -346,7 +276,69 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
-        cargarOpcionesFiltros();
         cargarAsaltos();
+    }
+
+    private void configurarBusqueda() {
+        criterioBusqueda.setLabel("Criterio de búsqueda");
+        criterioBusqueda.setItems("Todas", "Código", "Fecha", "Sucursal", "Asaltante");
+        criterioBusqueda.setValue("Todas");
+        valorBusqueda.setPlaceholder("Ingrese una coincidencia");
+        valorBusqueda.setClearButtonVisible(true);
+        valorBusqueda.setVisible(false);
+        criterioBusqueda.addValueChangeListener(new com.vaadin.flow.component.HasValue.ValueChangeListener<com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<Select<String>, String> evento) {
+                valorBusqueda.clear();
+                valorBusqueda.setVisible(!"Todas".equals(evento.getValue()));
+                valorBusqueda.setLabel(evento.getValue());
+            }
+        });
+    }
+
+    private HorizontalLayout crearBarraBusqueda() {
+        Button buscar = new Button("Buscar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
+        Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                criterioBusqueda.setValue("Todas");
+                valorBusqueda.clear();
+
+                aplicarFiltros();
+            }
+        });
+        HorizontalLayout barra = new HorizontalLayout(criterioBusqueda, valorBusqueda, buscar, limpiar);
+        barra.setAlignItems(HorizontalLayout.Alignment.END);
+        return barra;
+    }
+
+    private void aplicarFiltros() {
+        String criterio = criterioBusqueda.getValue();
+        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        List<AsaltoDTO> filtrados = new java.util.ArrayList<>();
+        for (AsaltoDTO dato : datosBusqueda) {
+            if (true && coincideCriterio(dato, criterio, texto)) {
+                filtrados.add(dato);
+            }
+        }
+        paginadorAsaltos.setItems(filtrados);
+    }
+
+    private boolean coincideCriterio(AsaltoDTO dato, String criterio, String texto) {
+        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
+        if ("Asaltante".equals(criterio)) { return normalizarBusqueda(dato.getAsaltantesCodigos()).contains(texto); }
+        return true;
+    }
+
+    private String normalizarBusqueda(Object valor) {
+        if (valor == null) { return ""; }
+        String texto = valor.toString();
+        if (valor instanceof java.time.LocalDate) {
+            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 }
