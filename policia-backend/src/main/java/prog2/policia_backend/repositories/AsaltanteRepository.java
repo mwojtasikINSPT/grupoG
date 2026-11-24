@@ -9,6 +9,9 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
 
     List<Asaltante> findByActivo(boolean activo);
 
+    // Consulta restringida de lectura; no utiliza el bloqueo de la baja de usuarios.
+    List<Asaltante> findByAbogadoDefensor_Codigo(String codigo);
+
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     List<Asaltante> findByAbogadoDefensor_Id(Long abogadoId);
 

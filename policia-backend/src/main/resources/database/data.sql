@@ -427,10 +427,27 @@ WHERE r.nombre = 'ABOGADO_DEFENSOR';
 
 
 -- Abogados de ejemplo: solo se crean en la carga inicial de una base vacia.
--- Contrasena: 1234. Los asaltantes permanecen sin abogado.
+-- Contrasena: 1234. Las asignaciones de ejemplo se realizan al final.
 INSERT INTO usuario (activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password)
 SELECT true, NOW(), '1985-03-15', id, 'ABO00001', 'SISTEMA', 'Ana Defensora', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'
 FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+
 INSERT INTO usuario (activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password)
 SELECT true, NOW(), '1990-08-20', id, 'ABO00002', 'SISTEMA', 'Bruno Defensor', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'
 FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+
+-- Consulta restringida: estos permisos no habilitan los endpoints generales.
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'LECTURA_DATOS_PROPIOS', 'ASALTANTE' FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'LECTURA_DATOS_PROPIOS', 'CASO_JUDICIAL' FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'LECTURA_DATOS_PROPIOS', 'SENTENCIA_ASALTANTE' FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+
+-- Asignaciones sobre registros existentes; sin IDs fijos de usuarios.
+-- CJU00001 (cerrado): ASS00001 y ASS00003 tienen distintos defensores.
+-- CJU00010 (abierto): ASS00001 y ASS00021; este ultimo aun sin sentencia.
+UPDATE asaltante SET abogado_defensor_id = (SELECT id FROM usuario WHERE codigo = 'ABO00001')
+WHERE codigo IN ('ASS00001', 'ASS00004');
+UPDATE asaltante SET abogado_defensor_id = (SELECT id FROM usuario WHERE codigo = 'ABO00002')
+WHERE codigo IN ('ASS00003', 'ASS00021');

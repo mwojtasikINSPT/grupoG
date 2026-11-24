@@ -57,6 +57,10 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
         }
         String ruta = context.getRequest().getServletPath();
         String metodo = context.getRequest().getMethod();
+        if (ruta.equals("/api/defensa") || ruta.startsWith("/api/defensa/")) {
+            return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name())
+                    && puedeLeerPropios(usuario, Entidad.ASALTANTE));
+        }
         if (ruta.matches("/api/asaltantes/[^/]+/abogado-defensor/?")) {
             boolean metodoValido = metodo.equals(HttpMethod.PUT.name()) || metodo.equals(HttpMethod.DELETE.name());
             return new AuthorizationDecision(metodoValido && seguridadAdministrativa.esAdministrador(usuario));

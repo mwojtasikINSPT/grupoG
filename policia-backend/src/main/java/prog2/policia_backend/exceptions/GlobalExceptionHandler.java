@@ -57,6 +57,11 @@ public class GlobalExceptionHandler {
     }
 
     // Devuelve 403 cuando el usuario no tiene permiso.
+    @ExceptionHandler(AccesoDefensaDenegadoException.class)
+    public ResponseEntity<Map<String, String>> manejarAccesoDefensaDenegado(AccesoDefensaDenegadoException ex) {
+        return crearRespuesta(HttpStatus.FORBIDDEN, "ACCESO_DEFENSA_DENEGADO", ex.getMessage());
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> manejarAccesoDenegado(AccessDeniedException ex) {
         return crearRespuesta(HttpStatus.FORBIDDEN, "ACCESO_DENEGADO", "Acceso denegado - Revise sus credenciales");
@@ -66,6 +71,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         AdministradorNoPuedeDarseDeBajaException.class,
         AbogadoInactivoException.class,
+        DefendidoNoInvolucradoException.class,
         RolAbogadoInvalidoException.class,
         AsaltanteConCasoJudicialException.class,
         AsaltanteDuplicadoException.class,
