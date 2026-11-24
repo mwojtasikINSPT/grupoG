@@ -16,6 +16,9 @@ public interface CasoJudicialRepository extends JpaRepository<CasoJudicial, Long
 
     Optional<CasoJudicial> findByCodigo(String codigo);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    Optional<CasoJudicial> findConBloqueoByCodigo(String codigo);
+
     List<CasoJudicial> findBySentencias_Asaltante_Id(Long asaltanteId);
 
     List<CasoJudicial> findByJuez_Id(Long juezId);

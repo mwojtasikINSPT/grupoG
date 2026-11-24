@@ -21,6 +21,7 @@ import prog2.policia_backend.repositories.CasoJudicialRepository;
 import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.security.AutorizadorPermisos;
+import prog2.policia_backend.security.UsuarioDetails;
 
 /** Acceso vigente a defendidos y participaciones, reutilizable por futuros servicios. */
 @Service
@@ -49,12 +50,12 @@ public class AccesoDefensaService {
     }
 
     public Asaltante obtenerDefendidoAutorizado(String codigo) {
+        return obtenerDefendidoAutorizado(codigo, false);
+    }
+
+    private Asaltante obtenerDefendidoAutorizado(String codigo, boolean bloquear) {
         Usuario abogado = obtenerAbogadoAutenticado();
-        Optional<Asaltante> resultado = asaltanteRepository.findByCodigo(normalizar(codigo));
-        if (resultado.isEmpty()) {
-            throw new RecursoNoEncontradoException("Defendido", codigo);
-        }
-        Asaltante defendido = resultado.get();
+        Asaltante defendido = obtenerAsaltante(codigo, bloquear);
         if (defendido.getAbogadoDefensor() == null
                 || !abogado.getId().equals(defendido.getAbogadoDefensor().getId())) {
             throw new AccesoDefensaDenegadoException("El defendido no esta asignado actualmente al abogado autenticado");
@@ -64,15 +65,69 @@ public class AccesoDefensaService {
 
     public Asaltante obtenerDefendidoParaConsultaJudicial(String codigo) {
         Asaltante defendido = obtenerDefendidoAutorizado(codigo);
+        exigirPermisosJudiciales();
+        return defendido;
+    }
+
+    private void exigirPermisosJudiciales() {
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
         exigirPermisoPropio(autenticacion, Entidad.CASO_JUDICIAL);
         exigirPermisoPropio(autenticacion, Entidad.SENTENCIA_ASALTANTE);
-        return defendido;
     }
 
     public SentenciaAsaltante obtenerParticipacionAutorizada(String codigo, String casoCodigo) {
         Asaltante defendido = obtenerDefendidoParaConsultaJudicial(codigo);
-        Optional<CasoJudicial> resultado = casoJudicialRepository.findByCodigo(normalizar(casoCodigo));
+        return obtenerParticipacion(defendido, casoCodigo, false);
+    }
+
+    /** Serializa la presentacion con la desvinculacion y con el cierre del caso. */
+    @Transactional
+    public SentenciaAsaltante obtenerParticipacionParaPresentacion(String codigo, String casoCodigo) {
+        Asaltante defendido = obtenerDefendidoAutorizado(codigo, true);
+        exigirPermisosJudiciales();
+        return obtenerParticipacion(defendido, casoCodigo, true);
+    }
+
+    public SentenciaAsaltante obtenerParticipacionParaConsultaPruebas(String codigo, String casoCodigo) {
+        Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacion == null || !autenticacion.isAuthenticated()
+                || !(autenticacion.getPrincipal() instanceof UsuarioDetails)) {
+            throw new AccesoDefensaDenegadoException("Se requiere un usuario autenticado para consultar pruebas");
+        }
+        UsuarioDetails usuario = (UsuarioDetails) autenticacion.getPrincipal();
+        // La lectura general nunca permite a un abogado eludir la asignacion actual.
+        if ("ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getNombreRol())) {
+            exigirPermisoPropio(autenticacion, Entidad.PRUEBA_DEFENSA);
+            return obtenerParticipacionAutorizada(codigo, casoCodigo);
+        }
+        boolean lectorGeneral = "ADMINISTRADOR".equalsIgnoreCase(usuario.getNombreRol())
+                || "INVESTIGADOR".equalsIgnoreCase(usuario.getNombreRol());
+        if (!lectorGeneral || !autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.PRUEBA_DEFENSA)) {
+            throw new AccesoDefensaDenegadoException("No tiene permiso para consultar estas pruebas de defensa");
+        }
+        return obtenerParticipacion(obtenerAsaltante(codigo, false), casoCodigo, false);
+    }
+
+    private Asaltante obtenerAsaltante(String codigo, boolean bloquear) {
+        Optional<Asaltante> resultado;
+        if (bloquear) {
+            resultado = asaltanteRepository.findConBloqueoByCodigo(normalizar(codigo));
+        } else {
+            resultado = asaltanteRepository.findByCodigo(normalizar(codigo));
+        }
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Defendido", codigo);
+        }
+        return resultado.get();
+    }
+
+    private SentenciaAsaltante obtenerParticipacion(Asaltante defendido, String casoCodigo, boolean bloquear) {
+        Optional<CasoJudicial> resultado;
+        if (bloquear) {
+            resultado = casoJudicialRepository.findConBloqueoByCodigo(normalizar(casoCodigo));
+        } else {
+            resultado = casoJudicialRepository.findByCodigo(normalizar(casoCodigo));
+        }
         if (resultado.isEmpty()) {
             throw new RecursoNoEncontradoException("Caso judicial", casoCodigo);
         }

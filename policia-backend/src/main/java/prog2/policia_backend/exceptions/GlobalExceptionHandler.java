@@ -83,6 +83,7 @@ public class GlobalExceptionHandler {
         CasoJudicialActivoException.class,
         CasoJudicialYaExistenteException.class,
         CasoSentenciadoException.class,
+        CasoCerradoParaPruebaException.class,
         ContratoVigilanciaCumplidoException.class,
         ContratoVigilanciaDuplicadoException.class,
         DatosCondenaInvalidosException.class,

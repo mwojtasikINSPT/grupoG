@@ -8,6 +8,7 @@ public enum Entidad {
     CONTRATO_VIGILANCIA,
     ENTIDAD_BANCARIA,
     JUEZ,
+    PRUEBA_DEFENSA,
     ROL,
     SENTENCIA_ASALTANTE,
     SUCURSAL,

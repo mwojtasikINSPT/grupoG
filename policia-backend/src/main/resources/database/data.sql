@@ -451,3 +451,31 @@ UPDATE asaltante SET abogado_defensor_id = (SELECT id FROM usuario WHERE codigo 
 WHERE codigo IN ('ASS00001', 'ASS00004');
 UPDATE asaltante SET abogado_defensor_id = (SELECT id FROM usuario WHERE codigo = 'ABO00002')
 WHERE codigo IN ('ASS00003', 'ASS00021');
+
+-- Pruebas: lectura general administrativa, lectura propia y presentacion del defensor.
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'LECTURA', 'PRUEBA_DEFENSA' FROM rol WHERE nombre IN ('ADMINISTRADOR', 'INVESTIGADOR');
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'LECTURA_DATOS_PROPIOS', 'PRUEBA_DEFENSA' FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT id, 'ESCRITURA', 'PRUEBA_DEFENSA' FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+
+-- Prueba historica presentada cuando CJU00001 estaba abierto; hoy solo admite consulta.
+INSERT INTO prueba_defensa (descripcion, fecha_presentacion, abogado_id, asaltante_id, caso_judicial_id, fecha_creacion, creado_por)
+SELECT 'Declaracion testimonial incorporada antes del cierre del caso.', '2026-09-13 10:00:00',
+       u.id, a.id, c.id, NOW(), 'SISTEMA'
+FROM usuario u, asaltante a, caso_judicial c
+WHERE u.codigo = 'ABO00001' AND a.codigo = 'ASS00001' AND c.codigo = 'CJU00001';
+
+-- Caso abierto compartido: cada abogado solo ve las pruebas de su propio defendido.
+INSERT INTO prueba_defensa (descripcion, fecha_presentacion, abogado_id, asaltante_id, caso_judicial_id, fecha_creacion, creado_por)
+SELECT 'Registro de ubicacion aportado por la defensa.', '2026-10-21 10:00:00',
+       u.id, a.id, c.id, NOW(), 'SISTEMA'
+FROM usuario u, asaltante a, caso_judicial c
+WHERE u.codigo = 'ABO00001' AND a.codigo = 'ASS00001' AND c.codigo = 'CJU00010';
+
+INSERT INTO prueba_defensa (descripcion, fecha_presentacion, abogado_id, asaltante_id, caso_judicial_id, fecha_creacion, creado_por)
+SELECT 'Testimonio de descargo para el defendido pendiente de sentencia.', '2026-10-22 11:00:00',
+       u.id, a.id, c.id, NOW(), 'SISTEMA'
+FROM usuario u, asaltante a, caso_judicial c
+WHERE u.codigo = 'ABO00002' AND a.codigo = 'ASS00021' AND c.codigo = 'CJU00010';
