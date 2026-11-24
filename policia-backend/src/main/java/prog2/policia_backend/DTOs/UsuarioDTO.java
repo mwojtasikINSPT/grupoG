@@ -41,6 +41,9 @@ public class UsuarioDTO {
     @NotBlank(groups = OnCreate.class)
     private String rol;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer defendidosDesvinculados;
+
     @NotNull(groups = OnCreate.class)
     @PastOrPresent(groups = {OnCreate.class, OnUpdate.class}, message = "La fecha de nacimiento no puede ser futura")
     private LocalDate fechaNacimiento;

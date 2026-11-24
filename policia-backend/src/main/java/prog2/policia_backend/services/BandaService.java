@@ -130,6 +130,7 @@ public class BandaService {
                     asaltante.getNombre(),
                     banda.getCodigo(),
                     asaltante.getCodigo(),
+                    asaltante.getAbogadoDefensor() != null ? asaltante.getAbogadoDefensor().getCodigo() : null,
                     asaltante.getMotivoBaja(),
                     null,
                     asaltante.isActivo(),

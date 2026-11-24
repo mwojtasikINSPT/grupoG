@@ -412,3 +412,25 @@ INSERT INTO sentencia_asaltante (caso_judicial_id, asaltante_id, sentenciado, co
 (10, 17, true, true, 5, 'SENTENCIADO', 'SISTEMA', NOW()),
 (10, 21, false, false, 0, 'PENDIENTE', 'SISTEMA', NOW()),
 (10, 30, false, false, 0, 'PENDIENTE', 'SISTEMA', NOW());
+
+-- Rol y permisos de abogado defensor para la carga inicial de una base vacia.
+INSERT INTO rol (activo, fecha_creacion, codigo, creado_por, descripcion, nombre, prefijo)
+VALUES (true, NOW(), 'ROL00004', 'SISTEMA', 'Abogado defensor', 'ABOGADO_DEFENSOR', 'ABO');
+
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT r.id, 'LECTURA_DATOS_PROPIOS', 'USUARIO' FROM rol r
+WHERE r.nombre = 'ABOGADO_DEFENSOR';
+
+INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
+SELECT r.id, 'CAMBIAR_CONTRASENA_PROPIA', 'USUARIO' FROM rol r
+WHERE r.nombre = 'ABOGADO_DEFENSOR';
+
+
+-- Abogados de ejemplo: solo se crean en la carga inicial de una base vacia.
+-- Contrasena: 1234. Los asaltantes permanecen sin abogado.
+INSERT INTO usuario (activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password)
+SELECT true, NOW(), '1985-03-15', id, 'ABO00001', 'SISTEMA', 'Ana Defensora', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'
+FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';
+INSERT INTO usuario (activo, fecha_creacion, fecha_nacimiento, rol_id, codigo, creado_por, nombre, password)
+SELECT true, NOW(), '1990-08-20', id, 'ABO00002', 'SISTEMA', 'Bruno Defensor', '$2a$10$OqCtZ31qaW5pW.Ny3rDybewssfEZ/cfNk3bDadlM.GiL033ckHTLy'
+FROM rol WHERE nombre = 'ABOGADO_DEFENSOR';

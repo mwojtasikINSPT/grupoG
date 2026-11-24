@@ -164,6 +164,7 @@ public class AsaltanteService {
                 asaltante.getNombre(),
                 asaltante.getBanda() != null ? asaltante.getBanda().getCodigo() : null,
                 asaltante.getCodigo(),
+                asaltante.getAbogadoDefensor() != null ? asaltante.getAbogadoDefensor().getCodigo() : null,
                 asaltante.getMotivoBaja(),
                 null, // quitar de Banda
                 asaltante.isActivo(),

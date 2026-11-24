@@ -1,6 +1,5 @@
 package prog2.policia_backend.services;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,11 +23,12 @@ import prog2.policia_backend.exceptions.PersonaNoReactivableException;
 import prog2.policia_backend.exceptions.PersonaYaActivaException;
 import prog2.policia_backend.exceptions.PersonaYaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
-import prog2.policia_backend.exceptions.VigilanteConContratoFuturoException;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Usuario;
-import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
+import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
+import prog2.policia_backend.security.SeguridadAdministrativa;
+import org.springframework.security.access.AccessDeniedException;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
@@ -41,7 +41,8 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ContratoVigilanciaRepository contratoVigilanciaRepository;
+    private final List<ReglaSalidaRol> reglasSalidaRol;
+    private final SeguridadAdministrativa seguridadAdministrativa;
 
     public List<UsuarioDTO> listar(Boolean activo) {
         List<Usuario> usuarios;
@@ -129,8 +130,10 @@ public class UsuarioService {
         return convertirADTO(usuario);
     }
 
+    @Transactional
     public UsuarioDTO actualizar(String codigo, UsuarioDTO dto) {
-        Usuario usuario = obtenerUsuario(codigo);
+        Usuario usuario = obtenerUsuarioBloqueado(codigo);
+        int desvinculados = 0;
 
         if (!usuario.isActivo()) {
             throw new PersonaInactivaException();
@@ -140,7 +143,10 @@ public class UsuarioService {
             String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
 
             if (!usuario.getRol().getNombre().equalsIgnoreCase(nombreRol)) {
-                throw new OperacionNoPermitidaException("No se permite cambiar el rol de un usuario");
+                exigirAdministrador();
+                Rol nuevoRol = obtenerRol(nombreRol);
+                desvinculados = prepararSalidaRol(usuario);
+                usuario.setRol(nuevoRol);
             }
         }
 
@@ -157,11 +163,14 @@ public class UsuarioService {
             usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        return convertirADTO(usuarioRepository.save(usuario));
+        UsuarioDTO respuesta = convertirADTO(usuarioRepository.save(usuario));
+        respuesta.setDefendidosDesvinculados(desvinculados);
+        return respuesta;
     }
 
-    public void eliminar(String codigo, UsuarioDTO dto) {
-        Usuario usuario = obtenerUsuario(codigo);
+    @Transactional
+    public ResultadoBajaUsuarioDTO eliminar(String codigo, UsuarioDTO dto) {
+        Usuario usuario = obtenerUsuarioBloqueado(codigo);
 
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
 
@@ -169,10 +178,6 @@ public class UsuarioService {
             throw new OperacionNoPermitidaException("Un administrador no puede darse de baja a sí mismo");
         }
 
-        if (usuario.getRol().getNombre().equalsIgnoreCase("VIGILANTE")
-                && contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(usuario.getId(), LocalDate.now())) {
-            throw new VigilanteConContratoFuturoException();
-        }
         if (!usuario.isActivo()) {
             throw new PersonaYaInactivaException();
         }
@@ -181,10 +186,36 @@ public class UsuarioService {
             throw new MotivoBajaObligatorioException();
         }
 
+        int desvinculados = prepararSalidaRol(usuario);
         usuario.setMotivoBaja(dto.getMotivoBaja());
         usuario.setActivo(false);
 
         usuarioRepository.save(usuario);
+        return new ResultadoBajaUsuarioDTO(usuario.getCodigo(), desvinculados,
+                "Usuario dado de baja. Defendidos desvinculados: " + desvinculados);
+    }
+
+    private int prepararSalidaRol(Usuario usuario) {
+        int desvinculados = 0;
+        for (ReglaSalidaRol regla : reglasSalidaRol) {
+            desvinculados += regla.prepararSalida(usuario);
+        }
+        return desvinculados;
+    }
+
+    private void exigirAdministrador() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!seguridadAdministrativa.esAdministrador(authentication)) {
+            throw new AccessDeniedException("Solo un administrador puede cambiar el rol");
+        }
+    }
+
+    private Usuario obtenerUsuarioBloqueado(String codigo) {
+        Optional<Usuario> resultado = usuarioRepository.findConBloqueoByCodigo(codigo.trim().toUpperCase(java.util.Locale.ROOT));
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException("Usuario", codigo);
+        }
+        return resultado.get();
     }
 
     public UsuarioDTO reactivar(String codigo) {

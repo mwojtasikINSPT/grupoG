@@ -22,8 +22,10 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
 
     private final Map<String, Entidad> rutas = new HashMap<>();
     private final Map<String, Entidad> rutasRelacionadas = new HashMap<>();
+    private final SeguridadAdministrativa seguridadAdministrativa;
 
-    public AutorizadorPermisos() {
+    public AutorizadorPermisos(SeguridadAdministrativa seguridadAdministrativa) {
+        this.seguridadAdministrativa = seguridadAdministrativa;
         rutas.put("asaltantes", Entidad.ASALTANTE);
         rutas.put("asaltos", Entidad.ASALTO);
         rutas.put("bandas", Entidad.BANDA);
@@ -55,6 +57,14 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
         }
         String ruta = context.getRequest().getServletPath();
         String metodo = context.getRequest().getMethod();
+        if (ruta.matches("/api/asaltantes/[^/]+/abogado-defensor/?")) {
+            boolean metodoValido = metodo.equals(HttpMethod.PUT.name()) || metodo.equals(HttpMethod.DELETE.name());
+            return new AuthorizationDecision(metodoValido && seguridadAdministrativa.esAdministrador(usuario));
+        }
+        if (ruta.matches("/api/usuarios/abogados-disponibles/?")) {
+            return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name())
+                    && seguridadAdministrativa.esAdministrador(usuario));
+        }
         if (ruta.equals("/api/usuarios/mi-perfil") || ruta.equals("/api/usuarios/mis-permisos")) {
             return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name()));
         }

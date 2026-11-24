@@ -23,6 +23,9 @@ public class AsaltanteDTO {
     private String bandaCodigo;
     private String codigo;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String abogadoDefensorCodigo;
+
     private MotivoBajaPersona motivoBaja;
 
     private Boolean quitarDeBanda;

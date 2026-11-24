@@ -9,6 +9,12 @@ public interface AsaltanteRepository extends JpaRepository<Asaltante, Long> {//p
 
     List<Asaltante> findByActivo(boolean activo);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    List<Asaltante> findByAbogadoDefensor_Id(Long abogadoId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    Optional<Asaltante> findConBloqueoByCodigo(String codigo);
+
     // Comprueba si la banda tiene al menos un asaltante activo
     boolean existsByBanda_IdAndActivoTrue(Long bandaId);
 

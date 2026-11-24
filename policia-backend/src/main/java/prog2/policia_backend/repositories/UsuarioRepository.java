@@ -16,6 +16,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     boolean existsByCodigo(String codigo);
 
+    List<Usuario> findByRol_NombreAndActivoTrue(String nombreRol);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    Optional<Usuario> findConBloqueoByCodigo(String codigo);
+
     List<Usuario> findByActivo(Boolean activo);
 
     List<Usuario> findByNombreContainingIgnoreCase(String nombre);

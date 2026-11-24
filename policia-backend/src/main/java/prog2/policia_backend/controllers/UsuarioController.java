@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import prog2.policia_backend.DTOs.CambioPasswordDTO;
 import prog2.policia_backend.DTOs.RestablecerPasswordDTO;
 import prog2.policia_backend.DTOs.UsuarioDTO;
+import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.services.UsuarioService;
 import prog2.policia_backend.validations.OnCreate;
@@ -92,9 +93,8 @@ public class UsuarioController {
 
     @PatchMapping("/{codigo}/baja")
     @PreAuthorize("hasAuthority('ESCRITURA_USUARIO')")
-    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody UsuarioDTO dto) {
-        usuarioService.eliminar(codigo, dto);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ResultadoBajaUsuarioDTO> eliminar(@PathVariable String codigo, @RequestBody UsuarioDTO dto) {
+        return ResponseEntity.ok(usuarioService.eliminar(codigo, dto));
     }
 
     @PatchMapping("/password")

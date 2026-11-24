@@ -20,6 +20,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import prog2.policia_backend.security.AutorizadorPermisos;
+import prog2.policia_backend.security.ManejadorAccesoDenegado;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 
 // Configuración principal de Spring Security
 @Configuration
@@ -49,9 +52,16 @@ public class SecurityConfig {
 
     // Define cómo se protege la API
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AutorizadorPermisos autorizadorPermisos) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AutorizadorPermisos autorizadorPermisos,
+            ManejadorAccesoDenegado manejadorAccesoDenegado) throws Exception {
 
         http
+                .exceptionHandling(new Customizer<ExceptionHandlingConfigurer<HttpSecurity>>() {
+                    @Override
+                    public void customize(ExceptionHandlingConfigurer<HttpSecurity> config) {
+                        config.accessDeniedHandler(manejadorAccesoDenegado);
+                    }
+                })
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
