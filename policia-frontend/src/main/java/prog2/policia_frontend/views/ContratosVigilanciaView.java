@@ -201,7 +201,7 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
         try {
             vigilantesActivos = listarVigilantes(true, null);
-            sucursalesActivas = sucursalClient.listar(true, null);
+            sucursalesActivas = sucursalClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
             return;
@@ -450,7 +450,7 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
         if (permisosInterfaz.puedeConsultarSucursales()) {
             try {
-                filtroSucursalExacta.setItems(sucursalClient.listar(null, null));
+                filtroSucursalExacta.setItems(sucursalClient.listar(null));
                 opciones.add("Por sucursal");
             } catch (RestClientResponseException excepcion) {
                 NotificacionUtils.mostrarInformacion("No se pudieron cargar las sucursales.");

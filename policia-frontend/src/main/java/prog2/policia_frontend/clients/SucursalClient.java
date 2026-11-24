@@ -24,36 +24,20 @@ public class SucursalClient {
         this.sesionUsuario = sesionUsuario;
     }
 
-    // Consulta sucursales con filtros opcionales.
-    public List<SucursalDTO> listar(Boolean activo, String domicilio) {
+    // El estado se conserva para los selectores de otras funcionalidades.
+    public List<SucursalDTO> listar(Boolean activo) {
+        String ruta = "/sucursales";
+        if (activo != null) {
+            ruta += "?activo=" + activo;
+        }
         List<SucursalDTO> sucursales = restClient.get()
-                .uri(constructor -> {
-                    constructor.path("/sucursales");
-
-                    if (activo != null) {
-                        constructor.queryParam("activo", activo);
+                .uri(ruta)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override
+                    public void accept(org.springframework.http.HttpHeaders headers) {
+                        sesionUsuario.aplicarAutenticacion(headers);
                     }
-
-                    if (domicilio != null && !domicilio.isBlank()) {
-                        constructor.queryParam("domicilio", domicilio.trim());
-                    }
-
-                    return constructor.build();
                 })
-                .headers(sesionUsuario::aplicarAutenticacion)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<SucursalDTO>>() {});
-
-        return sucursales != null ? sucursales : List.of();
-    }
-
-    // Consulta las sucursales de una entidad bancaria.
-    public List<SucursalDTO> listarPorEntidadBancaria(String codigoEntidad) {
-        validarCodigo(codigoEntidad);
-
-        List<SucursalDTO> sucursales = restClient.get()
-                .uri("/entidades-bancarias/{codigo}/sucursales", codigoEntidad.trim().toUpperCase())
-                .headers(sesionUsuario::aplicarAutenticacion)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<SucursalDTO>>() {});
 

@@ -165,7 +165,7 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
         List<SucursalDTO> sucursalesActivas;
         try {
             asaltantesActivos = asaltanteClient.listar(true, null);
-            sucursalesActivas = sucursalClient.listar(true, null);
+            sucursalesActivas = sucursalClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
             return;
@@ -328,7 +328,7 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
         }
         if (permisosInterfaz.puedeConsultarSucursales()) {
             try {
-                filtroSucursal.setItems(sucursalClient.listar(null, null));
+                filtroSucursal.setItems(sucursalClient.listar(null));
                 opciones.add("Por sucursal");
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);

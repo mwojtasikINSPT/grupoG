@@ -57,25 +57,6 @@ public class SucursalService {
         return convertirADTO(obtenerSucursal(codigo));
     }
 
-    public List<SucursalDTO> buscarPorDomicilio(String domicilio, Boolean activo) {
-        String domicilioNormalizado = NormalizadorTexto.normalizarParaBuscar(domicilio);
-        List<Sucursal> sucursales;
-
-        if (activo == null) {
-            sucursales = sucursalRepository.findByDomicilioContainingIgnoreCase(domicilioNormalizado);
-        } else {
-            sucursales = sucursalRepository.findByDomicilioContainingIgnoreCaseAndActivo(domicilioNormalizado, activo);
-        }
-
-        List<SucursalDTO> resultado = new ArrayList<>();
-
-        for (Sucursal sucursal : sucursales) {
-            resultado.add(convertirADTO(sucursal));
-        }
-
-        return resultado;
-    }
-
     public List<SucursalDTO> listarPorEntidadBancaria(String codigo) {
 
         EntidadBancaria entidad = obtenerEntidad(codigo);

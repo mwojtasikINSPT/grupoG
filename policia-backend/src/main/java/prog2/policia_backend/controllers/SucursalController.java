@@ -31,11 +31,7 @@ public class SucursalController {
     private final AsaltoService asaltoService;
 
     @GetMapping
-    public ResponseEntity<List<SucursalDTO>> listar(@RequestParam(required = false) Boolean activo, @RequestParam(required = false) String domicilio) {
-
-        if (domicilio != null && !domicilio.isBlank()) {
-            return ResponseEntity.ok(sucursalService.buscarPorDomicilio(domicilio, activo));
-        }
+    public ResponseEntity<List<SucursalDTO>> listar(@RequestParam(required = false) Boolean activo) {
         return ResponseEntity.ok(sucursalService.listar(activo));
     }
 

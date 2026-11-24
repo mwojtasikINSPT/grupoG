@@ -1,11 +1,17 @@
 package prog2.policia_frontend.views;
 
 import java.time.format.DateTimeFormatter;
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
+import com.vaadin.flow.component.HasValue.ValueChangeListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -51,7 +57,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
 
     private final Grid<SucursalDTO> tabla = new Grid<>(SucursalDTO.class, false);
     private final PaginadorGrid<SucursalDTO> paginadorSucursales = new PaginadorGrid<>(tabla, 10);
-    private final TextField filtroDomicilio = new TextField("Buscar por domicilio");
+    private final TextField filtroTexto = new TextField("Buscar");
     private final Select<String> filtroTipoBusqueda = new Select<>();
     private final Select<EntidadBancariaDTO> filtroEntidad = new Select<>();
     private final Select<String> filtroEstado = new Select<>();
@@ -61,6 +67,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
     private final Button botonVolverEntidades = new Button("Volver a entidades bancarias");
 
     private List<EntidadBancariaDTO> entidadesDisponibles = List.of();
+    private List<SucursalDTO> sucursalesDisponibles = List.of();
 
     public SucursalesView(SucursalClient sucursalClient, EntidadBancariaClient entidadClient, PermisosInterfaz permisosInterfaz, AsaltoClient asaltoClient) {
         this.sucursalClient = sucursalClient;
@@ -76,39 +83,51 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
         configurarTabla();
     }
 
-    // Configura la búsqueda por domicilio, entidad bancaria y estado.
+    // Combina el criterio visual con el estado sobre los DTO autorizados.
     private void configurarFiltros() {
         filtroTipoBusqueda.setLabel("Tipo de búsqueda");
-        filtroTipoBusqueda.setItems("General", "Por entidad bancaria");
-        filtroTipoBusqueda.setValue("General");
+        filtroTipoBusqueda.setItems("Todas", "Código", "Domicilio", "Entidad bancaria");
+        filtroTipoBusqueda.setValue("Todas");
 
-        filtroDomicilio.setPlaceholder("Ingrese una coincidencia");
-        filtroDomicilio.setClearButtonVisible(true);
+        filtroTexto.setPlaceholder("Ingrese una coincidencia");
+        filtroTexto.setClearButtonVisible(true);
+        filtroTexto.setVisible(false);
 
         filtroEntidad.setLabel("Entidad bancaria");
-        filtroEntidad.setItemLabelGenerator(entidad -> entidad.getCodigo() + " - " + entidad.getNombre());
+        filtroEntidad.setItemLabelGenerator(new com.vaadin.flow.component.ItemLabelGenerator<EntidadBancariaDTO>() {
+            @Override public String apply(EntidadBancariaDTO entidad) {
+                return entidad.getCodigo() + " - " + entidad.getNombre();
+            }
+        });
         filtroEntidad.setVisible(false);
 
-        filtroTipoBusqueda.addValueChangeListener(evento -> {
-            boolean porEntidad = "Por entidad bancaria".equals(evento.getValue());
-            filtroDomicilio.setVisible(!porEntidad);
-            filtroEntidad.setVisible(porEntidad);
-            filtroDomicilio.clear();
-            filtroEntidad.clear();
+        filtroTipoBusqueda.addValueChangeListener(new ValueChangeListener<ComponentValueChangeEvent<Select<String>, String>>() {
+            @Override public void valueChanged(ComponentValueChangeEvent<Select<String>, String> evento) {
+                String criterio = evento.getValue();
+                filtroTexto.setVisible("Código".equals(criterio) || "Domicilio".equals(criterio));
+                filtroTexto.setLabel("Código".equals(criterio) ? "Código" : "Domicilio");
+                filtroEntidad.setVisible("Entidad bancaria".equals(criterio));
+                filtroTexto.clear();
+                filtroEntidad.clear();
+            }
         });
 
         filtroEstado.setLabel("Estado");
         filtroEstado.setItems("Todas", "Activas", "Inactivas");
         filtroEstado.setValue("Todas");
 
-        botonBuscar.addClickListener(evento -> cargarSucursales());
+        botonBuscar.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
+            @Override public void onComponentEvent(ClickEvent<Button> evento) { aplicarFiltros(); }
+        });
 
-        botonLimpiar.addClickListener(evento -> {
-            filtroDomicilio.clear();
-            filtroTipoBusqueda.setValue("General");
-            filtroEntidad.clear();
-            filtroEstado.setValue("Todas");
-            cargarSucursales();
+        botonLimpiar.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
+            @Override public void onComponentEvent(ClickEvent<Button> evento) {
+                filtroTexto.clear();
+                filtroTipoBusqueda.setValue("Todas");
+                filtroEntidad.clear();
+                filtroEstado.setValue("Todas");
+                aplicarFiltros();
+            }
         });
     }
 
@@ -116,7 +135,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
     private void configurarVista() {
         H2 titulo = new H2("Sucursales");
 
-        HorizontalLayout filtros = new HorizontalLayout(filtroTipoBusqueda, filtroDomicilio, filtroEntidad, filtroEstado, botonBuscar, botonLimpiar);
+        HorizontalLayout filtros = new HorizontalLayout(filtroTipoBusqueda, filtroTexto, filtroEntidad, filtroEstado, botonBuscar, botonLimpiar);
         filtros.setAlignItems(Alignment.END);
 
         botonNuevaSucursal.addClickListener(evento -> abrirFormulario(null));
@@ -378,79 +397,77 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
     }
 
     private Boolean obtenerEstado() {
-        return switch (filtroEstado.getValue()) {
-            case "Activas" ->
-                true;
-            case "Inactivas" ->
-                false;
-            default ->
-                null;
-        };
+        if ("Activas".equals(filtroEstado.getValue())) { return true; }
+        if ("Inactivas".equals(filtroEstado.getValue())) { return false; }
+        return null;
     }
 
-    // Consulta el backend utilizando los filtros seleccionados.
+    // Recarga después de navegar o modificar una sucursal.
     private void cargarSucursales() {
         try {
-            String tipoBusqueda = filtroTipoBusqueda.getValue();
-            Boolean estado = obtenerEstado();
-            List<SucursalDTO> sucursales;
-
-            if ("Por entidad bancaria".equals(tipoBusqueda)) {
-                EntidadBancariaDTO entidad = filtroEntidad.getValue();
-
-                if (entidad == null) {
-                    NotificacionUtils.mostrarInformacion("Seleccione una entidad bancaria.");
-                    return;
-                }
-
-                sucursales = sucursalClient.listarPorEntidadBancaria(entidad.getCodigo());
-
-                if (estado != null) {
-                    List<SucursalDTO> filtradas = new ArrayList<>();
-
-                    for (SucursalDTO sucursal : sucursales) {
-                        if (estado.equals(sucursal.getActivo())) {
-                            filtradas.add(sucursal);
-                        }
-                    }
-
-                    sucursales = filtradas;
-                }
-
-            } else {
-                sucursales = sucursalClient.listar(estado, filtroDomicilio.getValue());
-            }
-
-            paginadorSucursales.setItems(sucursales);
-
-            if (sucursales.isEmpty()) {
-                if ("Por entidad bancaria".equals(tipoBusqueda)) {
-                    String aclaracionEstado = estado != null ? " con el estado seleccionado" : "";
-                    NotificacionUtils.mostrarInformacion("La entidad bancaria seleccionada no tiene sucursales" + aclaracionEstado + ".");
-
-                } else if (filtroDomicilio.getValue() != null && !filtroDomicilio.getValue().isBlank()) {
-                    NotificacionUtils.mostrarInformacion("No se encontraron sucursales cuyo domicilio coincida con: " + filtroDomicilio.getValue().trim() + ".");
-
-                } else if (estado != null) {
-                    NotificacionUtils.mostrarInformacion("No existen sucursales con el estado seleccionado.");
-                }
-            }
-
+            sucursalesDisponibles = sucursalClient.listar(null);
+            aplicarFiltros();
         } catch (RestClientResponseException excepcion) {
+            sucursalesDisponibles = List.of();
+            paginadorSucursales.setItems(sucursalesDisponibles);
             mostrarErrorOperacion(excepcion);
         } catch (ResourceAccessException excepcion) {
+            sucursalesDisponibles = List.of();
+            paginadorSucursales.setItems(sucursalesDisponibles);
             NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
         } catch (IllegalStateException excepcion) {
             NotificacionUtils.mostrarInformacion("Debe iniciar sesión.");
-        } catch (IllegalArgumentException excepcion) {
-            NotificacionUtils.mostrarInformacion(excepcion.getMessage());
         }
+    }
+
+    private void aplicarFiltros() {
+        String criterio = filtroTipoBusqueda.getValue();
+        EntidadBancariaDTO entidad = filtroEntidad.getValue();
+        if ("Entidad bancaria".equals(criterio) && entidad == null) {
+            NotificacionUtils.mostrarInformacion("Seleccione una entidad bancaria.");
+            return;
+        }
+        String texto = normalizarBusqueda(filtroTexto.getValue());
+        Boolean estado = obtenerEstado();
+        List<SucursalDTO> filtradas = new ArrayList<>();
+        for (SucursalDTO sucursal : sucursalesDisponibles) {
+            if (coincideEstado(sucursal, estado) && coincideCriterio(sucursal, criterio, texto, entidad)) {
+                filtradas.add(sucursal);
+            }
+        }
+        paginadorSucursales.setItems(filtradas);
+        if (filtradas.isEmpty()) {
+            NotificacionUtils.mostrarInformacion("No se encontraron sucursales con los criterios seleccionados.");
+        }
+    }
+
+    private boolean coincideEstado(SucursalDTO sucursal, Boolean estado) {
+        return estado == null || estado.equals(sucursal.getActivo());
+    }
+
+    private boolean coincideCriterio(SucursalDTO sucursal, String criterio, String texto, EntidadBancariaDTO entidad) {
+        if ("Código".equals(criterio)) {
+            return normalizarBusqueda(sucursal.getCodigo()).contains(texto);
+        }
+        if ("Domicilio".equals(criterio)) {
+            return normalizarBusqueda(sucursal.getDomicilio()).contains(texto);
+        }
+        if ("Entidad bancaria".equals(criterio)) {
+            return normalizarBusqueda(sucursal.getEntidadBancariaCodigo()).equals(normalizarBusqueda(entidad.getCodigo()));
+        }
+        return true;
+    }
+
+    private String normalizarBusqueda(String texto) {
+        if (texto == null) { return ""; }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT).trim();
     }
 
     // Carga las entidades disponibles según los permisos del usuario.
     private void cargarOpcionesFiltros() {
-        filtroTipoBusqueda.setItems("General");
-        filtroTipoBusqueda.setValue("General");
+        filtroTipoBusqueda.setItems("Todas", "Código", "Domicilio");
+        filtroTipoBusqueda.setValue("Todas");
         entidadesDisponibles = List.of();
 
         if (!permisosInterfaz.puedeConsultarEntidadesBancarias()) {
@@ -460,8 +477,8 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
         try {
             entidadesDisponibles = entidadClient.listar(null, null, null);
             filtroEntidad.setItems(entidadesDisponibles);
-            filtroTipoBusqueda.setItems("General", "Por entidad bancaria");
-            filtroTipoBusqueda.setValue("General");
+            filtroTipoBusqueda.setItems("Todas", "Código", "Domicilio", "Entidad bancaria");
+            filtroTipoBusqueda.setValue("Todas");
 
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
@@ -483,7 +500,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
 
         for (EntidadBancariaDTO entidad : entidadesDisponibles) {
             if (codigoEntidad.equalsIgnoreCase(entidad.getCodigo())) {
-                filtroTipoBusqueda.setValue("Por entidad bancaria");
+                filtroTipoBusqueda.setValue("Entidad bancaria");
                 filtroEntidad.setValue(entidad);
                 botonVolverEntidades.setVisible(true);
                 break;
