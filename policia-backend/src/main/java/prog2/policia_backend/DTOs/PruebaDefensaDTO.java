@@ -13,4 +13,7 @@ public class PruebaDefensaDTO {
     private String abogadoCodigo;
     private String asaltanteCodigo;
     private String casoCodigo;
+    private String nombreArchivo;
+    private String tipoContenidoArchivo;
+    private Long tamanoArchivo;
 }

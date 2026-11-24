@@ -21,6 +21,28 @@ public class GlobalExceptionHandler {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(ArchivoAdjuntoInvalidoException.class)
+    public ResponseEntity<Map<String, String>> manejarArchivoInvalido(ArchivoAdjuntoInvalidoException ex) {
+        HttpStatus estado = ArchivoAdjuntoInvalidoException.TAMANO.equals(ex.getMessage())
+                ? HttpStatus.CONTENT_TOO_LARGE : HttpStatus.BAD_REQUEST;
+        return crearRespuesta(estado, "ARCHIVO_ADJUNTO_INVALIDO", ex.getMessage());
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> manejarTamanoMultipart(org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+        return crearRespuesta(HttpStatus.CONTENT_TOO_LARGE, "ARCHIVO_ADJUNTO_INVALIDO", ArchivoAdjuntoInvalidoException.TAMANO);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    public ResponseEntity<Map<String, String>> manejarMultipartInvalido(org.springframework.web.multipart.MultipartException ex) {
+        return crearRespuesta(HttpStatus.BAD_REQUEST, "MULTIPART_INVALIDO", "La solicitud multipart no es valida.");
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> manejarParametroInvalido(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        return crearRespuesta(HttpStatus.BAD_REQUEST, "PARAMETRO_INVALIDO", "El parametro " + ex.getName() + " no es valido.");
+    }
+
     // Devuelve 404 para recursos inexistentes.
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<Map<String, String>> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
