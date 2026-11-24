@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import prog2.policia_frontend.dtos.BajaUsuarioDTO;
+import prog2.policia_frontend.dtos.ResultadoBajaUsuarioDTO;
 import prog2.policia_frontend.dtos.CambioPasswordDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
@@ -48,7 +49,7 @@ public class UsuarioClient {
     }
 
     // Realiza la baja lógica del usuario, conservándolo como inactivo.
-    public void darDeBaja(String codigo, String motivoBaja) {
+    public ResultadoBajaUsuarioDTO darDeBaja(String codigo, String motivoBaja) {
         validarCodigo(codigo);
 
         if (motivoBaja == null || motivoBaja.isBlank()) {
@@ -57,12 +58,15 @@ public class UsuarioClient {
 
         BajaUsuarioDTO datosBaja = new BajaUsuarioDTO(motivoBaja);
 
-        restClient.patch()
+        return restClient.patch()
                 .uri("/usuarios/{codigo}/baja", codigo.trim().toUpperCase())
-                .headers(sesionUsuario::aplicarAutenticacion)
+                .headers(new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+                    @Override
+                    public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+                })
                 .body(datosBaja)
                 .retrieve()
-                .toBodilessEntity();
+                .body(ResultadoBajaUsuarioDTO.class);
     }
 
     // Solicita la reactivación de un usuario inactivo.

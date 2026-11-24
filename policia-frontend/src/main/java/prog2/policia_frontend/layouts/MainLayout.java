@@ -31,6 +31,7 @@ import prog2.policia_frontend.views.JuecesView;
 import prog2.policia_frontend.views.LoginView;
 import prog2.policia_frontend.views.MiPerfilView;
 import prog2.policia_frontend.views.MisContratosView;
+import prog2.policia_frontend.views.MisDefendidosView;
 import prog2.policia_frontend.views.RolesView;
 import prog2.policia_frontend.views.SucursalesView;
 import prog2.policia_frontend.views.UsuariosView;
@@ -39,7 +40,7 @@ import prog2.policia_frontend.views.UsuariosView;
 public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     // Vistas que requieren autorización.
-    private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS = Set.of(UsuariosView.class, RolesView.class, JuecesView.class, EntidadesBancariasView.class, SucursalesView.class, ContratosVigilanciaView.class, MisContratosView.class, BandasView.class, AsaltantesView.class, AsaltosView.class, CasosJudicialesView.class);
+    private static final Set<Class<?>> VISTAS_ADMINISTRATIVAS = Set.of(UsuariosView.class, RolesView.class, JuecesView.class, EntidadesBancariasView.class, SucursalesView.class, ContratosVigilanciaView.class, MisContratosView.class, MisDefendidosView.class, BandasView.class, AsaltantesView.class, AsaltosView.class, CasosJudicialesView.class);
     private final SesionUsuario sesionUsuario;
     private final PermisosInterfaz permisosInterfaz;
 
@@ -84,6 +85,11 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         menuGeneral.addItem(new SideNavItem("Inicio", InicioView.class, VaadinIcon.HOME.create()),
                 new SideNavItem("Mi perfil", MiPerfilView.class, VaadinIcon.USER.create()));
         VerticalLayout menu = new VerticalLayout(menuGeneral);
+        if (permisosInterfaz.puedeAccederVista(MisDefendidosView.class)) {
+            SideNav defensa = new SideNav("Defensa");
+            defensa.addItem(new SideNavItem("Mis defendidos", MisDefendidosView.class, VaadinIcon.SCALE.create()));
+            menu.add(defensa);
+        }
         menu.setPadding(false);
         menu.setSpacing(false);
         menu.setWidthFull();

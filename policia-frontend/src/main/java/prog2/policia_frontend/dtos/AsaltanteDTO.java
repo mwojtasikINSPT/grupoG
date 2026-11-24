@@ -14,6 +14,10 @@ public class AsaltanteDTO {
     private String nombre;
     private String bandaCodigo;
     private String codigo;
+    private String abogadoDefensorCodigo;
+
+    public String getAbogadoDefensorCodigo() { return abogadoDefensorCodigo; }
+    public void setAbogadoDefensorCodigo(String codigo) { this.abogadoDefensorCodigo = codigo; }
     private String motivoBaja;
     private Boolean quitarDeBanda;
     private Boolean activo;

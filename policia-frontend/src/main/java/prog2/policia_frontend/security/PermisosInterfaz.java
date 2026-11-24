@@ -17,6 +17,7 @@ import prog2.policia_frontend.views.MisContratosView;
 import prog2.policia_frontend.views.RolesView;
 import prog2.policia_frontend.views.SucursalesView;
 import prog2.policia_frontend.views.UsuariosView;
+import prog2.policia_frontend.views.MisDefendidosView;
 
 // Centraliza las consultas de permisos y el acceso a las vistas.
 @Component
@@ -48,6 +49,7 @@ public class PermisosInterfaz {
         if (vista.equals(InicioView.class) || vista.equals(MiPerfilView.class)) {
             return true;
         }
+        if (vista.equals(MisDefendidosView.class)) { return puedeConsultarDefensa(); }
         if (vista.equals(UsuariosView.class)) {
             return puedeLeerDatosPropios("USUARIO");
         }
@@ -166,5 +168,24 @@ public class PermisosInterfaz {
 
     public boolean puedeCambiarContrasena() {
         return sesionUsuario.tienePermiso(PermisosApp.CAMBIAR_CONTRASENA_PROPIA + "_USUARIO");
+    }
+
+    public boolean puedeAsignarAbogados() {
+        return sesionUsuario.tieneRol("ADMINISTRADOR");
+    }
+
+    public boolean puedeConsultarDefensa() {
+        return sesionUsuario.tieneRol("ABOGADO_DEFENSOR")
+                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_ASALTANTE")
+                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_CASO_JUDICIAL")
+                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_SENTENCIA_ASALTANTE");
+    }
+
+    public boolean puedeConsultarPruebas() {
+        return puedeLeerDatosPropios("PRUEBA_DEFENSA");
+    }
+
+    public boolean puedePresentarPruebas() {
+        return puedeConsultarDefensa() && puedeEscribir("PRUEBA_DEFENSA");
     }
 }

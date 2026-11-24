@@ -27,6 +27,8 @@ import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.AsaltoClient;
 import prog2.policia_frontend.clients.CasoJudicialClient;
 import prog2.policia_frontend.clients.JuezClient;
+import prog2.policia_frontend.clients.PruebaDefensaClient;
+import prog2.policia_frontend.components.PruebasDefensaDialog;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
 import prog2.policia_frontend.dtos.AsaltoDTO;
@@ -47,6 +49,7 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     private final AsaltoClient asaltoClient;
     private final AsaltanteClient asaltanteClient;
     private final JuezClient juezClient;
+    private final PruebaDefensaClient pruebaDefensaClient;
     private final PermisosInterfaz permisosInterfaz;
     private final Grid<CasoJudicialDTO> tabla = new Grid<>(CasoJudicialDTO.class, false);
     private final PaginadorGrid<CasoJudicialDTO> paginadorCasos = new PaginadorGrid<>(tabla, 10);
@@ -59,11 +62,12 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     private List<AsaltanteDTO> asaltantesDisponibles = List.of();
     private String rutaVolver;
 
-    public CasosJudicialesView(CasoJudicialClient casoJudicialClient, AsaltoClient asaltoClient, AsaltanteClient asaltanteClient, JuezClient juezClient, PermisosInterfaz permisosInterfaz) {
+    public CasosJudicialesView(CasoJudicialClient casoJudicialClient, AsaltoClient asaltoClient, AsaltanteClient asaltanteClient, JuezClient juezClient, PermisosInterfaz permisosInterfaz, PruebaDefensaClient pruebaDefensaClient) {
         this.casoJudicialClient = casoJudicialClient;
         this.asaltoClient = asaltoClient;
         this.asaltanteClient = asaltanteClient;
         this.juezClient = juezClient;
+        this.pruebaDefensaClient = pruebaDefensaClient;
         this.permisosInterfaz = permisosInterfaz;
         botonVolver.setVisible(false);
         botonVolver.addClickListener(evento -> {
@@ -233,6 +237,20 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
         dialogo.setHeaderTitle("Sentencias de " + caso.getCodigo());
         dialogo.setWidth("760px");
         Grid<SentenciaAsaltanteDTO> tablaSentencias = new Grid<>(SentenciaAsaltanteDTO.class, false);
+        if (permisosInterfaz.puedeConsultarPruebas()) {
+            tablaSentencias.addComponentColumn(new com.vaadin.flow.function.ValueProvider<SentenciaAsaltanteDTO, com.vaadin.flow.component.Component>() {
+                @Override
+                public com.vaadin.flow.component.Component apply(SentenciaAsaltanteDTO sentencia) {
+                    return new Button("Pruebas de defensa", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+                        @Override
+                        public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                            new PruebasDefensaDialog(pruebaDefensaClient, permisosInterfaz,
+                                    sentencia.getAsaltanteCodigo(), caso.getCodigo(), false).open();
+                        }
+                    });
+                }
+            }).setHeader("Defensa").setAutoWidth(true);
+        }
         tablaSentencias.addColumn(SentenciaAsaltanteDTO::getAsaltanteCodigo).setHeader("Asaltante").setAutoWidth(true);
         if (permisosInterfaz.puedeConsultarAsaltantes()) {
             List<AsaltanteDTO> asaltantes = new java.util.ArrayList<>();

@@ -7,6 +7,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
+import prog2.policia_frontend.dtos.AbogadoDisponibleDTO;
+import prog2.policia_frontend.dtos.AsignacionAbogadoDTO;
+import prog2.policia_frontend.dtos.ResultadoAsignacionAbogadoDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
 /*
@@ -16,6 +19,7 @@ import prog2.policia_frontend.security.SesionUsuario;
 @Service
 @VaadinSessionScope
 public class AsaltanteClient {
+    private final java.util.function.Consumer<org.springframework.http.HttpHeaders> autenticacion;
 
     private final RestClient restClient;
     private final SesionUsuario sesionUsuario;
@@ -29,6 +33,28 @@ public class AsaltanteClient {
                 .build();
 
         this.sesionUsuario = sesionUsuario;
+        this.autenticacion = new java.util.function.Consumer<org.springframework.http.HttpHeaders>() {
+            @Override
+            public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
+        };
+    }
+
+    public List<AbogadoDisponibleDTO> listarAbogadosDisponibles() {
+        List<AbogadoDisponibleDTO> resultado = restClient.get().uri("/usuarios/abogados-disponibles")
+                .headers(autenticacion).retrieve().body(new ParameterizedTypeReference<List<AbogadoDisponibleDTO>>() {});
+        return resultado == null ? List.of() : resultado;
+    }
+
+    public ResultadoAsignacionAbogadoDTO asignarAbogado(String asaltante, String abogado) {
+        AsignacionAbogadoDTO datos = new AsignacionAbogadoDTO();
+        datos.setAbogadoCodigo(abogado);
+        return restClient.put().uri("/asaltantes/{codigo}/abogado-defensor", asaltante)
+                .headers(autenticacion).body(datos).retrieve().body(ResultadoAsignacionAbogadoDTO.class);
+    }
+
+    public ResultadoAsignacionAbogadoDTO desvincularAbogado(String asaltante) {
+        return restClient.delete().uri("/asaltantes/{codigo}/abogado-defensor", asaltante)
+                .headers(autenticacion).retrieve().body(ResultadoAsignacionAbogadoDTO.class);
     }
 
     public List<AsaltanteDTO> listar(

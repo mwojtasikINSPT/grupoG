@@ -31,6 +31,8 @@ import prog2.policia_frontend.clients.AsaltanteClient;
 import prog2.policia_frontend.clients.BandaClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.AsaltanteDTO;
+import prog2.policia_frontend.dtos.AbogadoDisponibleDTO;
+import prog2.policia_frontend.dtos.ResultadoAsignacionAbogadoDTO;
 import prog2.policia_frontend.dtos.BandaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
@@ -71,6 +73,12 @@ public class AsaltantesView extends VerticalLayout implements BeforeEnterObserve
 
     private void configurarTabla() {
         tabla.addColumn(AsaltanteDTO::getCodigo).setHeader("Código").setAutoWidth(true);
+        tabla.addColumn(new com.vaadin.flow.function.ValueProvider<AsaltanteDTO, String>() {
+            @Override
+            public String apply(AsaltanteDTO asaltante) {
+                return asaltante.getAbogadoDefensorCodigo() == null ? "Sin abogado" : asaltante.getAbogadoDefensorCodigo();
+            }
+        }).setHeader("Abogado defensor").setAutoWidth(true);
         tabla.addColumn(AsaltanteDTO::getNombre).setHeader("Nombre").setAutoWidth(true).setFlexGrow(1);
         tabla.addColumn(asaltante -> asaltante.getBandaCodigo() != null ? asaltante.getBandaCodigo() : "Sin banda").setHeader("Banda").setAutoWidth(true);
         tabla.addColumn(asaltante -> Boolean.TRUE.equals(asaltante.getActivo()) ? "Activo" : "Inactivo").setHeader("Estado").setAutoWidth(true);
@@ -90,11 +98,16 @@ public class AsaltantesView extends VerticalLayout implements BeforeEnterObserve
     }
 
     private Component crearBotonesAccion(AsaltanteDTO asaltante) {
+        Button abogado = new Button("Abogado defensor", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+            @Override
+            public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { abrirAsignacionAbogado(asaltante); }
+        });
+        abogado.setVisible(permisosInterfaz.puedeAsignarAbogados());
         Button botonVerCasos = new Button("Ver casos", evento -> verCasos(asaltante));
         botonVerCasos.setVisible(permisosInterfaz.puedeConsultarCasosJudiciales());
 
         if (!puedeEscribir()) {
-            return botonVerCasos;
+            return new HorizontalLayout(botonVerCasos, abogado);
         }
 
         boolean estaActivo = Boolean.TRUE.equals(asaltante.getActivo());
@@ -113,7 +126,58 @@ public class AsaltantesView extends VerticalLayout implements BeforeEnterObserve
             botonBaja.setTooltipText("El backend no permite reactivar asaltantes.");
         }
 
-        return new HorizontalLayout(botonVerCasos, botonModificar, botonBaja);
+        return new HorizontalLayout(botonVerCasos, botonModificar, botonBaja, abogado);
+    }
+
+    private void abrirAsignacionAbogado(AsaltanteDTO asaltante) {
+        if (!permisosInterfaz.puedeAsignarAbogados()) { return; }
+        try {
+            List<AbogadoDisponibleDTO> abogados = asaltanteClient.listarAbogadosDisponibles();
+            Dialog dialogo = new Dialog();
+            dialogo.setHeaderTitle("Abogado de " + asaltante.getCodigo());
+            ComboBox<AbogadoDisponibleDTO> campo = new ComboBox<>("Abogado activo");
+            campo.setItems(abogados);
+            campo.setItemLabelGenerator(new com.vaadin.flow.component.ItemLabelGenerator<AbogadoDisponibleDTO>() {
+                @Override
+                public String apply(AbogadoDisponibleDTO abogado) { return abogado.getCodigo() + " - " + abogado.getNombre(); }
+            });
+            campo.setWidthFull();
+            for (AbogadoDisponibleDTO abogado : abogados) {
+                if (abogado.getCodigo().equals(asaltante.getAbogadoDefensorCodigo())) { campo.setValue(abogado); }
+            }
+            Paragraph actual = new Paragraph("Asignado actualmente: " + (asaltante.getAbogadoDefensorCodigo() == null ? "Sin abogado" : asaltante.getAbogadoDefensorCodigo()));
+            Button guardar = new Button("Guardar asignación", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+                @Override
+                public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                    if (campo.getValue() == null) {
+                        campo.setInvalid(true); campo.setErrorMessage("Seleccione un abogado activo."); return;
+                    }
+                    try {
+                        ResultadoAsignacionAbogadoDTO resultado = asaltanteClient.asignarAbogado(asaltante.getCodigo(), campo.getValue().getCodigo());
+                        dialogo.close(); cargarAsaltantes(); NotificacionUtils.mostrarExito(resultado.getMensaje());
+                    } catch (RestClientResponseException ex) { mostrarErrorOperacion(ex); }
+                    catch (ResourceAccessException ex) { NotificacionUtils.mostrarAdvertencia("No se puede conectar con el backend."); }
+                }
+            });
+            Button desvincular = new Button("Desvincular", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+                @Override
+                public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
+                    try {
+                        ResultadoAsignacionAbogadoDTO resultado = asaltanteClient.desvincularAbogado(asaltante.getCodigo());
+                        dialogo.close(); cargarAsaltantes(); NotificacionUtils.mostrarExito(resultado.getMensaje());
+                    } catch (RestClientResponseException ex) { mostrarErrorOperacion(ex); }
+                    catch (ResourceAccessException ex) { NotificacionUtils.mostrarAdvertencia("No se puede conectar con el backend."); }
+                }
+            });
+            desvincular.setEnabled(asaltante.getAbogadoDefensorCodigo() != null);
+            Button cancelar = new Button("Cancelar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
+                @Override
+                public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) { dialogo.close(); }
+            });
+            dialogo.add(new VerticalLayout(actual, campo, new HorizontalLayout(guardar, desvincular, cancelar)));
+            dialogo.open();
+        } catch (RestClientResponseException ex) { mostrarErrorOperacion(ex); }
+        catch (ResourceAccessException ex) { NotificacionUtils.mostrarAdvertencia("No se pueden consultar los abogados disponibles."); }
     }
 
     private void verCasos(AsaltanteDTO asaltante) {

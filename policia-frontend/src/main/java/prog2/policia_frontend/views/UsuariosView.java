@@ -35,6 +35,7 @@ import prog2.policia_frontend.clients.UsuarioClient;
 import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
+import prog2.policia_frontend.dtos.ResultadoBajaUsuarioDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
@@ -356,10 +357,10 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
             }
 
             try {
-                usuarioClient.darDeBaja(usuario.getCodigo(), campoMotivo.getValue());
+                ResultadoBajaUsuarioDTO resultado = usuarioClient.darDeBaja(usuario.getCodigo(), campoMotivo.getValue());
                 dialogo.close();
                 cargarUsuarios();
-                NotificacionUtils.mostrarExito("Usuario dado de baja correctamente.");
+                NotificacionUtils.mostrarExito(resultado == null ? "Usuario dado de baja." : resultado.getMensaje());
 
             } catch (RestClientResponseException excepcion) {
                 mostrarErrorOperacion(excepcion);
