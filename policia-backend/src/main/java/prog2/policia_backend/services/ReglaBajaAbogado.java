@@ -9,11 +9,11 @@ import prog2.policia_backend.repositories.AsaltanteRepository;
 
 @Component
 @RequiredArgsConstructor
-public class ReglaSalidaAbogado implements ReglaSalidaRol {
+public class ReglaBajaAbogado implements ReglaBajaUsuario {
     private final AsaltanteRepository asaltanteRepository;
 
     @Override
-    public int prepararSalida(Usuario usuario) {
+    public int prepararBaja(Usuario usuario) {
         if (!"ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getRol().getNombre())) {
             return 0;
         }

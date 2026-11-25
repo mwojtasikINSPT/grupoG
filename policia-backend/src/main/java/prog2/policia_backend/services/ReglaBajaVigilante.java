@@ -9,11 +9,11 @@ import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 
 @Component
 @RequiredArgsConstructor
-public class ReglaSalidaVigilante implements ReglaSalidaRol {
+public class ReglaBajaVigilante implements ReglaBajaUsuario {
     private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
     @Override
-    public int prepararSalida(Usuario usuario) {
+    public int prepararBaja(Usuario usuario) {
         if ("VIGILANTE".equalsIgnoreCase(usuario.getRol().getNombre())
                 && contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(usuario.getId(), LocalDate.now())) {
             throw new VigilanteConContratoFuturoException();

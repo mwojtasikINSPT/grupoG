@@ -27,8 +27,6 @@ import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
-import prog2.policia_backend.security.SeguridadAdministrativa;
-import org.springframework.security.access.AccessDeniedException;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
@@ -41,8 +39,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
-    private final List<ReglaSalidaRol> reglasSalidaRol;
-    private final SeguridadAdministrativa seguridadAdministrativa;
+    private final List<ReglaBajaUsuario> reglasBajaUsuario;
 
     public List<UsuarioDTO> listar(Boolean activo) {
         List<Usuario> usuarios;
@@ -105,7 +102,6 @@ public class UsuarioService {
     @Transactional
     public UsuarioDTO actualizar(String codigo, UsuarioDTO dto) {
         Usuario usuario = obtenerUsuarioBloqueado(codigo);
-        int desvinculados = 0;
 
         if (!usuario.isActivo()) {
             throw new PersonaInactivaException();
@@ -115,10 +111,7 @@ public class UsuarioService {
             String nombreRol = NormalizadorTexto.normalizarConstante(dto.getRol());
 
             if (!usuario.getRol().getNombre().equalsIgnoreCase(nombreRol)) {
-                exigirAdministrador();
-                Rol nuevoRol = obtenerRol(nombreRol);
-                desvinculados = prepararSalidaRol(usuario);
-                usuario.setRol(nuevoRol);
+                throw new OperacionNoPermitidaException("No se puede cambiar el rol de un usuario existente.");
             }
         }
 
@@ -135,9 +128,7 @@ public class UsuarioService {
             usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        UsuarioDTO respuesta = convertirADTO(usuarioRepository.save(usuario));
-        respuesta.setDefendidosDesvinculados(desvinculados);
-        return respuesta;
+        return convertirADTO(usuarioRepository.save(usuario));
     }
 
     @Transactional
@@ -158,28 +149,25 @@ public class UsuarioService {
             throw new MotivoBajaObligatorioException();
         }
 
-        int desvinculados = prepararSalidaRol(usuario);
+        int desvinculados = prepararBajaUsuario(usuario);
         usuario.setMotivoBaja(dto.getMotivoBaja());
         usuario.setActivo(false);
 
         usuarioRepository.save(usuario);
-        return new ResultadoBajaUsuarioDTO(usuario.getCodigo(), desvinculados,
-                "Usuario dado de baja. Defendidos desvinculados: " + desvinculados);
+        boolean esAbogado = "ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getRol().getNombre());
+        String mensaje = "Usuario dado de baja.";
+        if (esAbogado) {
+            mensaje += " Defendidos desvinculados: " + desvinculados;
+        }
+        return new ResultadoBajaUsuarioDTO(usuario.getCodigo(), esAbogado ? desvinculados : null, mensaje);
     }
 
-    private int prepararSalidaRol(Usuario usuario) {
+    private int prepararBajaUsuario(Usuario usuario) {
         int desvinculados = 0;
-        for (ReglaSalidaRol regla : reglasSalidaRol) {
-            desvinculados += regla.prepararSalida(usuario);
+        for (ReglaBajaUsuario regla : reglasBajaUsuario) {
+            desvinculados += regla.prepararBaja(usuario);
         }
         return desvinculados;
-    }
-
-    private void exigirAdministrador() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!seguridadAdministrativa.esAdministrador(authentication)) {
-            throw new AccessDeniedException("Solo un administrador puede cambiar el rol");
-        }
     }
 
     private Usuario obtenerUsuarioBloqueado(String codigo) {

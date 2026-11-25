@@ -27,6 +27,7 @@ import prog2.policia_frontend.dtos.CasoDefensaDTO;
 import prog2.policia_frontend.dtos.DefendidoDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -170,7 +171,7 @@ public class MisDefendidosView extends VerticalLayout implements BeforeEnterObse
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<DefendidoDTO> filtrados = new java.util.ArrayList<>();
         for (DefendidoDTO dato : datosBusqueda) {
             if ("Activos".equals(filtroEstado.getValue()) && !Boolean.TRUE.equals(dato.getActivo())) { continue; }
@@ -181,21 +182,10 @@ public class MisDefendidosView extends VerticalLayout implements BeforeEnterObse
     }
 
     private boolean coincideCriterio(DefendidoDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
-        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getNombre()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getMotivoBaja()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        } else if (valor instanceof java.time.LocalDateTime) {
-            texto += " " + ((java.time.LocalDateTime) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

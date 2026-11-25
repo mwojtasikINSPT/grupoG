@@ -32,6 +32,7 @@ import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -53,6 +54,8 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     private List<UsuarioDTO> vigilantesBusqueda = List.of();
     private final Select<String> filtroEstado = new Select<>();
     private final Button botonNuevoContrato = new Button("Nuevo contrato");
+    private String vigilantePendiente;
+    private final Span avisoPendientes = new Span();
 
     public ContratosVigilanciaView(ContratoVigilanciaClient contratoClient, UsuarioClient usuarioClient, SucursalClient sucursalClient, PermisosInterfaz permisosInterfaz) {
         this.contratoClient = contratoClient;
@@ -122,7 +125,8 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         botonNuevoContrato.setVisible(puedeEscribir());
 
         setSizeFull();
-        add(titulo, botonNuevoContrato, filtros, tabla, paginadorContratos.getControles());
+        avisoPendientes.setVisible(false);
+        add(titulo, botonNuevoContrato, filtros, avisoPendientes, tabla, paginadorContratos.getControles());
         expand(tabla);
     }
 
@@ -131,11 +135,29 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         Dialog dialogo = new Dialog();
         dialogo.setHeaderTitle("Dar de baja " + contrato.getCodigo());
         Paragraph mensaje = new Paragraph("El contrato quedará cancelado y no podrá reactivarse. ¿Desea continuar?");
+        Select<String> campoMotivo = new Select<>();
+        campoMotivo.setLabel("Motivo de baja");
+        campoMotivo.setRequiredIndicatorVisible(true);
+        try {
+            campoMotivo.setItems(contratoClient.listarMotivosBaja());
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+            return;
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pueden consultar los motivos de baja.");
+            return;
+        }
         Button botonConfirmar = new Button("Confirmar baja");
         Button botonVolver = new Button("Volver", evento -> dialogo.close());
         botonConfirmar.addClickListener(evento -> {
+            boolean motivoVacio = campoMotivo.getValue() == null || campoMotivo.getValue().isBlank();
+            campoMotivo.setInvalid(motivoVacio);
+            campoMotivo.setErrorMessage("Debe seleccionar un motivo de baja.");
+            if (motivoVacio) {
+                return;
+            }
             try {
-                contratoClient.cancelar(contrato.getCodigo());
+                contratoClient.cancelar(contrato.getCodigo(), campoMotivo.getValue());
                 dialogo.close();
                 cargarContratos();
                 NotificacionUtils.mostrarExito("Contrato dado de baja correctamente.");
@@ -147,29 +169,22 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
                 NotificacionUtils.mostrarInformacion(excepcion.getMessage());
             }
         });
-        dialogo.add(new VerticalLayout(mensaje, new HorizontalLayout(botonConfirmar, botonVolver)));
+        dialogo.add(new VerticalLayout(mensaje, campoMotivo, new HorizontalLayout(botonConfirmar, botonVolver)));
         dialogo.open();
     }
 
     // Registra o modifica contratos utilizando vigilantes y sucursales activos.
     private void abrirFormulario(ContratoVigilanciaDTO contrato) {
         boolean esCreacion = contrato == null;
-        List<UsuarioDTO> vigilantesActivos;
         List<SucursalDTO> sucursalesActivas;
 
         try {
-            vigilantesActivos = listarVigilantes(true);
             sucursalesActivas = sucursalClient.listar(true);
         } catch (RestClientResponseException excepcion) {
             mostrarErrorOperacion(excepcion);
             return;
         } catch (ResourceAccessException excepcion) {
             NotificacionUtils.mostrarInformacion("No se pueden consultar los datos necesarios.");
-            return;
-        }
-
-        if (esCreacion && vigilantesActivos.isEmpty()) {
-            NotificacionUtils.mostrarInformacion("No existen vigilantes activos.");
             return;
         }
 
@@ -190,7 +205,6 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         campoFecha.setRequiredIndicatorVisible(true);
 
         campoVigilante.setLabel("Vigilante");
-        campoVigilante.setItems(vigilantesActivos);
         campoVigilante.setItemLabelGenerator(vigilante -> vigilante.getCodigo() + " - " + vigilante.getNombre());
         campoVigilante.setRequiredIndicatorVisible(true);
 
@@ -206,13 +220,6 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         if (!esCreacion) {
             campoFecha.setValue(contrato.getFecha());
 
-            for (UsuarioDTO vigilante : vigilantesActivos) {
-                if (vigilante.getCodigo() != null && vigilante.getCodigo().equalsIgnoreCase(contrato.getVigilanteCodigo())) {
-                    campoVigilante.setValue(vigilante);
-                    break;
-                }
-            }
-
             for (SucursalDTO sucursal : sucursalesActivas) {
                 if (sucursal.getCodigo() != null && sucursal.getCodigo().equalsIgnoreCase(contrato.getSucursalCodigo())) {
                     campoSucursal.setValue(sucursal);
@@ -224,6 +231,14 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
                 campoConArma.setValue(Boolean.TRUE.equals(contrato.getConArma()) ? "Sí" : "No");
             }
         }
+
+        cargarVigilantesDisponibles(campoFecha.getValue(), campoVigilante,
+                esCreacion ? null : contrato.getCodigo(), esCreacion ? null : contrato.getVigilanteCodigo());
+        campoFecha.addValueChangeListener(evento -> {
+            String seleccionado = campoVigilante.getValue() == null ? null : campoVigilante.getValue().getCodigo();
+            cargarVigilantesDisponibles(evento.getValue(), campoVigilante,
+                    esCreacion ? null : contrato.getCodigo(), seleccionado);
+        });
 
         campoFecha.setWidthFull();
         campoVigilante.setWidthFull();
@@ -276,6 +291,35 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
         dialogo.add(new VerticalLayout(campoFecha, campoVigilante, campoSucursal, campoConArma, new HorizontalLayout(botonGuardar, botonCancelar)));
         dialogo.open();
+    }
+
+    // Actualiza las opciones al cambiar la fecha y conserva solo selecciones disponibles.
+    private void cargarVigilantesDisponibles(LocalDate fecha, Select<UsuarioDTO> selector,
+            String contratoCodigo, String codigoSeleccionado) {
+        selector.clear();
+        selector.setItems(List.of());
+        selector.setEnabled(false);
+        selector.setHelperText("Seleccione una fecha de hoy o futura.");
+        if (fecha == null || fecha.isBefore(LocalDate.now())) {
+            return;
+        }
+        try {
+            List<UsuarioDTO> disponibles = contratoClient.listarVigilantesDisponibles(fecha, contratoCodigo);
+            selector.setItems(disponibles);
+            selector.setEnabled(!disponibles.isEmpty());
+            selector.setHelperText(disponibles.isEmpty() ? "No hay vigilantes activos disponibles para esta fecha."
+                    : "Solo se muestran vigilantes activos y disponibles para esta fecha.");
+            for (UsuarioDTO vigilante : disponibles) {
+                if (vigilante.getCodigo().equals(codigoSeleccionado)) {
+                    selector.setValue(vigilante);
+                    break;
+                }
+            }
+        } catch (RestClientResponseException excepcion) {
+            mostrarErrorOperacion(excepcion);
+        } catch (ResourceAccessException excepcion) {
+            NotificacionUtils.mostrarInformacion("No se pueden consultar los vigilantes disponibles.");
+        }
     }
 
     // Convierte los errores HTTP en mensajes comprensibles.
@@ -365,6 +409,20 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     // Recarga las opciones y los contratos al ingresar a la vista.
     @Override
     public void beforeEnter(BeforeEnterEvent evento) {
+        vigilantePendiente = null;
+        avisoPendientes.setVisible(false);
+        java.util.Map<String, List<String>> parametros = evento.getLocation().getQueryParameters().getParameters();
+        List<String> vigilantes = parametros.get("vigilante");
+        if (parametros.getOrDefault("pendientes", List.of()).contains("true")
+                && vigilantes != null && !vigilantes.isEmpty() && !vigilantes.get(0).isBlank()) {
+            vigilantePendiente = vigilantes.get(0);
+            criterioBusqueda.setValue("Vigilante");
+            valorBusqueda.setValue(vigilantePendiente);
+            filtroEstado.setValue("Activos");
+            avisoPendientes.setText("Contratos pendientes de " + vigilantePendiente
+                    + ". Reasigne cada contrato y luego solicite nuevamente la baja. Limpiar muestra todos los contratos.");
+            avisoPendientes.setVisible(true);
+        }
         cargarOpcionesFiltros();
         cargarContratos();
     }
@@ -392,6 +450,8 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
         Button limpiar = new Button("Limpiar", new com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>>() {
             @Override public void onComponentEvent(com.vaadin.flow.component.ClickEvent<Button> evento) {
                 criterioBusqueda.setValue("Todas");
+                vigilantePendiente = null;
+                avisoPendientes.setVisible(false);
                 valorBusqueda.clear();
                 filtroEstado.setValue("Todos");
                 aplicarFiltros();
@@ -404,9 +464,14 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<ContratoVigilanciaDTO> filtrados = new java.util.ArrayList<>();
         for (ContratoVigilanciaDTO dato : datosBusqueda) {
+            if (vigilantePendiente != null && (!vigilantePendiente.equalsIgnoreCase(dato.getVigilanteCodigo())
+                    || !Boolean.TRUE.equals(dato.getActivo()) || dato.getFecha() == null
+                    || dato.getFecha().isBefore(LocalDate.now()))) {
+                continue;
+            }
             if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
                 filtrados.add(dato);
             }
@@ -415,24 +480,15 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     }
 
     private boolean coincideCriterio(ContratoVigilanciaDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
-        if ("Vigilante".equals(criterio)) { return normalizarBusqueda(textoVigilante(dato)).contains(texto); }
-        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
-        if ("Con arma".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
-        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getFecha()).contains(texto); }
+        if ("Vigilante".equals(criterio)) { return NormalizadorBusqueda.normalizar(textoVigilante(dato)).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getSucursalCodigo()).contains(texto); }
+        if ("Con arma".equals(criterio)) { return NormalizadorBusqueda.normalizar(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getMotivoBaja()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 
     private String textoVigilante(ContratoVigilanciaDTO contrato) {
         String codigo = contrato.getVigilanteCodigo();

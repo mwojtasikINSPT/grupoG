@@ -32,6 +32,7 @@ import prog2.policia_frontend.dtos.AsaltoDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -314,7 +315,7 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<AsaltoDTO> filtrados = new java.util.ArrayList<>();
         for (AsaltoDTO dato : datosBusqueda) {
             if (true && coincideCriterio(dato, criterio, texto)) {
@@ -325,20 +326,11 @@ public class AsaltosView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private boolean coincideCriterio(AsaltoDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
-        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
-        if ("Asaltante".equals(criterio)) { return normalizarBusqueda(dato.getAsaltantesCodigos()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getFecha()).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getSucursalCodigo()).contains(texto); }
+        if ("Asaltante".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getAsaltantesCodigos()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

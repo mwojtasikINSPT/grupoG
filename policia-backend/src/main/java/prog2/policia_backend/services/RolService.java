@@ -87,9 +87,9 @@ public class RolService {
             String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());
 
             if (!rol.getNombre().equals(nombreNormalizado)) {
-                // Un renombrado no debe eludir las reglas de salida de los usuarios.
+                // Un renombrado no debe cambiar el rol de los usuarios activos.
                 if (usuarioRepository.existsByRol_IdAndActivoTrue(rol.getId())) {
-                    throw new OperacionNoPermitidaException("No se puede renombrar un rol con usuarios activos; cambie primero sus roles desde usuarios");
+                    throw new OperacionNoPermitidaException("No se puede renombrar un rol con usuarios activos.");
                 }
                 if (rolRepository.existsByNombre(nombreNormalizado)) {
                     throw new RolExistenteException();

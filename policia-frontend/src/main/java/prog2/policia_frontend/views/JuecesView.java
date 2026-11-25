@@ -29,6 +29,7 @@ import prog2.policia_frontend.clients.JuezClient;
 import prog2.policia_frontend.dtos.JuezDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -374,7 +375,7 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<JuezDTO> filtrados = new java.util.ArrayList<>();
         for (JuezDTO dato : datosBusqueda) {
             if ((obtenerEstado() == null || obtenerEstado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
@@ -387,21 +388,12 @@ public class JuecesView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private boolean coincideCriterio(JuezDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
-        if ("Juez desde".equals(criterio)) { return normalizarBusqueda(dato.getJuezDesde()).contains(texto); }
-        if ("Años de servicio".equals(criterio)) { return normalizarBusqueda(dato.getAniosServicio()).contains(texto); }
-        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getNombre()).contains(texto); }
+        if ("Juez desde".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getJuezDesde()).contains(texto); }
+        if ("Años de servicio".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getAniosServicio()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getMotivoBaja()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

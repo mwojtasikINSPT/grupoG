@@ -23,6 +23,10 @@ import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.security.ManejadorAccesoDenegado;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 
 // Configuración principal de Spring Security
 @Configuration
@@ -62,16 +66,34 @@ public class SecurityConfig {
                         config.accessDeniedHandler(manejadorAccesoDenegado);
                     }
                 })
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/error").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/estado").permitAll()
-                .requestMatchers("/api/**").access(autorizadorPermisos)
-                .anyRequest().denyAll())
-                .httpBasic(httpBasic -> {
-                });
+                .csrf(new Customizer<CsrfConfigurer<HttpSecurity>>() {
+                    @Override
+                    public void customize(CsrfConfigurer<HttpSecurity> config) {
+                        config.disable();
+                    }
+                })
+                .cors(new Customizer<CorsConfigurer<HttpSecurity>>() {
+                    @Override
+                    public void customize(CorsConfigurer<HttpSecurity> config) {
+                        config.configurationSource(corsConfigurationSource());
+                    }
+                })
+                .sessionManagement(new Customizer<SessionManagementConfigurer<HttpSecurity>>() {
+                    @Override
+                    public void customize(SessionManagementConfigurer<HttpSecurity> config) {
+                        config.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                    }
+                })
+                .authorizeHttpRequests(new Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry>() {
+                    @Override
+                    public void customize(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry rutas) {
+                        rutas.requestMatchers("/error").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/estado").permitAll()
+                                .requestMatchers("/api/**").access(autorizadorPermisos)
+                                .anyRequest().denyAll();
+                    }
+                })
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

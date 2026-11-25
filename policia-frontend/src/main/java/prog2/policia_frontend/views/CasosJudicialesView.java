@@ -37,6 +37,7 @@ import prog2.policia_frontend.dtos.JuezDTO;
 import prog2.policia_frontend.dtos.SentenciaAsaltanteDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -532,7 +533,7 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<CasoJudicialDTO> filtrados = new java.util.ArrayList<>();
         for (CasoJudicialDTO dato : datosBusqueda) {
             if ((obtenerEstadoExactoSeleccionado() == null || obtenerEstadoExactoSeleccionado().equals(obtenerEstado(dato))) && coincideCriterio(dato, criterio, texto)) {
@@ -543,22 +544,13 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
     }
 
     private boolean coincideCriterio(CasoJudicialDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Asalto".equals(criterio)) { return normalizarBusqueda(dato.getAsaltoCodigo()).contains(texto); }
-        if ("Juez".equals(criterio)) { return normalizarBusqueda(dato.getJuezCodigo()).contains(texto); }
-        if ("Asaltante".equals(criterio)) { return normalizarBusqueda(dato.getAsaltanteCodigos()).contains(texto); }
-        if ("Sentenciado".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getSentenciado()) ? "Sí" : "No").contains(texto); }
-        if ("Motivo de reapertura".equals(criterio)) { return normalizarBusqueda(dato.getMotivoReapertura()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Asalto".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getAsaltoCodigo()).contains(texto); }
+        if ("Juez".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getJuezCodigo()).contains(texto); }
+        if ("Asaltante".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getAsaltanteCodigos()).contains(texto); }
+        if ("Sentenciado".equals(criterio)) { return NormalizadorBusqueda.normalizar(Boolean.TRUE.equals(dato.getSentenciado()) ? "Sí" : "No").contains(texto); }
+        if ("Motivo de reapertura".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getMotivoReapertura()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

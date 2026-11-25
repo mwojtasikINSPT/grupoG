@@ -20,8 +20,7 @@ import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.repositories.RolRepository;
-import prog2.policia_backend.security.SeguridadAdministrativa;
-import org.springframework.security.access.AccessDeniedException;
+import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -40,15 +39,14 @@ class UsuarioServiceTest {
         rolRepository = mock(RolRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         contratoVigilanciaRepository = mock(ContratoVigilanciaRepository.class);
-        List<ReglaSalidaRol> reglasSalida = new ArrayList<>();
-        reglasSalida.add(new ReglaSalidaVigilante(contratoVigilanciaRepository));
+        List<ReglaBajaUsuario> reglasBaja = new ArrayList<>();
+        reglasBaja.add(new ReglaBajaVigilante(contratoVigilanciaRepository));
 
         usuarioService = new UsuarioService(
                 usuarioRepository,
                 rolRepository,
                 passwordEncoder,
-                reglasSalida,
-                new SeguridadAdministrativa()
+                reglasBaja
         );
     }
 
@@ -369,7 +367,8 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void actualizarRechazaCambioDeRolSinAdministrador() {
+    void actualizarRechazaCambioDeRol() {
+        autenticar("ADM00002");
         Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
         when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
@@ -380,10 +379,12 @@ class UsuarioServiceTest {
 
         try {
             usuarioService.actualizar("ADM00001", dto);
-            fail("Debía lanzar AccessDeniedException");
-        } catch (AccessDeniedException e) {
-            assertNotNull(e);
+            fail("Debía lanzar OperacionNoPermitidaException");
+        } catch (OperacionNoPermitidaException e) {
+            assertEquals("No se puede cambiar el rol de un usuario existente.", e.getMessage());
         }
+        assertEquals("ADMINISTRADOR", usuario.getRol().getNombre());
+        verify(usuarioRepository, never()).save(any(Usuario.class));
     }
 
     // ELIMINAR
@@ -399,9 +400,11 @@ class UsuarioServiceTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setMotivoBaja(MotivoBajaPersona.RENUNCIA);
 
-        usuarioService.eliminar("ADM00001", dto);
+        ResultadoBajaUsuarioDTO resultado = usuarioService.eliminar("ADM00001", dto);
 
         assertFalse(usuario.isActivo());
+        assertEquals("Usuario dado de baja.", resultado.getMensaje());
+        assertNull(resultado.getDefendidosDesvinculados());
         assertEquals(MotivoBajaPersona.RENUNCIA, usuario.getMotivoBaja());
 
         verify(usuarioRepository).save(usuario);

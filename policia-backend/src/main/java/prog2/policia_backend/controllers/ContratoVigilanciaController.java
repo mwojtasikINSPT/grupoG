@@ -1,6 +1,11 @@
 package prog2.policia_backend.controllers;
 
 import java.util.List;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
+import prog2.policia_backend.DTOs.UsuarioDTO;
+import prog2.policia_backend.models.MotivoBajaContrato;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +26,19 @@ import prog2.policia_backend.validations.OnUpdate;
 public class ContratoVigilanciaController {
 
     private final ContratoVigilanciaService contratoVigilanciaService;
+
+    @GetMapping("/motivos-baja")
+    public ResponseEntity<List<MotivoBajaContrato>> listarMotivosBaja() {
+        return ResponseEntity.ok(List.of(MotivoBajaContrato.values()));
+    }
+
+    @GetMapping("/vigilantes-disponibles")
+    @PreAuthorize("hasAuthority('ESCRITURA_CONTRATO_VIGILANCIA') and hasAuthority('LECTURA_USUARIO')")
+    public ResponseEntity<List<UsuarioDTO>> listarVigilantesDisponibles(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false) String contratoCodigo) {
+        return ResponseEntity.ok(contratoVigilanciaService.listarVigilantesDisponibles(fecha, contratoCodigo));
+    }
 
     @GetMapping
     public ResponseEntity<List<ContratoVigilanciaDTO>> listar(Authentication authentication) {
@@ -66,8 +84,8 @@ public class ContratoVigilanciaController {
     }
 
     @PatchMapping("/{codigo}/baja")
-    public ResponseEntity<Void> eliminar(@PathVariable String codigo) {
-        contratoVigilanciaService.eliminar(codigo);
+    public ResponseEntity<Void> eliminar(@PathVariable String codigo, @RequestBody ContratoVigilanciaDTO dto) {
+        contratoVigilanciaService.eliminar(codigo, dto);
         return ResponseEntity.noContent().build();
     }
 }

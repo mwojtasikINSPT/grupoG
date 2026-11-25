@@ -19,6 +19,7 @@ import prog2.policia_frontend.components.PaginadorGrid;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.SesionUsuario;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -129,7 +130,7 @@ public class MisContratosView extends VerticalLayout implements BeforeEnterObser
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<ContratoVigilanciaDTO> filtrados = new java.util.ArrayList<>();
         for (ContratoVigilanciaDTO dato : datosBusqueda) {
             if ("Activos".equals(filtroEstado.getValue()) && !Boolean.TRUE.equals(dato.getActivo())) { continue; }
@@ -140,22 +141,11 @@ public class MisContratosView extends VerticalLayout implements BeforeEnterObser
     }
 
     private boolean coincideCriterio(ContratoVigilanciaDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Fecha".equals(criterio)) { return normalizarBusqueda(dato.getFecha()).contains(texto); }
-        if ("Sucursal".equals(criterio)) { return normalizarBusqueda(dato.getSucursalCodigo()).contains(texto); }
-        if ("Con arma".equals(criterio)) { return normalizarBusqueda(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Fecha".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getFecha()).contains(texto); }
+        if ("Sucursal".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getSucursalCodigo()).contains(texto); }
+        if ("Con arma".equals(criterio)) { return NormalizadorBusqueda.normalizar(Boolean.TRUE.equals(dato.getConArma()) ? "Sí" : "No").contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        } else if (valor instanceof java.time.LocalDateTime) {
-            texto += " " + ((java.time.LocalDateTime) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

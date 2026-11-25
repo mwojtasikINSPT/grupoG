@@ -222,7 +222,7 @@ class ContratoVigilanciaIntegrationTest {
     @Test
     @WithMockUser(authorities = "ESCRITURA_CONTRATO_VIGILANCIA")
     void darDeBajaContratoCorrectamente() throws Exception {
-        mockMvc.perform(patch("/api/contratos-vigilancia/CDV00001/baja"))
+        mockMvc.perform(patch("/api/contratos-vigilancia/CDV00001/baja").contentType(MediaType.APPLICATION_JSON).content("{\"motivoBaja\":\"CANCELACION\"}"))
                 .andExpect(status().isNoContent());
 
         ContratoVigilancia resultado
@@ -239,7 +239,7 @@ class ContratoVigilanciaIntegrationTest {
         contrato.setActivo(false);
         contratoRepository.saveAndFlush(contrato);
 
-        mockMvc.perform(patch("/api/contratos-vigilancia/CDV00001/baja"))
+        mockMvc.perform(patch("/api/contratos-vigilancia/CDV00001/baja").contentType(MediaType.APPLICATION_JSON).content("{\"motivoBaja\":\"CANCELACION\"}"))
                 .andExpect(status().isConflict());
     }
 

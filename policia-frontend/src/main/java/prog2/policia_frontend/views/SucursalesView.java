@@ -1,8 +1,6 @@
 package prog2.policia_frontend.views;
 
 import java.time.format.DateTimeFormatter;
-import java.text.Normalizer;
-import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +38,7 @@ import prog2.policia_frontend.dtos.EntidadBancariaDTO;
 import prog2.policia_frontend.dtos.SucursalDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -427,7 +426,7 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
             NotificacionUtils.mostrarInformacion("Seleccione una entidad bancaria.");
             return;
         }
-        String texto = normalizarBusqueda(filtroTexto.getValue());
+        String texto = NormalizadorBusqueda.normalizar(filtroTexto.getValue());
         Boolean estado = obtenerEstado();
         List<SucursalDTO> filtradas = new ArrayList<>();
         for (SucursalDTO sucursal : sucursalesDisponibles) {
@@ -447,22 +446,17 @@ public class SucursalesView extends VerticalLayout implements BeforeEnterObserve
 
     private boolean coincideCriterio(SucursalDTO sucursal, String criterio, String texto, EntidadBancariaDTO entidad) {
         if ("Código".equals(criterio)) {
-            return normalizarBusqueda(sucursal.getCodigo()).contains(texto);
+            return NormalizadorBusqueda.normalizar(sucursal.getCodigo()).contains(texto);
         }
         if ("Domicilio".equals(criterio)) {
-            return normalizarBusqueda(sucursal.getDomicilio()).contains(texto);
+            return NormalizadorBusqueda.normalizar(sucursal.getDomicilio()).contains(texto);
         }
         if ("Entidad bancaria".equals(criterio)) {
-            return normalizarBusqueda(sucursal.getEntidadBancariaCodigo()).equals(normalizarBusqueda(entidad.getCodigo()));
+            return NormalizadorBusqueda.normalizar(sucursal.getEntidadBancariaCodigo()).equals(NormalizadorBusqueda.normalizar(entidad.getCodigo()));
         }
         return true;
     }
 
-    private String normalizarBusqueda(String texto) {
-        if (texto == null) { return ""; }
-        return Normalizer.normalize(texto, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT).trim();
-    }
 
     // Carga las entidades disponibles según los permisos del usuario.
     private void cargarOpcionesFiltros() {

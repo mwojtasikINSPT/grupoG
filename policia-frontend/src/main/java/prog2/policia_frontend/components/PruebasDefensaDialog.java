@@ -36,6 +36,7 @@ import prog2.policia_frontend.clients.PruebaDefensaClient;
 import prog2.policia_frontend.dtos.PresentacionPruebaDefensaDTO;
 import prog2.policia_frontend.dtos.PruebaDefensaDTO;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -325,7 +326,7 @@ public class PruebasDefensaDialog extends Dialog {
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<PruebaDefensaDTO> filtrados = new java.util.ArrayList<>();
         for (PruebaDefensaDTO dato : datosBusqueda) {
 
@@ -335,23 +336,12 @@ public class PruebasDefensaDialog extends Dialog {
     }
 
     private boolean coincideCriterio(PruebaDefensaDTO dato, String criterio, String texto) {
-        if ("Identificador".equals(criterio)) { return normalizarBusqueda(dato.getId()).contains(texto); }
-        if ("Descripción".equals(criterio)) { return normalizarBusqueda(dato.getDescripcion()).contains(texto); }
-        if ("Fecha de presentación".equals(criterio)) { return normalizarBusqueda(dato.getFechaPresentacion()).contains(texto); }
-        if ("Autor original".equals(criterio)) { return normalizarBusqueda(dato.getAbogadoCodigo()).contains(texto); }
-        if ("Archivo".equals(criterio)) { return normalizarBusqueda(dato.getNombreArchivo()).contains(texto); }
+        if ("Identificador".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getId()).contains(texto); }
+        if ("Descripción".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getDescripcion()).contains(texto); }
+        if ("Fecha de presentación".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getFechaPresentacion()).contains(texto); }
+        if ("Autor original".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getAbogadoCodigo()).contains(texto); }
+        if ("Archivo".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getNombreArchivo()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        } else if (valor instanceof java.time.LocalDateTime) {
-            texto += " " + ((java.time.LocalDateTime) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

@@ -14,15 +14,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import prog2.policia_backend.DTOs.ContratoVigilanciaDTO;
+import prog2.policia_backend.DTOs.UsuarioDTO;
 import prog2.policia_backend.exceptions.ContratoVigilanciaCumplidoException;
 import prog2.policia_backend.exceptions.ContratoVigilanciaDuplicadoException;
 import prog2.policia_backend.exceptions.FechaPasadaException;
+import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.ContratoVigilancia;
 import prog2.policia_backend.models.Entidad;
-import prog2.policia_backend.models.MotivoBajaContrato;
 import prog2.policia_backend.models.Sucursal;
 import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
@@ -69,6 +70,7 @@ public class ContratoVigilanciaService {
 
     }
 
+    @Transactional
     public ContratoVigilanciaDTO actualizar(String codigo, ContratoVigilanciaDTO dto) {
 
         ContratoVigilancia contrato = obtenerContrato(codigo);
@@ -89,8 +91,7 @@ public class ContratoVigilanciaService {
             vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
         }
 
-        boolean existeOtroContrato = contratoVigilanciaRepository
-                .existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(vigilante.getId(), fecha, contrato.getId());
+        boolean existeOtroContrato = estaOcupado(vigilante, fecha, contrato.getId());
 
         if (existeOtroContrato) {
             throw new ContratoVigilanciaDuplicadoException();
@@ -114,7 +115,7 @@ public class ContratoVigilanciaService {
         return convertirADTO(contratoVigilanciaRepository.save(contrato));
     }
 
-    public void eliminar(String codigo) {
+    public void eliminar(String codigo, ContratoVigilanciaDTO dto) {
 
         ContratoVigilancia contrato = obtenerContrato(codigo);
 
@@ -122,8 +123,12 @@ public class ContratoVigilanciaService {
             throw new ContratoVigilanciaCumplidoException();
         }
 
+        if (dto.getMotivoBaja() == null) {
+            throw new MotivoBajaObligatorioException();
+        }
+
         contrato.setActivo(false);
-        contrato.setMotivoBaja(MotivoBajaContrato.CANCELACION);
+        contrato.setMotivoBaja(dto.getMotivoBaja());
 
         contratoVigilanciaRepository.save(contrato);
     }
@@ -226,9 +231,40 @@ public class ContratoVigilanciaService {
     }
 
     private void validarContratoDuplicado(Usuario vigilante, LocalDate fecha) {
-        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrue(vigilante.getId(), fecha)) {
+        if (estaOcupado(vigilante, fecha, null)) {
             throw new ContratoVigilanciaDuplicadoException();
         }
+    }
+
+    private boolean estaOcupado(Usuario vigilante, LocalDate fecha, Long contratoId) {
+        if (contratoId != null) {
+            return contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrueAndIdNot(
+                    vigilante.getId(), fecha, contratoId);
+        }
+        return contratoVigilanciaRepository.existsByVigilante_IdAndFechaAndActivoTrue(vigilante.getId(), fecha);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioDTO> listarVigilantesDisponibles(LocalDate fecha, String contratoCodigo) {
+        if (fecha.isBefore(LocalDate.now())) {
+            throw new FechaPasadaException();
+        }
+        Long contratoId = null;
+        if (contratoCodigo != null && !contratoCodigo.isBlank()) {
+            contratoId = obtenerContrato(contratoCodigo).getId();
+        }
+        List<UsuarioDTO> resultado = new ArrayList<>();
+        for (Usuario vigilante : usuarioRepository.findByRol_NombreAndActivoTrue("VIGILANTE")) {
+            if (!estaOcupado(vigilante, fecha, contratoId)) {
+                UsuarioDTO dto = new UsuarioDTO();
+                dto.setCodigo(vigilante.getCodigo());
+                dto.setNombre(vigilante.getNombre());
+                dto.setRol(vigilante.getRol().getNombre());
+                dto.setActivo(true);
+                resultado.add(dto);
+            }
+        }
+        return resultado;
     }
 
     private Sucursal obtenerSucursal(String codigo) {

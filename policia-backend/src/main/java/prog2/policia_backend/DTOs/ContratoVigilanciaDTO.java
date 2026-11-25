@@ -39,7 +39,6 @@ public class ContratoVigilanciaDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean activo;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MotivoBajaContrato motivoBaja;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

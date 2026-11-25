@@ -36,6 +36,7 @@ import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -344,7 +345,12 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
                 NotificacionUtils.mostrarExito(resultado == null ? "Usuario dado de baja." : resultado.getMensaje());
 
             } catch (RestClientResponseException excepcion) {
-                mostrarErrorOperacion(excepcion);
+                if (ErrorBackendUtils.tieneCodigo(excepcion, "VigilanteConContratoFuturoException")) {
+                    dialogo.close();
+                    mostrarContratosPendientes(usuario);
+                } else {
+                    mostrarErrorOperacion(excepcion);
+                }
             } catch (ResourceAccessException excepcion) {
                 NotificacionUtils.mostrarInformacion("No se puede conectar con el backend.");
             } catch (IllegalArgumentException excepcion) {
@@ -353,6 +359,24 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
         });
 
         dialogo.add(campoMotivo, new HorizontalLayout(botonConfirmar, botonCancelar));
+        dialogo.open();
+    }
+
+    // Orienta la reasignación sin ejecutar automáticamente la baja.
+    private void mostrarContratosPendientes(UsuarioDTO usuario) {
+        Dialog dialogo = new Dialog();
+        dialogo.setHeaderTitle("Contratos pendientes");
+        dialogo.add(new com.vaadin.flow.component.html.Paragraph(
+                "No se puede dar de baja al vigilante porque tiene contratos pendientes. "
+                + "Debe reasignarlos antes de volver a solicitar la baja."));
+        Button cancelar = new Button("Cancelar", evento -> dialogo.close());
+        Button verContratos = new Button("Ver contratos pendientes", evento -> {
+            dialogo.close();
+            com.vaadin.flow.component.UI.getCurrent().navigate(ContratosVigilanciaView.class,
+                    com.vaadin.flow.router.QueryParameters.simple(java.util.Map.of(
+                            "vigilante", usuario.getCodigo(), "pendientes", "true")));
+        });
+        dialogo.add(new HorizontalLayout(cancelar, verContratos));
         dialogo.open();
     }
 
@@ -471,7 +495,7 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<UsuarioDTO> filtrados = new java.util.ArrayList<>();
         for (UsuarioDTO dato : datosBusqueda) {
             if ((obtenerEstadoSeleccionado() == null || obtenerEstadoSeleccionado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
@@ -492,22 +516,13 @@ public class UsuariosView extends VerticalLayout implements BeforeEnterObserver 
     }
 
     private boolean coincideCriterio(UsuarioDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
-        if ("Rol".equals(criterio)) { return normalizarBusqueda(dato.getRol()).contains(texto); }
-        if ("Edad".equals(criterio)) { return normalizarBusqueda(dato.getEdad()).contains(texto); }
-        if ("Fecha de nacimiento".equals(criterio)) { return normalizarBusqueda(dato.getFechaNacimiento()).contains(texto); }
-        if ("Motivo de baja".equals(criterio)) { return normalizarBusqueda(dato.getMotivoBaja()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getNombre()).contains(texto); }
+        if ("Rol".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getRol()).contains(texto); }
+        if ("Edad".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getEdad()).contains(texto); }
+        if ("Fecha de nacimiento".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getFechaNacimiento()).contains(texto); }
+        if ("Motivo de baja".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getMotivoBaja()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

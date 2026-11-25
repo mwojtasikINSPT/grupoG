@@ -61,7 +61,11 @@ public class GlobalExceptionHandler {
 
             mensaje.append(error.getField());
             mensaje.append(": ");
-            mensaje.append(error.getDefaultMessage());
+            if ("fechaNacimiento".equals(error.getField()) && "PastOrPresent".equals(error.getCode())) {
+                mensaje.append("La fecha de nacimiento no puede ser futura");
+            } else {
+                mensaje.append(error.getDefaultMessage());
+            }
         }
 
         return crearRespuesta(HttpStatus.BAD_REQUEST, "VALIDACION_INVALIDA", mensaje.toString());

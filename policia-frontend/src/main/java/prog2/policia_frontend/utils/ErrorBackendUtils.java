@@ -16,6 +16,16 @@ public final class ErrorBackendUtils {
     private ErrorBackendUtils() {
     }
 
+    public static boolean tieneCodigo(RestClientResponseException excepcion, String codigo) {
+        try {
+            JsonNode respuesta = MAPEADOR.readTree(excepcion.getResponseBodyAsString());
+            JsonNode valor = respuesta.get("codigo");
+            return valor != null && codigo.equals(valor.asString());
+        } catch (Exception ignorada) {
+            return false;
+        }
+    }
+
     public static String obtenerMensaje(
             RestClientResponseException excepcion) {
 
@@ -56,21 +66,21 @@ public final class ErrorBackendUtils {
     }
 
     private static String obtenerMensajeDelJson(String cuerpo) {
-    if (cuerpo == null || cuerpo.isBlank()) {
+        if (cuerpo == null || cuerpo.isBlank()) {
+            return null;
+        }
+
+        try {
+            JsonNode respuesta = MAPEADOR.readTree(cuerpo);
+            JsonNode mensaje = respuesta.get("mensaje");
+
+            if (mensaje != null && !mensaje.asString().isBlank()) {
+                return mensaje.asString();
+            }
+        } catch (Exception ignorada) {
+            // Se utiliza el mensaje general correspondiente al estado HTTP.
+        }
+
         return null;
     }
-
-    try {
-        JsonNode respuesta = MAPEADOR.readTree(cuerpo);
-        JsonNode mensaje = respuesta.get("mensaje");
-
-        if (mensaje != null && !mensaje.asString().isBlank()) {
-            return mensaje.asString();
-        }
-    } catch (Exception ignorada) {
-        // Se utiliza el mensaje general correspondiente al estado HTTP.
-    }
-
-    return null;
-}
 }

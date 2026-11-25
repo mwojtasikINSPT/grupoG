@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import prog2.policia_frontend.dtos.ContratoVigilanciaDTO;
+import prog2.policia_frontend.dtos.UsuarioDTO;
 import prog2.policia_frontend.security.SesionUsuario;
 
 // Se comunica con los endpoints de contratos de vigilancia.
@@ -31,6 +32,18 @@ public class ContratoVigilanciaClient {
                     @Override public void accept(org.springframework.http.HttpHeaders headers) { sesionUsuario.aplicarAutenticacion(headers); }
                 }).retrieve().body(new ParameterizedTypeReference<List<ContratoVigilanciaDTO>>() {});
         return contratos == null ? List.of() : contratos;
+    }
+
+    // Consulta vigilantes activos sin otro contrato en la fecha seleccionada.
+    public List<UsuarioDTO> listarVigilantesDisponibles(LocalDate fecha, String contratoCodigo) {
+        String ruta = "/contratos-vigilancia/vigilantes-disponibles?fecha=" + fecha;
+        if (contratoCodigo != null) {
+            ruta += "&contratoCodigo=" + contratoCodigo;
+        }
+        List<UsuarioDTO> usuarios = restClient.get().uri(ruta)
+                .headers(sesionUsuario::aplicarAutenticacion)
+                .retrieve().body(new ParameterizedTypeReference<List<UsuarioDTO>>() {});
+        return usuarios == null ? List.of() : usuarios;
     }
 
     // Consulta los contratos asociados a un vigilante.
@@ -77,13 +90,25 @@ public class ContratoVigilanciaClient {
                 .body(ContratoVigilanciaDTO.class);
     }
 
-    // Cancela un contrato; el backend asigna automáticamente el motivo CANCELACION.
-    public void cancelar(String codigo) {
+    public List<String> listarMotivosBaja() {
+        String[] motivos = restClient.get().uri("/contratos-vigilancia/motivos-baja")
+                .headers(sesionUsuario::aplicarAutenticacion).retrieve().body(String[].class);
+        return motivos == null ? List.of() : List.of(motivos);
+    }
+
+    // Da de baja un contrato con el motivo seleccionado por el usuario.
+    public void cancelar(String codigo, String motivo) {
         validarCodigo(codigo, "contrato");
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException("Debe seleccionar un motivo de baja.");
+        }
+        ContratoVigilanciaDTO datos = new ContratoVigilanciaDTO();
+        datos.setMotivoBaja(motivo);
 
         restClient.patch()
                 .uri("/contratos-vigilancia/{codigo}/baja", codigo.trim().toUpperCase())
                 .headers(sesionUsuario::aplicarAutenticacion)
+                .body(datos)
                 .retrieve()
                 .toBodilessEntity();
     }

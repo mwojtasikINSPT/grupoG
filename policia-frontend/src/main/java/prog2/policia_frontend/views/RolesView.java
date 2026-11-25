@@ -32,6 +32,7 @@ import prog2.policia_frontend.dtos.RolPermisoEntidadDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosApp;
 import prog2.policia_frontend.security.PermisosInterfaz;
+import prog2.policia_frontend.utils.NormalizadorBusqueda;
 import prog2.policia_frontend.utils.ErrorBackendUtils;
 import prog2.policia_frontend.utils.NotificacionUtils;
 
@@ -596,7 +597,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
 
     private void aplicarFiltros() {
         String criterio = criterioBusqueda.getValue();
-        String texto = normalizarBusqueda(valorBusqueda.getValue());
+        String texto = NormalizadorBusqueda.normalizar(valorBusqueda.getValue());
         List<RolDTO> filtrados = new java.util.ArrayList<>();
         for (RolDTO dato : datosBusqueda) {
             if ((obtenerEstadoSeleccionado() == null || obtenerEstadoSeleccionado().equals(dato.getActivo())) && coincideCriterio(dato, criterio, texto)) {
@@ -607,20 +608,11 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private boolean coincideCriterio(RolDTO dato, String criterio, String texto) {
-        if ("Código".equals(criterio)) { return normalizarBusqueda(dato.getCodigo()).contains(texto); }
-        if ("Nombre".equals(criterio)) { return normalizarBusqueda(dato.getNombre()).contains(texto); }
-        if ("Prefijo".equals(criterio)) { return normalizarBusqueda(dato.getPrefijo()).contains(texto); }
-        if ("Descripción".equals(criterio)) { return normalizarBusqueda(dato.getDescripcion()).contains(texto); }
+        if ("Código".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getCodigo()).contains(texto); }
+        if ("Nombre".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getNombre()).contains(texto); }
+        if ("Prefijo".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getPrefijo()).contains(texto); }
+        if ("Descripción".equals(criterio)) { return NormalizadorBusqueda.normalizar(dato.getDescripcion()).contains(texto); }
         return true;
     }
 
-    private String normalizarBusqueda(Object valor) {
-        if (valor == null) { return ""; }
-        String texto = valor.toString();
-        if (valor instanceof java.time.LocalDate) {
-            texto += " " + ((java.time.LocalDate) valor).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
-    }
 }

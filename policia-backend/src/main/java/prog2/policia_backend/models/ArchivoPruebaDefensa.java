@@ -47,4 +47,8 @@ public class ArchivoPruebaDefensa extends EntidadAuditable {
         this.tamano = (long) contenido.length;
         this.contenido = contenido.clone();
     }
+
+    public byte[] getContenido() {
+        return contenido == null ? null : contenido.clone();
+    }
 }

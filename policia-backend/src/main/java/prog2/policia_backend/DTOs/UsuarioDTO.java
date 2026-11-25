@@ -45,7 +45,7 @@ public class UsuarioDTO {
     private Integer defendidosDesvinculados;
 
     @NotNull(groups = OnCreate.class)
-    @PastOrPresent(groups = {OnCreate.class, OnUpdate.class}, message = "La fecha de nacimiento no puede ser futura")
+    @PastOrPresent(groups = {OnCreate.class, OnUpdate.class})
     private LocalDate fechaNacimiento;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

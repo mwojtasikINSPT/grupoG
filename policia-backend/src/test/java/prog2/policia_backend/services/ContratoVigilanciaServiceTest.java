@@ -462,11 +462,13 @@ class ContratoVigilanciaServiceTest {
         when(contratoRepository.findByCodigo("CDV00001"))
                 .thenReturn(Optional.of(contrato));
 
-        contratoService.eliminar("CDV00001");
+        ContratoVigilanciaDTO baja = new ContratoVigilanciaDTO();
+        baja.setMotivoBaja(MotivoBajaContrato.CIERRE_SUCURSAL);
+        contratoService.eliminar("CDV00001", baja);
 
         assertFalse(contrato.getActivo());
         assertEquals(
-                MotivoBajaContrato.CANCELACION,
+                MotivoBajaContrato.CIERRE_SUCURSAL,
                 contrato.getMotivoBaja()
         );
 
@@ -483,7 +485,9 @@ class ContratoVigilanciaServiceTest {
                 .thenReturn(Optional.of(contrato));
 
         try {
-            contratoService.eliminar("CDV00001");
+            ContratoVigilanciaDTO baja = new ContratoVigilanciaDTO();
+            baja.setMotivoBaja(MotivoBajaContrato.CIERRE_SUCURSAL);
+            contratoService.eliminar("CDV00001", baja);
             fail("Debía lanzar ContratoVigilanciaCumplidoException");
         } catch (ContratoVigilanciaCumplidoException e) {
             assertNotNull(e);
@@ -500,7 +504,9 @@ class ContratoVigilanciaServiceTest {
                 .thenReturn(Optional.of(contrato));
 
         try {
-            contratoService.eliminar("CDV00001");
+            ContratoVigilanciaDTO baja = new ContratoVigilanciaDTO();
+            baja.setMotivoBaja(MotivoBajaContrato.CIERRE_SUCURSAL);
+            contratoService.eliminar("CDV00001", baja);
             fail("Debía lanzar ContratoVigilanciaCumplidoException");
         } catch (ContratoVigilanciaCumplidoException e) {
             assertNotNull(e);
