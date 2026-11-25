@@ -56,21 +56,21 @@ public final class ErrorBackendUtils {
     }
 
     private static String obtenerMensajeDelJson(String cuerpo) {
-        if (cuerpo == null || cuerpo.isBlank()) {
-            return null;
-        }
-
-        try {
-            JsonNode respuesta = MAPEADOR.readTree(cuerpo);
-            JsonNode mensaje = respuesta.get("mensaje");
-
-            if (mensaje != null && !mensaje.asText().isBlank()) {
-                return mensaje.asText();
-            }
-        } catch (Exception ignorada) {
-            // Se utiliza el mensaje general correspondiente al estado HTTP.
-        }
-
+    if (cuerpo == null || cuerpo.isBlank()) {
         return null;
     }
+
+    try {
+        JsonNode respuesta = MAPEADOR.readTree(cuerpo);
+        JsonNode mensaje = respuesta.get("mensaje");
+
+        if (mensaje != null && !mensaje.asString().isBlank()) {
+            return mensaje.asString();
+        }
+    } catch (Exception ignorada) {
+        // Se utiliza el mensaje general correspondiente al estado HTTP.
+    }
+
+    return null;
+}
 }

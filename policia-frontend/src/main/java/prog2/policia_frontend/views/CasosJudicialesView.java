@@ -103,7 +103,7 @@ public class CasosJudicialesView extends VerticalLayout implements BeforeEnterOb
             if (!permisosInterfaz.puedeModificarCasos()) {
                 return botonSentencias;
             }
-            boolean activo = Boolean.TRUE.equals(caso.getActivo());
+            //boolean activo = Boolean.TRUE.equals(caso.getActivo());
             String estado = obtenerEstado(caso);
             Button botonModificar = new Button("Modificar", evento -> abrirFormulario(caso));
             botonModificar.setVisible(permisosInterfaz.puedeModificarCasos());

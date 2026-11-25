@@ -91,24 +91,6 @@ class EntidadBancariaIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
-    void buscarEntidadPorNombre() throws Exception {
-        mockMvc.perform(get("/api/entidades-bancarias")
-                .param("nombre", "nacional"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value("EBA00001"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_ENTIDAD_BANCARIA")
-    void buscarEntidadPorDomicilio() throws Exception {
-        mockMvc.perform(get("/api/entidades-bancarias")
-                .param("domicilio", "aires"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value("EBA00001"));
-    }
-
-    @Test
     @WithMockUser(authorities = "LECTURA_SUCURSAL")
     void listarSucursalesDeEntidadSinSucursales() throws Exception {
         mockMvc.perform(get("/api/entidades-bancarias/EBA00001/sucursales"))

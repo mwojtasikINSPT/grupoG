@@ -99,31 +99,6 @@ class EntidadBancariaRepositoryTest {
     }
 
     @Test
-    void buscarPorNombreParcial() {
-        List<EntidadBancaria> resultado
-                = entidadBancariaRepository.findByNombreContainingIgnoreCase("Nacional");
-
-        assertEquals(1, resultado.size());
-        assertEquals("Banco Nacional", resultado.get(0).getNombre());
-    }
-
-    @Test
-    void buscarPorNombreSinDistinguirMayusculas() {
-        List<EntidadBancaria> resultado
-                = entidadBancariaRepository.findByNombreContainingIgnoreCase("banco nacional");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreInexistente() {
-        List<EntidadBancaria> resultado
-                = entidadBancariaRepository.findByNombreContainingIgnoreCase("Santander");
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
     void actualizarNombreCorrectamente() {
         entidad.setNombre("Banco Federal");
         entidadBancariaRepository.saveAndFlush(entidad);
@@ -183,57 +158,17 @@ class EntidadBancariaRepositoryTest {
     }
 
     @Test
-    void buscarConFiltrosPorNombre() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros("nacional", null, null);
+    void buscarPorEstadoActivo() {
+        List<EntidadBancaria> resultado = entidadBancariaRepository.findByActivo(true);
 
         assertEquals(1, resultado.size());
     }
 
     @Test
-    void buscarConFiltrosPorDomicilio() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros(null, "aires", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarConFiltrosPorEstadoActivo() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros(null, null, true);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarConFiltrosPorEstadoInactivo() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros(null, null, false);
+    void buscarPorEstadoInactivo() {
+        List<EntidadBancaria> resultado = entidadBancariaRepository.findByActivo(false);
 
         assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarConTodosLosFiltros() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros("BANCO", "BUENOS", true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("EB00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void buscarConFiltrosSinCoincidencias() {
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros("Santander", "Cordoba", true);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarConFiltrosEntidadDesactivada() {
-        entidad.setActivo(false);
-        entidadBancariaRepository.saveAndFlush(entidad);
-
-        List<EntidadBancaria> resultado = entidadBancariaRepository.buscarConFiltros("banco", "aires", false);
-
-        assertEquals(1, resultado.size());
-        assertFalse(resultado.get(0).isActivo());
     }
 
     @Test

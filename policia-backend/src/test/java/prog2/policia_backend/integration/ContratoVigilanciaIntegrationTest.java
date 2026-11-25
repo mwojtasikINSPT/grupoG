@@ -139,24 +139,6 @@ class ContratoVigilanciaIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
-    void listarContratosActivos() throws Exception {
-        mockMvc.perform(get("/api/contratos-vigilancia")
-                .param("activo", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].activo").value(true));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
-    void buscarPorNombreVigilante() throws Exception {
-        mockMvc.perform(get("/api/contratos-vigilancia")
-                .param("vigilante", "juan"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value("CDV00001"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosPorVigilante() throws Exception {
         mockMvc.perform(get("/api/contratos-vigilancia/vigilante/VIG00001"))
                 .andExpect(status().isOk())

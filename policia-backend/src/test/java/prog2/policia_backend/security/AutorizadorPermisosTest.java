@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AutorizadorPermisosTest {
 
-    private final AutorizadorPermisos autorizador = new AutorizadorPermisos();
+    private final AutorizadorPermisos autorizador = new AutorizadorPermisos(new SeguridadAdministrativa());
 
     private boolean permitido(String metodo, String ruta, String... permisos) {
         List<SimpleGrantedAuthority> autoridades = new ArrayList<>();

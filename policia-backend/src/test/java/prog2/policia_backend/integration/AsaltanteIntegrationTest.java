@@ -105,24 +105,6 @@ class AsaltanteIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_ASALTANTE")
-    void buscarAsaltantePorNombre() throws Exception {
-        mockMvc.perform(get("/api/asaltantes")
-                .param("nombre", "juan"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nombre").value("Juan Perez"));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_ASALTANTE")
-    void buscarAsaltantePorNombreInexistente() throws Exception {
-        mockMvc.perform(get("/api/asaltantes")
-                .param("nombre", "Carlos"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
-    }
-
-    @Test
     @WithMockUser(authorities = "LECTURA_ASALTO")
     void listarAsaltosSinAsaltos() throws Exception {
         mockMvc.perform(get("/api/asaltantes/ASS00001/asaltos"))

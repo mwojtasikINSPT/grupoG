@@ -165,59 +165,6 @@ class AsaltanteServiceTest {
     }
 
     // BUSCAR POR NOMBRE
-    @Test
-    void buscarPorNombreCorrectamente() {
-        List<Asaltante> asaltantes = new ArrayList<>();
-        asaltantes.add(crearAsaltante());
-
-        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
-                .thenReturn(asaltantes);
-
-        List<AsaltanteDTO> resultado
-                = asaltanteService.buscarPorNombre("juan", null);
-
-        assertEquals(1, resultado.size());
-        assertEquals("Juan Perez", resultado.get(0).getNombre());
-    }
-
-    @Test
-    void buscarPorNombreRespetaEstado() {
-        when(asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo(
-                anyString(), eq(false)))
-                .thenReturn(new ArrayList<>());
-
-        List<AsaltanteDTO> resultado
-                = asaltanteService.buscarPorNombre("Juan", false);
-
-        assertTrue(resultado.isEmpty());
-
-        verify(asaltanteRepository)
-                .findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
-    }
-
-    @Test
-    void buscarPorNombreSinCoincidencias() {
-        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
-                .thenReturn(new ArrayList<>());
-
-        List<AsaltanteDTO> resultado
-                = asaltanteService.buscarPorNombre("Pedro", null);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreIgnoraMayusculas() {
-        List<Asaltante> asaltantes = new ArrayList<>();
-        asaltantes.add(crearAsaltante());
-
-        when(asaltanteRepository.findByNombreContainingIgnoreCase(anyString()))
-                .thenReturn(asaltantes);
-
-        List<AsaltanteDTO> resultado = asaltanteService.buscarPorNombre("JUAN", null);
-
-        assertEquals(1, resultado.size());
-    }
 
     // GUARDAR
     @Test

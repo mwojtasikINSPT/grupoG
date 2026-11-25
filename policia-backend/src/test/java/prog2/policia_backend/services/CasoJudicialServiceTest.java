@@ -169,38 +169,13 @@ class CasoJudicialServiceTest {
 
         when(casoJudicialRepository.findAll()).thenReturn(casos);
 
-        List<CasoJudicialDTO> resultado = casoJudicialService.listar(null);
+        List<CasoJudicialDTO> resultado = casoJudicialService.listar();
 
         assertEquals(1, resultado.size());
         assertEquals("CJU00001", resultado.get(0).getCodigo());
         assertEquals("AST00001", resultado.get(0).getAsaltoCodigo());
         assertEquals("JUE00001", resultado.get(0).getJuezCodigo());
         assertTrue(resultado.get(0).getActivo());
-    }
-
-    @Test
-    void listarCasosActivos() {
-        CasoJudicial caso = crearCaso();
-
-        when(casoJudicialRepository.findByActivo(true))
-                .thenReturn(Arrays.asList(caso));
-
-        List<CasoJudicialDTO> resultado = casoJudicialService.listar(true);
-
-        assertEquals(1, resultado.size());
-        assertTrue(resultado.get(0).getActivo());
-
-        verify(casoJudicialRepository).findByActivo(true);
-    }
-
-    @Test
-    void listarCasosInactivos() {
-        when(casoJudicialRepository.findByActivo(false))
-                .thenReturn(new ArrayList<CasoJudicial>());
-
-        List<CasoJudicialDTO> resultado = casoJudicialService.listar(false);
-
-        assertTrue(resultado.isEmpty());
     }
 
     // BUSCAR POR CODIGO

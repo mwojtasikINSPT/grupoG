@@ -88,15 +88,6 @@ class JuezIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_JUEZ")
-    void buscarJuezPorNombre() throws Exception {
-        mockMvc.perform(get("/api/jueces")
-                .param("nombre", "carlos"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nombre").value("Carlos Gomez"));
-    }
-
-    @Test
     @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosJudicialesSinCasos() throws Exception {
         mockMvc.perform(get("/api/jueces/JUE00001/casos-judiciales"))

@@ -117,15 +117,6 @@ class SucursalIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = "LECTURA_SUCURSAL")
-    void buscarSucursalPorDomicilio() throws Exception {
-        mockMvc.perform(get("/api/sucursales")
-                .param("domicilio", "corrientes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].codigo").value("SUC00001"));
-    }
-
-    @Test
     @WithMockUser(authorities = "LECTURA_CONTRATO_VIGILANCIA")
     void listarContratosDeSucursalSinContratos() throws Exception {
         mockMvc.perform(get("/api/sucursales/SUC00001/contratos"))

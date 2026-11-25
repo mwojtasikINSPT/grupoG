@@ -161,20 +161,6 @@ class CasoJudicialRepositoryTest {
     }
 
     @Test
-    void listarCasosActivos() {
-        List<CasoJudicial> resultado
-                = casoJudicialRepository.findByActivo(true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("CJU00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void listarCasosInactivos() {
-        assertTrue(casoJudicialRepository.findByActivo(false).isEmpty());
-    }
-
-    @Test
     void verificarAsaltoConCasoJudicial() {
         assertTrue(casoJudicialRepository
                 .existsByAsalto_Id(asalto.getId()));
@@ -281,8 +267,6 @@ class CasoJudicialRepositoryTest {
         CasoJudicial resultado = recargarCaso();
 
         assertFalse(resultado.isActivo());
-        assertEquals(1,
-                casoJudicialRepository.findByActivo(false).size());
     }
 
     @Test

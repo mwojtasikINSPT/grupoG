@@ -3,9 +3,11 @@ package prog2.policia_frontend.views;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -25,15 +27,12 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientResponseException;
-
 import prog2.policia_frontend.clients.RolClient;
 import prog2.policia_frontend.clients.UsuarioClient;
 import prog2.policia_frontend.components.PaginadorGrid;
+import prog2.policia_frontend.dtos.ResultadoBajaUsuarioDTO;
 import prog2.policia_frontend.dtos.RolDTO;
 import prog2.policia_frontend.dtos.UsuarioDTO;
-import prog2.policia_frontend.dtos.ResultadoBajaUsuarioDTO;
 import prog2.policia_frontend.dtos.UsuarioFormularioDTO;
 import prog2.policia_frontend.layouts.MainLayout;
 import prog2.policia_frontend.security.PermisosInterfaz;

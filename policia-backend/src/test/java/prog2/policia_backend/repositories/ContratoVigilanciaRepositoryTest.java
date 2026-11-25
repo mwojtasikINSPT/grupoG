@@ -143,20 +143,6 @@ class ContratoVigilanciaRepositoryTest {
     }
 
     @Test
-    void listarContratosActivos() {
-        List<ContratoVigilancia> resultado
-                = contratoRepository.findByActivo(true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("CON00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void listarContratosInactivos() {
-        assertTrue(contratoRepository.findByActivo(false).isEmpty());
-    }
-
-    @Test
     void verificarContratoActivoEnMismaFecha() {
         boolean existe
                 = contratoRepository.existsByVigilante_IdAndFechaAndActivoTrue(
@@ -279,8 +265,8 @@ class ContratoVigilanciaRepositoryTest {
         contrato.setActivo(false);
         contratoRepository.saveAndFlush(contrato);
 
-        assertEquals(1, contratoRepository.findByActivo(false).size());
-        assertTrue(contratoRepository.findByActivo(true).isEmpty());
+        ContratoVigilancia resultado = contratoRepository.findById(contrato.getId()).get();
+        assertFalse(resultado.getActivo());
     }
 
     @Test
@@ -351,38 +337,4 @@ class ContratoVigilanciaRepositoryTest {
         assertFalse(existe);
     }
 
-    @Test
-    void buscarPorNombreVigilanteActivo() {
-        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("juan", true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("CON00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void buscarPorNombreVigilanteSinDistinguirMayusculas() {
-        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("JUAN PEREZ", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreVigilanteInexistente() {
-        List<ContratoVigilancia> resultado = contratoRepository.buscarPorNombreVigilante("Carlos", null);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreVigilanteContratoInactivo() {
-        contrato.setActivo(false);
-        contratoRepository.saveAndFlush(contrato);
-
-        List<ContratoVigilancia> activos = contratoRepository.buscarPorNombreVigilante("Juan", true);
-        List<ContratoVigilancia> inactivos = contratoRepository.buscarPorNombreVigilante("Juan", false);
-
-        assertTrue(activos.isEmpty());
-        assertEquals(1, inactivos.size());
-        assertFalse(inactivos.get(0).getActivo());
-    }
 }

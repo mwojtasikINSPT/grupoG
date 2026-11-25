@@ -124,30 +124,6 @@ class UsuarioRepositoryTest {
     }
 
     @Test
-    void buscarPorNombreParcial() {
-        List<Usuario> resultado
-                = usuarioRepository.findByNombreContainingIgnoreCase("Juan");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreSinDistinguirMayusculas() {
-        List<Usuario> resultado
-                = usuarioRepository.findByNombreContainingIgnoreCase("juan perez");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreInexistente() {
-        List<Usuario> resultado
-                = usuarioRepository.findByNombreContainingIgnoreCase("Carlos");
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
     void actualizarUsuarioCorrectamente() {
         vigilante.setNombre("Pedro Gomez");
         usuarioRepository.saveAndFlush(vigilante);
@@ -180,29 +156,4 @@ class UsuarioRepositoryTest {
         assertFalse(usuarioRepository.findById(id).isPresent());
     }
 
-    @Test
-    void buscarPorNombreYEstadoActivo() {
-        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("VIG00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoInactivo() {
-        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoDespuesDeDesactivar() {
-        vigilante.setActivo(false);
-        usuarioRepository.saveAndFlush(vigilante);
-
-        List<Usuario> resultado = usuarioRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
-
-        assertEquals(1, resultado.size());
-        assertFalse(resultado.get(0).isActivo());
-    }
 }

@@ -100,28 +100,6 @@ class AsaltanteRepositoryTest {
     }
 
     @Test
-    void buscarPorNombreParcial() {
-        List<Asaltante> resultado
-                = asaltanteRepository.findByNombreContainingIgnoreCase("Juan");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreSinDistinguirMayusculas() {
-        List<Asaltante> resultado
-                = asaltanteRepository.findByNombreContainingIgnoreCase("juan perez");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreInexistente() {
-        assertTrue(asaltanteRepository
-                .findByNombreContainingIgnoreCase("Carlos").isEmpty());
-    }
-
-    @Test
     void verificarBandaConAsaltanteActivo() {
         assertTrue(asaltanteRepository
                 .existsByBanda_IdAndActivoTrue(banda.getId()));
@@ -178,29 +156,4 @@ class AsaltanteRepositoryTest {
         assertFalse(resultado.get(0).isActivo());
     }
 
-    @Test
-    void buscarPorNombreYEstadoActivo() {
-        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("ASS00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoInactivo() {
-        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoDespuesDeDesactivar() {
-        asaltante.setActivo(false);
-        asaltanteRepository.saveAndFlush(asaltante);
-
-        List<Asaltante> resultado = asaltanteRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
-
-        assertEquals(1, resultado.size());
-        assertFalse(resultado.get(0).isActivo());
-    }
 }

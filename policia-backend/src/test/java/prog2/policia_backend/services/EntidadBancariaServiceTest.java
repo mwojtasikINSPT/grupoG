@@ -126,78 +126,8 @@ class EntidadBancariaServiceTest {
     }
 
     // BUSCAR POR DOMICILIO
-    @Test
-    void buscarPorDomicilioEncuentraCoincidencias() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(entidades);
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorDomicilio("Corrientes", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorDomicilioRespetaEstado() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(isNull(), anyString(), eq(false))).thenReturn(new ArrayList<>());
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorDomicilio("Corrientes", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorDomicilioSinCoincidencias() {
-        when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(new ArrayList<>());
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorDomicilio("Rosario", null);
-
-        assertTrue(resultado.isEmpty());
-    }
 
     // BUSCAR POR NOMBRE
-    @Test
-    void buscarPorNombreEncuentraCoincidencias() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(entidades);
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorNombre("nacional", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreRespetaEstado() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(anyString(), isNull(), eq(false))).thenReturn(new ArrayList<>());
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorNombre("nacional", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreSinCoincidencias() {
-        when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(new ArrayList<>());
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarPorNombre("Provincial", null);
-
-        assertTrue(resultado.isEmpty());
-    }
 
     // GUARDAR
     @Test
@@ -511,68 +441,18 @@ class EntidadBancariaServiceTest {
     }
 
     // BUSCAR CON FILTROS
+
     @Test
-    void buscarConFiltrosPorNombre() {
+    void listarPorEstado() {
         List<EntidadBancaria> entidades = new ArrayList<>();
         entidades.add(crearEntidad());
 
-        when(entidadRepository.buscarConFiltros(anyString(), isNull(), isNull())).thenReturn(entidades);
+        when(entidadRepository.findByActivo(true)).thenReturn(entidades);
 
         List<EntidadBancariaDTO> resultado
-                = entidadService.buscarConFiltros("Nacional", null, null);
+                = entidadService.listar(true);
 
         assertEquals(1, resultado.size());
     }
 
-    @Test
-    void buscarConFiltrosPorDomicilio() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(isNull(), anyString(), isNull())).thenReturn(entidades);
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarConFiltros(null, "Corrientes", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarConFiltrosPorEstado() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(isNull(), isNull(), eq(true))).thenReturn(entidades);
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarConFiltros(null, null, true);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarConFiltrosCombinados() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(anyString(), anyString(), eq(true))).thenReturn(entidades);
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarConFiltros("Nacional", "Corrientes", true);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarConFiltrosSinCoincidencias() {
-        List<EntidadBancaria> entidades = new ArrayList<>();
-        entidades.add(crearEntidad());
-
-        when(entidadRepository.buscarConFiltros(anyString(), isNull(), eq(true))).thenReturn(new ArrayList<>());
-
-        List<EntidadBancariaDTO> resultado
-                = entidadService.buscarConFiltros("Provincial", null, true);
-
-        assertTrue(resultado.isEmpty());
-    }
 }

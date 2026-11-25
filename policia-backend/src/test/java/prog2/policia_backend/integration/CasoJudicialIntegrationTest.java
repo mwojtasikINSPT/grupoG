@@ -175,29 +175,6 @@ class CasoJudicialIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
-    void filtrarCasosActivos() throws Exception {
-        crearCaso();
-
-        mockMvc.perform(get("/api/casos-judiciales")
-                .param("activo", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].activo").value(true));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
-    void filtrarCasosInactivos() throws Exception {
-        crearCaso();
-
-        mockMvc.perform(get("/api/casos-judiciales")
-                .param("activo", "false"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
-    }
-
-    @Test
-    @WithMockUser(authorities = "LECTURA_CASO_JUDICIAL")
     void listarCasosPorJuez() throws Exception {
         crearCaso();
 

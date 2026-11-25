@@ -134,53 +134,6 @@ class SucursalRepositoryTest {
     }
 
     @Test
-    void buscarPorDomicilioParcial() {
-        List<Sucursal> resultado =
-                sucursalRepository.findByDomicilioContainingIgnoreCase(
-                        "Corrientes");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorDomicilioSinDistinguirMayusculas() {
-        List<Sucursal> resultado =
-                sucursalRepository.findByDomicilioContainingIgnoreCase(
-                        "avenida corrientes");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorDomicilioInexistente() {
-        List<Sucursal> resultado =
-                sucursalRepository.findByDomicilioContainingIgnoreCase(
-                        "Calle Falsa");
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarDomicilioFiltrandoActivas() {
-        List<Sucursal> resultado =
-                sucursalRepository
-                        .findByDomicilioContainingIgnoreCaseAndActivo(
-                                "corrientes", true);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarDomicilioFiltrandoInactivas() {
-        List<Sucursal> resultado =
-                sucursalRepository
-                        .findByDomicilioContainingIgnoreCaseAndActivo(
-                                "corrientes", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
     void actualizarSucursalCorrectamente() {
         sucursal.setDomicilio("Avenida Santa Fe 2000");
         sucursal.setCantEmpleados(30);

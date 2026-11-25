@@ -120,38 +120,10 @@ class ContratoVigilanciaServiceTest {
                 .thenReturn(contratos);
 
         List<ContratoVigilanciaDTO> resultado
-                = contratoService.listar(null);
+                = contratoService.listar();
 
         assertEquals(1, resultado.size());
         assertEquals("CDV00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void listarContratosActivos() {
-        List<ContratoVigilancia> contratos = new ArrayList<>();
-        contratos.add(crearContrato(
-                "CDV00001", LocalDate.now().plusDays(5), true
-        ));
-
-        when(contratoRepository.findByActivo(true))
-                .thenReturn(contratos);
-
-        List<ContratoVigilanciaDTO> resultado
-                = contratoService.listar(true);
-
-        assertEquals(1, resultado.size());
-        verify(contratoRepository).findByActivo(true);
-    }
-
-    @Test
-    void listarContratosInactivos() {
-        when(contratoRepository.findByActivo(false))
-                .thenReturn(new ArrayList<ContratoVigilancia>());
-
-        List<ContratoVigilanciaDTO> resultado
-                = contratoService.listar(false);
-
-        assertTrue(resultado.isEmpty());
     }
 
     // BUSCAR
@@ -183,46 +155,6 @@ class ContratoVigilanciaServiceTest {
         } catch (RecursoNoEncontradoException e) {
             assertNotNull(e);
         }
-    }
-
-    @Test
-    void buscarPorNombreVigilanteEncuentraContratos() {
-        List<ContratoVigilancia> contratos = new ArrayList<>();
-        contratos.add(crearContrato(
-                "CDV00001", LocalDate.now().plusDays(5), true
-        ));
-
-        when(contratoRepository.buscarPorNombreVigilante(
-                anyString(), nullable(Boolean.class)))
-                .thenReturn(contratos);
-
-        List<ContratoVigilanciaDTO> resultado
-                = contratoService.buscarPorNombreVigilante("juan", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreVigilanteRespetaEstado() {
-        when(contratoRepository.buscarPorNombreVigilante("juan", false))
-                .thenReturn(new ArrayList<>());
-
-        List<ContratoVigilanciaDTO> resultado
-                = contratoService.buscarPorNombreVigilante("Juan", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreVigilanteSinCoincidencias() {
-        when(contratoRepository.buscarPorNombreVigilante(
-                anyString(), nullable(Boolean.class)))
-                .thenReturn(new ArrayList<>());
-
-        List<ContratoVigilanciaDTO> resultado
-                = contratoService.buscarPorNombreVigilante("Pedro", null);
-
-        assertTrue(resultado.isEmpty());
     }
 
     // GUARDAR

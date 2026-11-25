@@ -20,6 +20,8 @@ import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.security.SeguridadAdministrativa;
+import org.springframework.security.access.AccessDeniedException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -38,12 +40,15 @@ class UsuarioServiceTest {
         rolRepository = mock(RolRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         contratoVigilanciaRepository = mock(ContratoVigilanciaRepository.class);
+        List<ReglaSalidaRol> reglasSalida = new ArrayList<>();
+        reglasSalida.add(new ReglaSalidaVigilante(contratoVigilanciaRepository));
 
         usuarioService = new UsuarioService(
                 usuarioRepository,
                 rolRepository,
                 passwordEncoder,
-                contratoVigilanciaRepository
+                reglasSalida,
+                new SeguridadAdministrativa()
         );
     }
 
@@ -150,9 +155,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
-        List<UsuarioDTO> resultado = usuarioService.listarPropio(
-                "ADM00001", null, null
-        );
+        List<UsuarioDTO> resultado = usuarioService.listarPropio("ADM00001", null);
 
         assertEquals(1, resultado.size());
         assertEquals("ADM00001", resultado.get(0).getCodigo());
@@ -165,25 +168,9 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
-        List<UsuarioDTO> resultado = usuarioService.listarPropio(
-                "ADM00001", false, null
-        );
+        List<UsuarioDTO> resultado = usuarioService.listarPropio("ADM00001", false);
 
         assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void listarPropioFiltraPorNombre() {
-        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
-
-        when(usuarioRepository.findByCodigo("ADM00001"))
-                .thenReturn(Optional.of(usuario));
-
-        List<UsuarioDTO> resultado = usuarioService.listarPropio(
-                "ADM00001", null, "Juan"
-        );
-
-        assertEquals(1, resultado.size());
     }
 
     @Test
@@ -197,59 +184,13 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByCodigo("VIG00001"))
                 .thenReturn(Optional.of(vigilante));
 
-        List<UsuarioDTO> resultado = usuarioService.listarPropio(
-                "VIG00001", null, null
-        );
+        List<UsuarioDTO> resultado = usuarioService.listarPropio("VIG00001", null);
 
         assertEquals(1, resultado.size());
         assertEquals("VIG00001", resultado.get(0).getCodigo());
     }
 
     // BUSCAR POR NOMBRE
-    @Test
-    void buscarPorNombreEncuentraCoincidencias() {
-        Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
-
-        List<Usuario> usuarios = new ArrayList<>();
-        usuarios.add(usuario);
-
-        when(usuarioRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(usuarios);
-
-        List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("juan", null);
-
-        assertEquals(1, resultado.size());
-        assertEquals("Juan Perez", resultado.get(0).getNombre());
-    }
-
-    @Test
-    void buscarPorNombreRespetaFiltroActivo() {
-        when(usuarioRepository.findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false))).thenReturn(new ArrayList<>());
-
-        List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("Juan", false);
-
-        assertTrue(resultado.isEmpty());
-
-        verify(usuarioRepository).findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
-    }
-
-    @Test
-    void buscarPorNombreIncluyeVigilantes() {
-        Usuario vigilante = new Usuario();
-        vigilante.setNombre("Juan Perez");
-        vigilante.setCodigo("VIG00001");
-        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
-        vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
-
-        List<Usuario> usuarios = new ArrayList<>();
-        usuarios.add(vigilante);
-
-        when(usuarioRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(usuarios);
-
-        List<UsuarioDTO> resultado = usuarioService.buscarPorNombre("Juan", null);
-
-        assertEquals(1, resultado.size());
-        assertEquals("VIG00001", resultado.get(0).getCodigo());
-    }
 
     // BUSCAR POR CODIGO
     @Test
@@ -373,7 +314,7 @@ class UsuarioServiceTest {
     void actualizarNombreCorrectamente() {
         Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         when(usuarioRepository.save(any(Usuario.class)))
@@ -392,7 +333,7 @@ class UsuarioServiceTest {
     void actualizarContraseñaCorrectamente() {
         Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         when(passwordEncoder.encode("nueva123"))
@@ -414,7 +355,7 @@ class UsuarioServiceTest {
     void actualizarRechazaUsuarioInactivo() {
         Usuario usuario = crearUsuario("ADM00001", "Juan Perez", false);
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         try {
@@ -428,10 +369,10 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void actualizarRechazaCambioDeRol() {
+    void actualizarRechazaCambioDeRolSinAdministrador() {
         Usuario usuario = crearUsuario("ADM00001", "Juan Perez", true);
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         UsuarioDTO dto = new UsuarioDTO();
@@ -439,8 +380,8 @@ class UsuarioServiceTest {
 
         try {
             usuarioService.actualizar("ADM00001", dto);
-            fail("Debía lanzar OperacionNoPermitidaException");
-        } catch (OperacionNoPermitidaException e) {
+            fail("Debía lanzar AccessDeniedException");
+        } catch (AccessDeniedException e) {
             assertNotNull(e);
         }
     }
@@ -452,7 +393,7 @@ class UsuarioServiceTest {
 
         autenticar("ADM00002");
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         UsuarioDTO dto = new UsuarioDTO();
@@ -472,7 +413,7 @@ class UsuarioServiceTest {
 
         autenticar("ADM00002");
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         try {
@@ -491,7 +432,7 @@ class UsuarioServiceTest {
 
         autenticar("ADM00002");
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         UsuarioDTO dto = new UsuarioDTO();
@@ -511,7 +452,7 @@ class UsuarioServiceTest {
 
         autenticar("ADM00001");
 
-        when(usuarioRepository.findByCodigo("ADM00001"))
+        when(usuarioRepository.findConBloqueoByCodigo("ADM00001"))
                 .thenReturn(Optional.of(usuario));
 
         UsuarioDTO dto = new UsuarioDTO();

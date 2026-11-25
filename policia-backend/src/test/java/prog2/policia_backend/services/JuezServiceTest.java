@@ -124,40 +124,6 @@ class JuezServiceTest {
     }
 
     // BUSCAR POR NOMBRE
-    @Test
-    void buscarPorNombreCorrectamente() {
-        List<Juez> jueces = new ArrayList<>();
-        jueces.add(crearJuez());
-
-        when(juezRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(jueces);
-
-        List<JuezDTO> resultado = juezService.buscarPorNombre("juan", null);
-
-        assertEquals(1, resultado.size());
-        assertEquals("Juan Perez", resultado.get(0).getNombre());
-
-        verify(juezRepository).findByNombreContainingIgnoreCase(anyString());
-    }
-
-    @Test
-    void buscarPorNombreRespetaEstado() {
-        when(juezRepository.findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false))).thenReturn(new ArrayList<>());
-
-        List<JuezDTO> resultado = juezService.buscarPorNombre("Juan", false);
-
-        assertTrue(resultado.isEmpty());
-
-        verify(juezRepository).findByNombreContainingIgnoreCaseAndActivo(anyString(), eq(false));
-    }
-
-    @Test
-    void buscarPorNombreSinCoincidencias() {
-        when(juezRepository.findByNombreContainingIgnoreCase(anyString())).thenReturn(new ArrayList<>());
-
-        List<JuezDTO> resultado = juezService.buscarPorNombre("Pedro", null);
-
-        assertTrue(resultado.isEmpty());
-    }
 
     // GUARDAR
     @Test

@@ -58,7 +58,7 @@ class UsuarioListadoControllerTest {
                 .andExpect(status().isOk());
 
         verify(usuarioService).listar(null);
-        verify(usuarioService, never()).listarPropio("ADM00001", null, null);
+        verify(usuarioService, never()).listarPropio("ADM00001", null);
     }
 
     @Test
@@ -68,7 +68,7 @@ class UsuarioListadoControllerTest {
         mockMvc.perform(get("/api/usuarios").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).listarPropio("USR00001", null, null);
+        verify(usuarioService).listarPropio("USR00001", null);
         verify(usuarioService, never()).listar(null);
     }
 
@@ -80,7 +80,7 @@ class UsuarioListadoControllerTest {
                 .andExpect(status().isOk());
 
         verify(usuarioService).listar(null);
-        verify(usuarioService, never()).listarPropio("USR00001", null, null);
+        verify(usuarioService, never()).listarPropio("USR00001", null);
     }
 
     @Test

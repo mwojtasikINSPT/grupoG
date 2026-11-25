@@ -77,7 +77,7 @@ public final class NotificacionUtils {
                 .set("line-height", "var(--lumo-line-height-s)")
                 .set("white-space", "normal");
 
-        Button cerrar = new Button(VaadinIcon.CLOSE_SMALL.create());
+        Button cerrar = new Button(VaadinIcon.CLOSE.create());
         cerrar.addThemeVariants(
                 ButtonVariant.LUMO_TERTIARY_INLINE,
                 ButtonVariant.LUMO_ICON

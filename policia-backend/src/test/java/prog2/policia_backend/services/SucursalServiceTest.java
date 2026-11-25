@@ -16,7 +16,6 @@ import prog2.policia_backend.repositories.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class SucursalServiceTest {
@@ -150,39 +149,6 @@ class SucursalServiceTest {
                     }
                 }
         );
-    }
-
-    @Test
-    void buscarPorDomicilioSinFiltroDeEstado() {
-        List<Sucursal> sucursales = new ArrayList<>();
-        sucursales.add(crearSucursal());
-
-        when(sucursalRepository
-                .findByDomicilioContainingIgnoreCase(anyString()))
-                .thenReturn(sucursales);
-
-        List<SucursalDTO> resultado
-                = sucursalService.buscarPorDomicilio("Siempre Viva", null);
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorDomicilioConFiltroDeEstado() {
-        List<Sucursal> sucursales = new ArrayList<>();
-        sucursales.add(crearSucursal());
-
-        when(sucursalRepository
-                .findByDomicilioContainingIgnoreCaseAndActivo(anyString(), eq(true)))
-                .thenReturn(sucursales);
-
-        List<SucursalDTO> resultado
-                = sucursalService.buscarPorDomicilio("Siempre Viva", true);
-
-        assertEquals(1, resultado.size());
-
-        verify(sucursalRepository)
-                .findByDomicilioContainingIgnoreCaseAndActivo(anyString(), eq(true));
     }
 
     // LISTAR POR ENTIDAD BANCARIA

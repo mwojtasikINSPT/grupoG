@@ -1,5 +1,17 @@
 package prog2.policia_backend.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,8 +20,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import prog2.policia_backend.DTOs.AsaltoDTO;
 import prog2.policia_backend.exceptions.AsaltanteConCasoJudicialException;
@@ -28,10 +40,6 @@ import prog2.policia_backend.repositories.AsaltoRepository;
 import prog2.policia_backend.repositories.CasoJudicialRepository;
 import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class AsaltoServiceTest {
 
@@ -99,17 +107,7 @@ class AsaltoServiceTest {
         return dto;
     }
 
-    private void configurarGuardado() {
-        when(asaltoRepository.save(any(Asalto.class)))
-                .thenAnswer(new Answer<Asalto>() {
-                    @Override
-                    public Asalto answer(InvocationOnMock invocation) {
-                        Asalto asalto = invocation.getArgument(0);
-                        return asalto;
-                    }
-                });
-    }
-
+    
     private void configurarAsaltoExistente(Asalto asalto) {
         when(asaltoRepository.findByCodigo("AST00001"))
                 .thenReturn(Optional.of(asalto));

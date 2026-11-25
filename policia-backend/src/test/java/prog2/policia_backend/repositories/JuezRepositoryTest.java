@@ -90,28 +90,6 @@ class JuezRepositoryTest {
     }
 
     @Test
-    void buscarPorNombreParcial() {
-        List<Juez> resultado
-                = juezRepository.findByNombreContainingIgnoreCase("Juan");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreSinDistinguirMayusculas() {
-        List<Juez> resultado
-                = juezRepository.findByNombreContainingIgnoreCase("juan perez");
-
-        assertEquals(1, resultado.size());
-    }
-
-    @Test
-    void buscarPorNombreInexistente() {
-        assertTrue(juezRepository
-                .findByNombreContainingIgnoreCase("Carlos").isEmpty());
-    }
-
-    @Test
     void actualizarNombreCorrectamente() {
         juez.setNombre("Pedro Gomez");
         juezRepository.saveAndFlush(juez);
@@ -169,29 +147,4 @@ class JuezRepositoryTest {
         assertTrue(juezRepository.findById(id).isEmpty());
     }
 
-    @Test
-    void buscarPorNombreYEstadoActivo() {
-        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("juan", true);
-
-        assertEquals(1, resultado.size());
-        assertEquals("JUE00001", resultado.get(0).getCodigo());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoInactivo() {
-        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("juan", false);
-
-        assertTrue(resultado.isEmpty());
-    }
-
-    @Test
-    void buscarPorNombreYEstadoDespuesDeDesactivar() {
-        juez.setActivo(false);
-        juezRepository.saveAndFlush(juez);
-
-        List<Juez> resultado = juezRepository.findByNombreContainingIgnoreCaseAndActivo("JUAN", false);
-
-        assertEquals(1, resultado.size());
-        assertFalse(resultado.get(0).isActivo());
-    }
 }
