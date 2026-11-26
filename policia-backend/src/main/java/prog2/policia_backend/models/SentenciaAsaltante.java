@@ -3,6 +3,11 @@ package prog2.policia_backend.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import prog2.policia_backend.exceptions.CasoCondenadoSinCarcelException;
+import prog2.policia_backend.exceptions.CasoSentenciadoException;
+import prog2.policia_backend.exceptions.CasoSinCondenaConCarcelException;
+import prog2.policia_backend.exceptions.DatosCondenaInvalidosException;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 
 //Clase para registrar el resultado individual de un asaltante dentro de un caso
 @Entity
@@ -41,6 +46,10 @@ public class SentenciaAsaltante extends EntidadAuditable {
     }
 
     public void registrarSentencia(boolean condenado, int tiempoCarcel) {
+        validarDatosCondena(condenado, tiempoCarcel);
+        if (sentenciado) {
+            throw new CasoSentenciadoException();
+        }
         this.condenado = condenado;
         this.tiempoCarcel = tiempoCarcel;
         this.sentenciado = true;
@@ -54,7 +63,23 @@ public class SentenciaAsaltante extends EntidadAuditable {
     }
 
     public void modificarSentencia(boolean condenado, int tiempoCarcel) {
+        validarDatosCondena(condenado, tiempoCarcel);
+        if (!sentenciado) {
+            throw new OperacionNoPermitidaException("El asaltante todavía no tiene una sentencia registrada");
+        }
         this.condenado = condenado;
         this.tiempoCarcel = tiempoCarcel;
+    }
+
+    private void validarDatosCondena(boolean condenado, int tiempoCarcel) {
+        if (tiempoCarcel < 0) {
+            throw new DatosCondenaInvalidosException();
+        }
+        if (condenado && tiempoCarcel == 0) {
+            throw new CasoCondenadoSinCarcelException();
+        }
+        if (!condenado && tiempoCarcel != 0) {
+            throw new CasoSinCondenaConCarcelException();
+        }
     }
 }

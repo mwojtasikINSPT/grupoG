@@ -19,6 +19,7 @@ import prog2.policia_backend.configs.SecurityConfig;
 import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.RolPermisoEntidad;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.security.UsuarioDetails;
 import prog2.policia_backend.services.UsuarioService;
 
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @WebMvcTest(UsuarioController.class)
-@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class})
+@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class, prog2.policia_backend.security.SeguridadAdministrativa.class, prog2.policia_backend.security.ManejadorAccesoDenegado.class, prog2.policia_backend.exceptions.GlobalExceptionHandler.class})
 class UsuarioEscrituraControllerTest {
 
     @Autowired
@@ -48,9 +49,7 @@ class UsuarioEscrituraControllerTest {
         Set<RolPermisoEntidad> relaciones = new HashSet<>();
 
         for (Permiso permiso : permisos) {
-            RolPermisoEntidad relacion = new RolPermisoEntidad();
-            relacion.setPermiso(permiso);
-            relacion.setEntidad(Entidad.USUARIO);
+            RolPermisoEntidad relacion = new RolPermisoEntidad(new Rol(), permiso, Entidad.USUARIO);
             relaciones.add(relacion);
         }
 

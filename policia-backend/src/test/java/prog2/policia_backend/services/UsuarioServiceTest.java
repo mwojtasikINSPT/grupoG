@@ -20,6 +20,8 @@ import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.security.AutorizadorPermisos;
+import prog2.policia_backend.security.SeguridadAdministrativa;
 import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +48,8 @@ class UsuarioServiceTest {
                 usuarioRepository,
                 rolRepository,
                 passwordEncoder,
-                reglasBaja
+                reglasBaja,
+                new AutorizadorPermisos(new SeguridadAdministrativa())
         );
     }
 
@@ -71,7 +74,11 @@ class UsuarioServiceTest {
         usuario.setCodigo(codigo);
         usuario.setNombre(nombre);
         usuario.setPassword("encoded");
-        usuario.setRol(crearRol("ADMINISTRADOR", "ADM"));
+        if (codigo.startsWith("VIG")) {
+            usuario.asignarRolInicial(crearRol("VIGILANTE", "VIG"));
+        } else {
+            usuario.asignarRolInicial(crearRol("ADMINISTRADOR", "ADM"));
+        }
         usuario.setActivo(activo);
         usuario.setFechaNacimiento(LocalDate.now().minusYears(30));
 
@@ -108,7 +115,7 @@ class UsuarioServiceTest {
         usuarios.add(usuario);
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Pedro Gomez");
-        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.asignarRolInicial(crearRol("VIGILANTE", "VIG"));
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(25));
         usuarios.add(vigilante);
 
@@ -176,7 +183,7 @@ class UsuarioServiceTest {
         Usuario vigilante = new Usuario();
         vigilante.setCodigo("VIG00001");
         vigilante.setNombre("Pedro Gomez");
-        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.asignarRolInicial(crearRol("VIGILANTE", "VIG"));
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(25));
 
         when(usuarioRepository.findByCodigo("VIG00001"))
@@ -207,7 +214,6 @@ class UsuarioServiceTest {
     @Test
     void buscarPorCodigoPermiteVigilantes() {
         Usuario vigilante = crearUsuario("VIG00001", "Juan Perez", true);
-        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
 
         when(usuarioRepository.findByCodigo("VIG00001")).thenReturn(Optional.of(vigilante));
 
@@ -601,7 +607,7 @@ class UsuarioServiceTest {
         vigilante.setCodigo("VIG00001");
         vigilante.setPassword("encoded");
         vigilante.setActivo(true);
-        vigilante.setRol(crearRol("VIGILANTE", "VIG"));
+        vigilante.asignarRolInicial(crearRol("VIGILANTE", "VIG"));
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
 
         autenticar("VIG00001");

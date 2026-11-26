@@ -3,6 +3,7 @@ package prog2.policia_backend.models;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -49,6 +50,10 @@ public class CasoJudicial extends EntidadAuditable {
 
     public void cambiarJuez(Juez nuevoJuez) {
         this.juez = nuevoJuez;
+    }
+
+    public List<SentenciaAsaltante> getSentencias() {
+        return Collections.unmodifiableList(sentencias);
     }
 
     public void actualizarEstadoSentenciado(boolean sentenciado) {

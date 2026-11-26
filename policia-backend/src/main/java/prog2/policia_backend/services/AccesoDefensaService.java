@@ -22,6 +22,7 @@ import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.security.UsuarioDetails;
+import prog2.policia_backend.security.SeguridadAdministrativa;
 
 /** Acceso vigente a defendidos y participaciones, reutilizable por futuros servicios. */
 @Service
@@ -33,6 +34,7 @@ public class AccesoDefensaService {
     private final CasoJudicialRepository casoJudicialRepository;
     private final SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
     private final AutorizadorPermisos autorizadorPermisos;
+    private final SeguridadAdministrativa seguridadAdministrativa;
 
     public Usuario obtenerAbogadoAutenticado() {
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
@@ -100,7 +102,7 @@ public class AccesoDefensaService {
             exigirPermisoPropio(autenticacion, Entidad.PRUEBA_DEFENSA);
             return obtenerParticipacionAutorizada(codigo, casoCodigo);
         }
-        boolean lectorGeneral = "ADMINISTRADOR".equalsIgnoreCase(usuario.getNombreRol())
+        boolean lectorGeneral = seguridadAdministrativa.esAdministrador(autenticacion)
                 || "INVESTIGADOR".equalsIgnoreCase(usuario.getNombreRol());
         if (!lectorGeneral || !autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.PRUEBA_DEFENSA)) {
             throw new AccesoDefensaDenegadoException("No tiene permiso para consultar estas pruebas de defensa");

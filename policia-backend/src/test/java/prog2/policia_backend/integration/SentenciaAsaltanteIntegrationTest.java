@@ -129,7 +129,6 @@ class SentenciaAsaltanteIntegrationTest {
         return """
                 {
                     "asaltanteCodigo": "ASS00001",
-                    "sentenciado": false,
                     "condenado": %s,
                     "tiempoCarcel": %d
                 }
@@ -262,7 +261,8 @@ class SentenciaAsaltanteIntegrationTest {
         mockMvc.perform(post("/api/casos-judiciales/CJU00001/sentencias")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonSentencia(true, -2)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("VALIDACION_INVALIDA"));
     }
 
     @Test
@@ -303,7 +303,6 @@ class SentenciaAsaltanteIntegrationTest {
         String json = """
                 {
                     "asaltanteCodigo": "ASS99999",
-                    "sentenciado": false,
                     "condenado": true,
                     "tiempoCarcel": 5
                 }
@@ -327,7 +326,6 @@ class SentenciaAsaltanteIntegrationTest {
         String json = """
                 {
                     "asaltanteCodigo": "ASS00002",
-                    "sentenciado": false,
                     "condenado": true,
                     "tiempoCarcel": 5
                 }

@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import prog2.policia_backend.DTOs.AbogadoDisponibleDTO;
 import prog2.policia_backend.DTOs.ResultadoAsignacionAbogadoDTO;
-import prog2.policia_backend.exceptions.AbogadoInactivoException;
 import prog2.policia_backend.exceptions.AbogadoNoEncontradoException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
-import prog2.policia_backend.exceptions.RolAbogadoInvalidoException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.AsaltanteRepository;
@@ -41,7 +39,7 @@ public class AsignacionAbogadoService {
         Usuario abogado = obtenerAbogado(abogadoCodigo);
         Asaltante asaltante = obtenerAsaltante(asaltanteCodigo);
         String anterior = codigoAbogado(asaltante);
-        asaltante.setAbogadoDefensor(abogado);
+        asaltante.asignarAbogadoDefensor(abogado);
         asaltanteRepository.save(asaltante);
         String mensaje = "Abogado asignado correctamente";
         if (abogado.getCodigo().equals(anterior)) {
@@ -56,7 +54,7 @@ public class AsignacionAbogadoService {
     public ResultadoAsignacionAbogadoDTO desvincular(String codigo) {
         Asaltante asaltante = obtenerAsaltante(codigo);
         String anterior = codigoAbogado(asaltante);
-        asaltante.setAbogadoDefensor(null);
+        asaltante.desvincularAbogadoDefensor();
         asaltanteRepository.save(asaltante);
         String mensaje = anterior == null ? "El asaltante ya se encontraba sin abogado" : "Abogado desvinculado correctamente";
         return new ResultadoAsignacionAbogadoDTO(asaltante.getCodigo(), anterior, null, mensaje);
@@ -79,13 +77,6 @@ public class AsignacionAbogadoService {
         if (resultado.isEmpty()) {
             throw new AbogadoNoEncontradoException(codigo);
         }
-        Usuario abogado = resultado.get();
-        if (!"ABOGADO_DEFENSOR".equals(abogado.getRol().getNombre()) || !Boolean.TRUE.equals(abogado.getRol().getActivo())) {
-            throw new RolAbogadoInvalidoException();
-        }
-        if (!abogado.isActivo()) {
-            throw new AbogadoInactivoException();
-        }
-        return abogado;
+        return resultado.get();
     }
 }

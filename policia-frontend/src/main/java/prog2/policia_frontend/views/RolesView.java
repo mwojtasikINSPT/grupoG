@@ -181,6 +181,7 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         campoDescripcion.setWidthFull();
         campoPrefijo.setHelperText("Se utiliza para generar códigos de usuarios del rol.");
         if (rol != null) {
+            campoNombre.setHelperText("El nombre solo puede cambiarse si el rol no tiene usuarios asociados, activos ni inactivos.");
             campoNombre.setValue(valorSeguro(rol.getNombre()));
             campoPrefijo.setValue(valorSeguro(rol.getPrefijo()));
             campoDescripcion.setValue(valorSeguro(rol.getDescripcion()));

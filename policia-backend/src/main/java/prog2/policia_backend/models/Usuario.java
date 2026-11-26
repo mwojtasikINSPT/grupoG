@@ -12,19 +12,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 
-//@MappedSuperclass
 @Entity
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 public class Usuario extends EntidadAuditable {
 
     @Id
@@ -38,7 +37,8 @@ public class Usuario extends EntidadAuditable {
     private String password;
 
     @ManyToOne
-    @JoinColumn(name = "rol_id", nullable = false)
+    @Setter(AccessLevel.NONE)
+    @JoinColumn(name = "rol_id", nullable = false, updatable = false)
     private Rol rol;
 
     private boolean activo = true;
@@ -48,6 +48,16 @@ public class Usuario extends EntidadAuditable {
 
     @Column(nullable = true)
     private LocalDate fechaNacimiento;
+
+    public void asignarRolInicial(Rol rol) {
+        if (rol == null) {
+            throw new OperacionNoPermitidaException("El rol del usuario es obligatorio.");
+        }
+        if (this.rol != null) {
+            throw new OperacionNoPermitidaException("No se puede cambiar el rol de un usuario existente.");
+        }
+        this.rol = rol;
+    }
 
     public int getEdad() {
         if (fechaNacimiento == null) {

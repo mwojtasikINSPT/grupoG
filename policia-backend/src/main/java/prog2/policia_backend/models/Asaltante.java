@@ -10,18 +10,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
+import prog2.policia_backend.exceptions.RolAbogadoInvalidoException;
+import prog2.policia_backend.exceptions.AbogadoInactivoException;
 
 @Entity
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 public class Asaltante extends EntidadAuditable {
 
     @Id
@@ -33,6 +35,7 @@ public class Asaltante extends EntidadAuditable {
     private Banda banda;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @Setter(AccessLevel.NONE)
     @JoinColumn(name = "abogado_defensor_id")
     private Usuario abogadoDefensor;
     @Column(unique = true)
@@ -41,4 +44,22 @@ public class Asaltante extends EntidadAuditable {
 
     @Enumerated(EnumType.STRING)
     private MotivoBajaPersona motivoBaja;
+
+    public void asignarAbogadoDefensor(Usuario abogado) {
+        if (abogado == null) {
+            throw new OperacionNoPermitidaException("El abogado defensor es obligatorio para asignarlo.");
+        }
+        if (abogado.getRol() == null || !"ABOGADO_DEFENSOR".equalsIgnoreCase(abogado.getRol().getNombre())
+                || !Boolean.TRUE.equals(abogado.getRol().getActivo())) {
+            throw new RolAbogadoInvalidoException();
+        }
+        if (!abogado.isActivo()) {
+            throw new AbogadoInactivoException();
+        }
+        this.abogadoDefensor = abogado;
+    }
+
+    public void desvincularAbogadoDefensor() {
+        this.abogadoDefensor = null;
+    }
 }

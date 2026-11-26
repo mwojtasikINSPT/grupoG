@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,8 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.MotivoBajaPersona;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.Usuario;
+import prog2.policia_backend.models.Entidad;
+import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.DTOs.ResultadoBajaUsuarioDTO;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
@@ -40,6 +43,26 @@ public class UsuarioService {
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final List<ReglaBajaUsuario> reglasBajaUsuario;
+    private final AutorizadorPermisos autorizadorPermisos;
+
+    public List<UsuarioDTO> listarAutorizados(Boolean activo, Authentication autenticacion) {
+        if (autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.USUARIO)) {
+            return listar(activo);
+        }
+        if (!autorizadorPermisos.puedeLeerPropios(autenticacion, Entidad.USUARIO)) {
+            throw new AccessDeniedException("No tiene permiso para consultar usuarios");
+        }
+        return listarPropio(autenticacion.getName(), activo);
+    }
+
+    public UsuarioDTO buscarPorCodigoAutorizado(String codigo, Authentication autenticacion) {
+        if (!autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.USUARIO)
+                && (!autorizadorPermisos.puedeLeerPropios(autenticacion, Entidad.USUARIO)
+                || !codigo.equalsIgnoreCase(autenticacion.getName()))) {
+            throw new AccessDeniedException("No tiene permiso para consultar este usuario");
+        }
+        return buscarPorCodigo(codigo);
+    }
 
     public List<UsuarioDTO> listar(Boolean activo) {
         List<Usuario> usuarios;
@@ -87,7 +110,7 @@ public class UsuarioService {
         usuario.setNombre(NormalizadorTexto.normalizarParaGuardar(dto.getNombre()));
         usuario.setFechaNacimiento(dto.getFechaNacimiento());
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
-        usuario.setRol(rol);
+        usuario.asignarRolInicial(rol);
         usuario.setActivo(true);
 
         usuario = usuarioRepository.save(usuario);

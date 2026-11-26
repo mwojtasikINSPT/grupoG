@@ -59,12 +59,9 @@ class RolIntegrationTest {
         rol.setDescripcion("Rol supervisor");
         rol.setActivo(true);
 
-        RolPermisoEntidad relacion = new RolPermisoEntidad();
-        relacion.setPermiso(Permiso.LECTURA);
-        relacion.setEntidad(Entidad.USUARIO);
-        relacion.setRol(rol);
+        RolPermisoEntidad relacion = new RolPermisoEntidad(rol, Permiso.LECTURA, Entidad.USUARIO);
 
-        rol.setPermisosPorEntidad(Set.of(relacion));
+        rol.actualizarPermisos(Set.of(relacion));
 
         rol = rolRepository.saveAndFlush(rol);
     }

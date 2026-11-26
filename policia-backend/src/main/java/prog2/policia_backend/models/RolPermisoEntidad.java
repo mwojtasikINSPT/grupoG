@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.AccessLevel;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "rol_permiso_entidad", uniqueConstraints = @UniqueConstraint(columnNames = {"rol_id", "permiso", "entidad"}))
 public class RolPermisoEntidad {
 
@@ -28,6 +28,18 @@ public class RolPermisoEntidad {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Entidad entidad;
+
+    public RolPermisoEntidad(Rol rol, Permiso permiso, Entidad entidad) {
+        if (rol == null) {
+            throw new OperacionNoPermitidaException("El rol es obligatorio.");
+        }
+        if (permiso == null || entidad == null) {
+            throw new OperacionNoPermitidaException("El permiso y la entidad son obligatorios");
+        }
+        this.rol = rol;
+        this.permiso = permiso;
+        this.entidad = entidad;
+    }
 
     @Override
     public boolean equals(Object objeto) {

@@ -79,7 +79,7 @@ class ContratoVigilanciaIntegrationTest {
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("clave123");
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
-        vigilante.setRol(rol);
+        vigilante.asignarRolInicial(rol);
         vigilante.setActivo(true);
         vigilante = usuarioRepository.saveAndFlush(vigilante);
 

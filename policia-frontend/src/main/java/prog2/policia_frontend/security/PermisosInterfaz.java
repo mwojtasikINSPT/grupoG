@@ -38,8 +38,12 @@ public class PermisosInterfaz {
         return sesionUsuario.tienePermiso(PermisosApp.ESCRITURA + "_" + entidad);
     }
 
-    public boolean puedeLeerDatosPropios(String entidad) {
-        return puedeLeer(entidad) || sesionUsuario.tienePermiso(PermisosApp.LECTURA_DATOS_PROPIOS + "_" + entidad);
+    public boolean puedeLeerPropios(String entidad) {
+        return sesionUsuario.tienePermiso(PermisosApp.LECTURA_DATOS_PROPIOS + "_" + entidad);
+    }
+
+    public boolean puedeLeerGeneralOPropios(String entidad) {
+        return puedeLeer(entidad) || puedeLeerPropios(entidad);
     }
 
     public boolean puedeAccederVista(Class<?> vista) {
@@ -51,7 +55,7 @@ public class PermisosInterfaz {
         }
         if (vista.equals(MisDefendidosView.class)) { return puedeConsultarDefensa(); }
         if (vista.equals(UsuariosView.class)) {
-            return puedeLeerDatosPropios("USUARIO");
+            return puedeLeerGeneralOPropios("USUARIO");
         }
         if (vista.equals(JuecesView.class)) {
             return puedeLeer("JUEZ");
@@ -66,7 +70,7 @@ public class PermisosInterfaz {
             return puedeLeer("CONTRATO_VIGILANCIA");
         }
         if (vista.equals(MisContratosView.class)) {
-            return puedeLeerDatosPropios("CONTRATO_VIGILANCIA");
+            return puedeLeerGeneralOPropios("CONTRATO_VIGILANCIA");
         }
         if (vista.equals(BandasView.class)) {
             return puedeLeer("BANDA");
@@ -176,13 +180,17 @@ public class PermisosInterfaz {
 
     public boolean puedeConsultarDefensa() {
         return sesionUsuario.tieneRol("ABOGADO_DEFENSOR")
-                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_ASALTANTE")
-                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_CASO_JUDICIAL")
-                && sesionUsuario.tienePermiso("LECTURA_DATOS_PROPIOS_SENTENCIA_ASALTANTE");
+                && puedeLeerPropios("ASALTANTE")
+                && puedeLeerPropios("CASO_JUDICIAL")
+                && puedeLeerPropios("SENTENCIA_ASALTANTE");
     }
 
     public boolean puedeConsultarPruebas() {
-        return puedeLeerDatosPropios("PRUEBA_DEFENSA");
+        if (sesionUsuario.tieneRol("ABOGADO_DEFENSOR")) {
+            return puedeConsultarDefensa() && puedeLeerPropios("PRUEBA_DEFENSA");
+        }
+        return (sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tieneRol("INVESTIGADOR"))
+                && puedeLeer("PRUEBA_DEFENSA");
     }
 
     public boolean puedePresentarPruebas() {

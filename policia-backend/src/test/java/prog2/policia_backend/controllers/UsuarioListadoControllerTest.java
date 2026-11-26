@@ -16,6 +16,7 @@ import prog2.policia_backend.configs.SecurityConfig;
 import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.RolPermisoEntidad;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.security.UsuarioDetails;
 import prog2.policia_backend.services.UsuarioService;
 
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @WebMvcTest(UsuarioController.class)
-@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class})
+@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class, prog2.policia_backend.security.SeguridadAdministrativa.class, prog2.policia_backend.security.ManejadorAccesoDenegado.class, prog2.policia_backend.exceptions.GlobalExceptionHandler.class})
 class UsuarioListadoControllerTest {
 
     @Autowired
@@ -41,9 +42,7 @@ class UsuarioListadoControllerTest {
         Set<RolPermisoEntidad> relaciones = new HashSet<>();
 
         for (Permiso permiso : permisos) {
-            RolPermisoEntidad relacion = new RolPermisoEntidad();
-            relacion.setPermiso(permiso);
-            relacion.setEntidad(Entidad.USUARIO);
+            RolPermisoEntidad relacion = new RolPermisoEntidad(new Rol(), permiso, Entidad.USUARIO);
             relaciones.add(relacion);
         }
 
@@ -57,18 +56,18 @@ class UsuarioListadoControllerTest {
         mockMvc.perform(get("/api/usuarios").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).listar(null);
+        verify(usuarioService).listarAutorizados(isNull(), any(org.springframework.security.core.Authentication.class));
         verify(usuarioService, never()).listarPropio("ADM00001", null);
     }
 
     @Test
-    void lecturaDatosPropiosSoloPuedeListarSusDatos() throws Exception {
+    void lecturaDatosPropiosDelegaListadoAlServicio() throws Exception {
         UsuarioDetails usuario = crearUsuario("USR00001", Permiso.LECTURA_DATOS_PROPIOS);
 
         mockMvc.perform(get("/api/usuarios").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).listarPropio("USR00001", null);
+        verify(usuarioService).listarAutorizados(isNull(), any(org.springframework.security.core.Authentication.class));
         verify(usuarioService, never()).listar(null);
     }
 
@@ -79,7 +78,7 @@ class UsuarioListadoControllerTest {
         mockMvc.perform(get("/api/usuarios").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).listar(null);
+        verify(usuarioService).listarAutorizados(isNull(), any(org.springframework.security.core.Authentication.class));
         verify(usuarioService, never()).listarPropio("USR00001", null);
     }
 

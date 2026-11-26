@@ -12,11 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import prog2.policia_backend.DTOs.CasoJudicialDTO;
 import prog2.policia_backend.DTOs.SentenciaAsaltanteDTO;
 import prog2.policia_backend.exceptions.AsaltanteNoParticipaEnAsaltoException;
-import prog2.policia_backend.exceptions.CasoCondenadoSinCarcelException;
 import prog2.policia_backend.exceptions.CasoJudicialYaExistenteException;
-import prog2.policia_backend.exceptions.CasoSentenciadoException;
-import prog2.policia_backend.exceptions.CasoSinCondenaConCarcelException;
-import prog2.policia_backend.exceptions.DatosCondenaInvalidosException;
 import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
@@ -272,18 +268,6 @@ public class CasoJudicialService {
             throw new AsaltanteNoParticipaEnAsaltoException();
         }
 
-        if (tiempoCarcel < 0) {
-            throw new DatosCondenaInvalidosException();
-        }
-
-        if (condenado && tiempoCarcel == 0) {
-            throw new CasoCondenadoSinCarcelException();
-        }
-
-        if (!condenado && tiempoCarcel != 0) {
-            throw new CasoSinCondenaConCarcelException();
-        }
-
         Optional<SentenciaAsaltante> resultado = sentenciaAsaltanteRepository.findByCasoJudicial_IdAndAsaltante_Id(caso.getId(), asaltante.getId());
 
         if (resultado.isEmpty()) {
@@ -291,10 +275,6 @@ public class CasoJudicialService {
         }
 
         SentenciaAsaltante sentencia = resultado.get();
-
-        if (sentencia.isSentenciado()) {
-            throw new CasoSentenciadoException();
-        }
 
         sentencia.registrarSentencia(condenado, tiempoCarcel);
         sentenciaAsaltanteRepository.save(sentencia);
@@ -311,18 +291,6 @@ public class CasoJudicialService {
             throw new OperacionNoPermitidaException("El caso judicial está inactivo");
         }
 
-        if (tiempoCarcel < 0) {
-            throw new DatosCondenaInvalidosException();
-        }
-
-        if (condenado && tiempoCarcel == 0) {
-            throw new CasoCondenadoSinCarcelException();
-        }
-
-        if (!condenado && tiempoCarcel != 0) {
-            throw new CasoSinCondenaConCarcelException();
-        }
-
         Optional<SentenciaAsaltante> resultado = sentenciaAsaltanteRepository.findByCasoJudicial_IdAndAsaltante_Id(caso.getId(), asaltante.getId());
 
         if (resultado.isEmpty()) {
@@ -330,10 +298,6 @@ public class CasoJudicialService {
         }
 
         SentenciaAsaltante sentencia = resultado.get();
-
-        if (!sentencia.isSentenciado()) {
-            throw new OperacionNoPermitidaException("El asaltante todavía no tiene una sentencia registrada");
-        }
 
         sentencia.modificarSentencia(condenado, tiempoCarcel);
         sentenciaAsaltanteRepository.save(sentencia);

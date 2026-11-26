@@ -45,7 +45,7 @@ class ContratoVigilanciaServiceTest {
         Rol rol = new Rol();
         rol.setNombre("VIGILANTE");
         rol.setPrefijo("VIG");
-        vigilante.setRol(rol);
+        vigilante.asignarRolInicial(rol);
 
         return vigilante;
     }

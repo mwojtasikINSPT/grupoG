@@ -93,15 +93,12 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
         }
         if (metodo.equals(HttpMethod.GET.name())) {
             boolean admiteLecturaPropia = entidad == Entidad.CONTRATO_VIGILANCIA || entidad == Entidad.USUARIO;
-            boolean permitido = tienePermiso(usuario, entidad, Permiso.LECTURA);
-            if (admiteLecturaPropia) {
-                permitido = permitido || tienePermiso(usuario, entidad, Permiso.LECTURA_DATOS_PROPIOS);
-            }
+            boolean permitido = admiteLecturaPropia ? puedeLeer(usuario, entidad) : puedeLeerTodo(usuario, entidad);
             return new AuthorizationDecision(permitido);
         }
         if (metodo.equals(HttpMethod.POST.name()) || metodo.equals(HttpMethod.PUT.name())
                 || metodo.equals(HttpMethod.PATCH.name()) || metodo.equals(HttpMethod.DELETE.name())) {
-            return new AuthorizationDecision(tienePermiso(usuario, entidad, Permiso.ESCRITURA));
+            return new AuthorizationDecision(puedeEscribir(usuario, entidad));
         }
         return new AuthorizationDecision(false);
     }

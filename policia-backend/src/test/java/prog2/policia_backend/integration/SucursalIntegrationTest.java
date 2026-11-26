@@ -150,13 +150,13 @@ class SucursalIntegrationTest {
         Usuario propio = new Usuario();
         propio.setCodigo("VIG00001");
         propio.setNombre("Uno");
-        propio.setRol(rol);
+        propio.asignarRolInicial(rol);
         propio = usuarioRepository.saveAndFlush(propio);
 
         Usuario otro = new Usuario();
         otro.setCodigo("VIG00002");
         otro.setNombre("Dos");
-        otro.setRol(rol);
+        otro.asignarRolInicial(rol);
         otro = usuarioRepository.saveAndFlush(otro);
 
         ContratoVigilancia contratoPropio = new ContratoVigilancia();

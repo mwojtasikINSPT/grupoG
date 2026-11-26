@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.RolPermisoEntidad;
+import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.security.UsuarioDetails;
 import prog2.policia_backend.services.UsuarioService;
 
@@ -29,7 +30,7 @@ import prog2.policia_backend.configs.SecurityConfig;
 
 @org.springframework.context.annotation.Import(prog2.policia_backend.ConfiguracionMockMvc.class)
 @WebMvcTest(UsuarioController.class)
-@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class})
+@ContextConfiguration(classes = {UsuarioController.class, SecurityConfig.class, prog2.policia_backend.security.AutorizadorPermisos.class, prog2.policia_backend.security.SeguridadAdministrativa.class, prog2.policia_backend.security.ManejadorAccesoDenegado.class, prog2.policia_backend.exceptions.GlobalExceptionHandler.class})
 class UsuarioControllerTest {
 
     @Autowired
@@ -45,9 +46,7 @@ class UsuarioControllerTest {
         Set<RolPermisoEntidad> relaciones = new HashSet<>();
 
         for (Permiso permiso : permisos) {
-            RolPermisoEntidad relacion = new RolPermisoEntidad();
-            relacion.setPermiso(permiso);
-            relacion.setEntidad(Entidad.USUARIO);
+            RolPermisoEntidad relacion = new RolPermisoEntidad(new Rol(), permiso, Entidad.USUARIO);
             relaciones.add(relacion);
         }
 
@@ -61,7 +60,7 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/api/usuarios/USR002").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).buscarPorCodigo("USR002");
+        verify(usuarioService).buscarPorCodigoAutorizado(eq("USR002"), any(org.springframework.security.core.Authentication.class));
     }
 
     @Test
@@ -71,17 +70,19 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/api/usuarios/USR001").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).buscarPorCodigo("USR001");
+        verify(usuarioService).buscarPorCodigoAutorizado(eq("USR001"), any(org.springframework.security.core.Authentication.class));
     }
 
     @Test
     void lecturaDatosPropiosNoPuedeConsultarOtroCodigo() throws Exception {
         UsuarioDetails usuario = crearUsuario("USR001", Permiso.LECTURA_DATOS_PROPIOS);
+        when(usuarioService.buscarPorCodigoAutorizado(eq("USR002"), any(org.springframework.security.core.Authentication.class)))
+                .thenThrow(new org.springframework.security.access.AccessDeniedException("No tiene permiso para consultar este usuario"));
 
         mockMvc.perform(get("/api/usuarios/USR002").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isForbidden());
 
-        verify(usuarioService, never()).buscarPorCodigo("USR002");
+        verify(usuarioService).buscarPorCodigoAutorizado(eq("USR002"), any(org.springframework.security.core.Authentication.class));
     }
 
     @Test
@@ -91,7 +92,7 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/api/usuarios/USR002").with(SecurityMockMvcRequestPostProcessors.user(usuario)))
                 .andExpect(status().isOk());
 
-        verify(usuarioService).buscarPorCodigo("USR002");
+        verify(usuarioService).buscarPorCodigoAutorizado(eq("USR002"), any(org.springframework.security.core.Authentication.class));
     }
 
     @Test

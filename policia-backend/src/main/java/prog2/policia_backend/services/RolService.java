@@ -2,7 +2,6 @@ package prog2.policia_backend.services;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -19,8 +18,6 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.RolExistenteException;
 import prog2.policia_backend.exceptions.RolYaActivoException;
 import prog2.policia_backend.exceptions.RolYaInactivoException;
-import prog2.policia_backend.models.Entidad;
-import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.RolPermisoEntidad;
 import prog2.policia_backend.repositories.RolRepository;
@@ -87,9 +84,9 @@ public class RolService {
             String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());
 
             if (!rol.getNombre().equals(nombreNormalizado)) {
-                // Un renombrado no debe cambiar el rol de los usuarios activos.
-                if (usuarioRepository.existsByRol_IdAndActivoTrue(rol.getId())) {
-                    throw new OperacionNoPermitidaException("No se puede renombrar un rol con usuarios activos.");
+                // La baja de un usuario no permite cambiar indirectamente su rol.
+                if (usuarioRepository.existsByRol_Id(rol.getId())) {
+                    throw new OperacionNoPermitidaException("No se puede renombrar un rol con usuarios asociados, activos o inactivos.");
                 }
                 if (rolRepository.existsByNombre(nombreNormalizado)) {
                     throw new RolExistenteException();
@@ -199,66 +196,13 @@ public class RolService {
         if (permisosDTO == null || permisosDTO.isEmpty()) {
             throw new OperacionNoPermitidaException("El rol debe tener al menos un permiso");
         }
-
-        Set<String> combinaciones = new HashSet<>();
-
+        List<RolPermisoEntidad> permisos = new ArrayList<>();
         for (RolPermisoEntidadDTO dto : permisosDTO) {
-            if (dto == null || dto.getPermiso() == null || dto.getEntidad() == null) {
+            if (dto == null) {
                 throw new OperacionNoPermitidaException("El permiso y la entidad son obligatorios");
             }
-
-            String clave = dto.getPermiso().name() + ":" + dto.getEntidad().name();
-
-            if (!combinaciones.add(clave)) {
-                throw new OperacionNoPermitidaException("No se permiten permisos duplicados sobre una entidad");
-            }
+            permisos.add(new RolPermisoEntidad(rol, dto.getPermiso(), dto.getEntidad()));
         }
-
-        exigirLectura(combinaciones, Entidad.USUARIO, Entidad.ROL);
-        exigirLectura(combinaciones, Entidad.ASALTO, Entidad.ASALTANTE);
-        exigirLectura(combinaciones, Entidad.ASALTO, Entidad.SUCURSAL);
-        exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.ASALTO);
-        exigirLectura(combinaciones, Entidad.CASO_JUDICIAL, Entidad.JUEZ);
-        exigirLectura(combinaciones, Entidad.SUCURSAL, Entidad.ENTIDAD_BANCARIA);
-
-        Iterator<RolPermisoEntidad> iterator = rol.getPermisosPorEntidad().iterator();
-
-        while (iterator.hasNext()) {
-            RolPermisoEntidad existente = iterator.next();
-            String clave = existente.getPermiso().name() + ":" + existente.getEntidad().name();
-
-            if (!combinaciones.contains(clave)) {
-                iterator.remove();
-            }
-        }
-
-        for (RolPermisoEntidadDTO dto : permisosDTO) {
-            boolean existe = false;
-
-            for (RolPermisoEntidad existente : rol.getPermisosPorEntidad()) {
-                if (existente.getPermiso() == dto.getPermiso() && existente.getEntidad() == dto.getEntidad()) {
-                    existe = true;
-                    break;
-                }
-            }
-
-            if (!existe) {
-                RolPermisoEntidad relacion = new RolPermisoEntidad();
-                relacion.setRol(rol);
-                relacion.setPermiso(dto.getPermiso());
-                relacion.setEntidad(dto.getEntidad());
-                rol.getPermisosPorEntidad().add(relacion);
-            }
-        }
+        rol.actualizarPermisos(permisos);
     }
-
-    // Exige la lectura necesaria para una entidad con permiso de escritura.
-    private void exigirLectura(Set<String> combinaciones, Entidad entidadEscritura, Entidad entidadLectura) {
-        String escritura = Permiso.ESCRITURA.name() + ":" + entidadEscritura.name();
-        String lectura = Permiso.LECTURA.name() + ":" + entidadLectura.name();
-        if (combinaciones.contains(escritura) && !combinaciones.contains(lectura)) {
-            throw new OperacionNoPermitidaException("La escritura de " + entidadEscritura + " requiere lectura de " + entidadLectura + ".");
-        }
-    }
-
 }

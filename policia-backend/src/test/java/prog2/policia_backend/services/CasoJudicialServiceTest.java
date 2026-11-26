@@ -247,7 +247,9 @@ class CasoJudicialServiceTest {
     @Test
     void guardarRechazaAsaltoSinAsaltantes() {
         Asalto asalto = crearAsalto();
-        asalto.getAsaltantes().clear();
+        for (Asaltante participante : new java.util.ArrayList<>(asalto.getAsaltantes())) {
+            asalto.quitarAsaltante(participante);
+        }
 
         configurarDatosCreacion(asalto, crearJuez());
 
@@ -606,7 +608,7 @@ class CasoJudicialServiceTest {
     void registrarSentenciaCorrectamente() {
         CasoJudicial caso = crearCaso();
         Asaltante asaltante = caso.getAsalto().getAsaltantes().get(0);
-        SentenciaAsaltante sentencia = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante sentencia = spy(new SentenciaAsaltante(caso, asaltante));
 
         configurarCasoExistente(caso);
 
@@ -623,8 +625,6 @@ class CasoJudicialServiceTest {
         when(sentenciaAsaltanteRepository.findByCasoJudicial_Id(1L))
                 .thenReturn(Arrays.asList(sentencia));
 
-        when(sentencia.getAsaltante()).thenReturn(asaltante);
-        when(sentencia.isSentenciado()).thenReturn(false, true);
 
         casoJudicialService.registrarSentencia(
                 "CJU00001", "ASS00001", true, 5
@@ -666,6 +666,9 @@ class CasoJudicialServiceTest {
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(caso.getAsalto().getAsaltantes().get(0)));
+        SentenciaAsaltante sentencia = new SentenciaAsaltante(caso, caso.getAsalto().getAsaltantes().get(0));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
+                .thenReturn(Optional.of(sentencia));
 
         try {
             casoJudicialService.registrarSentencia(
@@ -684,6 +687,9 @@ class CasoJudicialServiceTest {
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(caso.getAsalto().getAsaltantes().get(0)));
+        SentenciaAsaltante sentencia = new SentenciaAsaltante(caso, caso.getAsalto().getAsaltantes().get(0));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
+                .thenReturn(Optional.of(sentencia));
 
         try {
             casoJudicialService.registrarSentencia(
@@ -702,6 +708,9 @@ class CasoJudicialServiceTest {
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(caso.getAsalto().getAsaltantes().get(0)));
+        SentenciaAsaltante sentencia = new SentenciaAsaltante(caso, caso.getAsalto().getAsaltantes().get(0));
+        when(sentenciaAsaltanteRepository.findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
+                .thenReturn(Optional.of(sentencia));
 
         try {
             casoJudicialService.registrarSentencia(
@@ -719,7 +728,7 @@ class CasoJudicialServiceTest {
         configurarCasoExistente(caso);
 
         Asaltante asaltante = caso.getAsalto().getAsaltantes().get(0);
-        SentenciaAsaltante sentencia = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante sentencia = spy(new SentenciaAsaltante(caso, asaltante));
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(asaltante));
@@ -728,7 +737,7 @@ class CasoJudicialServiceTest {
                 .findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
                 .thenReturn(Optional.of(sentencia));
 
-        when(sentencia.isSentenciado()).thenReturn(true);
+        sentencia.registrarSentencia(true, 5);
 
         try {
             casoJudicialService.registrarSentencia(
@@ -750,7 +759,7 @@ class CasoJudicialServiceTest {
         configurarCasoExistente(caso);
 
         Asaltante asaltante = caso.getAsalto().getAsaltantes().get(0);
-        SentenciaAsaltante sentencia = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante sentencia = spy(new SentenciaAsaltante(caso, asaltante));
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(asaltante));
@@ -759,7 +768,7 @@ class CasoJudicialServiceTest {
                 .findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
                 .thenReturn(Optional.of(sentencia));
 
-        when(sentencia.isSentenciado()).thenReturn(true);
+        sentencia.registrarSentencia(true, 5);
 
         casoJudicialService.modificarSentencia(
                 "CJU00001", "ASS00001", true, 10
@@ -775,7 +784,7 @@ class CasoJudicialServiceTest {
         configurarCasoExistente(caso);
 
         Asaltante asaltante = caso.getAsalto().getAsaltantes().get(0);
-        SentenciaAsaltante sentencia = mock(SentenciaAsaltante.class);
+        SentenciaAsaltante sentencia = spy(new SentenciaAsaltante(caso, asaltante));
 
         when(asaltanteRepository.findByCodigo("ASS00001"))
                 .thenReturn(Optional.of(asaltante));
@@ -784,7 +793,6 @@ class CasoJudicialServiceTest {
                 .findByCasoJudicial_IdAndAsaltante_Id(1L, 1L))
                 .thenReturn(Optional.of(sentencia));
 
-        when(sentencia.isSentenciado()).thenReturn(false);
 
         try {
             casoJudicialService.modificarSentencia(

@@ -50,7 +50,7 @@ class UsuarioRepositoryTest {
         vigilante.setNombre("Juan Perez");
         vigilante.setPassword("password123");
         vigilante.setFechaNacimiento(LocalDate.now().minusYears(30));
-        vigilante.setRol(rol);
+        vigilante.asignarRolInicial(rol);
         vigilante.setActivo(true);
 
         vigilante = usuarioRepository.saveAndFlush(vigilante);

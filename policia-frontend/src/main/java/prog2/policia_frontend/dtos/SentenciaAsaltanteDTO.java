@@ -1,6 +1,7 @@
 package prog2.policia_frontend.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Datos de la sentencia individual de un asaltante dentro de un caso.
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class SentenciaAsaltanteDTO {
 
     private String asaltanteCodigo;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Boolean sentenciado;
     private Boolean condenado;
     private Integer tiempoCarcel;

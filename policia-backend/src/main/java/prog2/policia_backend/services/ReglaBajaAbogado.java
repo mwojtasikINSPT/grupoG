@@ -19,7 +19,7 @@ public class ReglaBajaAbogado implements ReglaBajaUsuario {
         }
         List<Asaltante> defendidos = asaltanteRepository.findByAbogadoDefensor_Id(usuario.getId());
         for (Asaltante defendido : defendidos) {
-            defendido.setAbogadoDefensor(null);
+            defendido.desvincularAbogadoDefensor();
         }
         asaltanteRepository.saveAll(defendidos);
         return defendidos.size();

@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,45 +33,13 @@ public class UsuarioController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('LECTURA_USUARIO', 'LECTURA_DATOS_PROPIOS_USUARIO')")
     public ResponseEntity<List<UsuarioDTO>> listar(@RequestParam(required = false) Boolean activo, Authentication authentication) {
-
-        boolean tieneLecturaCompleta = false;
-
-        for (GrantedAuthority autoridad : authentication.getAuthorities()) {
-            String permiso = autoridad.getAuthority();
-
-            if (permiso.equals("LECTURA_USUARIO")) {
-                tieneLecturaCompleta = true;
-                break;
-            }
-        }
-
-        if (!tieneLecturaCompleta) {
-            return ResponseEntity.ok(usuarioService.listarPropio(authentication.getName(), activo));
-        }
-
-        return ResponseEntity.ok(usuarioService.listar(activo));
+        return ResponseEntity.ok(usuarioService.listarAutorizados(activo, authentication));
     }
 
     @GetMapping("/{codigo}")
     @PreAuthorize("hasAnyAuthority('LECTURA_USUARIO', 'LECTURA_DATOS_PROPIOS_USUARIO')")
     public ResponseEntity<UsuarioDTO> buscarPorCodigo(@PathVariable String codigo, Authentication authentication) {
-
-        boolean tieneLecturaCompleta = false;
-
-        for (GrantedAuthority autoridad : authentication.getAuthorities()) {
-            String permiso = autoridad.getAuthority();
-
-            if (permiso.equals("LECTURA_USUARIO")) {
-                tieneLecturaCompleta = true;
-                break;
-            }
-        }
-
-        if (!tieneLecturaCompleta && !codigo.equalsIgnoreCase(authentication.getName())) {
-            throw new AccessDeniedException("No tiene permiso para consultar este usuario");
-        }
-
-        return ResponseEntity.ok(usuarioService.buscarPorCodigo(codigo));
+        return ResponseEntity.ok(usuarioService.buscarPorCodigoAutorizado(codigo, authentication));
     }
 
     @PostMapping

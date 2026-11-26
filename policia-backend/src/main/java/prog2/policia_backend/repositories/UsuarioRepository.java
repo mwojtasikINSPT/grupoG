@@ -23,4 +23,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     List<Usuario> findByActivo(Boolean activo);
     boolean existsByRol_IdAndActivoTrue(Long rolId);
+    boolean existsByRol_Id(Long rolId);
 }
