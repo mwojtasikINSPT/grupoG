@@ -1,7 +1,6 @@
 package prog2.policia_frontend.views;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.client.ResourceAccessException;
@@ -383,23 +382,9 @@ public class ContratosVigilanciaView extends VerticalLayout implements BeforeEnt
     private void cargarOpcionesFiltros() {
         vigilantesBusqueda = List.of();
         if (!permisosInterfaz.puedeConsultarUsuarios()) { return; }
-        try { vigilantesBusqueda = listarVigilantes(null); }
+        try { vigilantesBusqueda = usuarioClient.listar(null); }
         catch (RestClientResponseException excepcion) { mostrarErrorOperacion(excepcion); }
         catch (ResourceAccessException excepcion) { NotificacionUtils.mostrarInformacion("No se pudieron cargar los vigilantes."); }
-    }
-
-    // Obtiene únicamente los usuarios con rol VIGILANTE.
-    private List<UsuarioDTO> listarVigilantes(Boolean activo) {
-        List<UsuarioDTO> usuarios = usuarioClient.listar(activo);
-        List<UsuarioDTO> vigilantes = new ArrayList<>();
-
-        for (UsuarioDTO usuario : usuarios) {
-            if (usuario.getRol() != null && usuario.getRol().equalsIgnoreCase("VIGILANTE")) {
-                vigilantes.add(usuario);
-            }
-        }
-
-        return vigilantes;
     }
 
     private boolean puedeEscribir() {

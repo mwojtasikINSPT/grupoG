@@ -49,7 +49,7 @@ public class Asaltante extends EntidadAuditable {
         if (abogado == null) {
             throw new OperacionNoPermitidaException("El abogado defensor es obligatorio para asignarlo.");
         }
-        if (abogado.getRol() == null || !"ABOGADO_DEFENSOR".equalsIgnoreCase(abogado.getRol().getNombre())
+        if (abogado.getRol() == null || !abogado.getRol().isHabilitadoParaDefensa()
                 || !Boolean.TRUE.equals(abogado.getRol().getActivo())) {
             throw new RolAbogadoInvalidoException();
         }

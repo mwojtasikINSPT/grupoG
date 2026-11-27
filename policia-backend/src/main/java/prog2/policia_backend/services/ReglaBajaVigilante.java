@@ -14,8 +14,7 @@ public class ReglaBajaVigilante implements ReglaBajaUsuario {
 
     @Override
     public int prepararBaja(Usuario usuario) {
-        if ("VIGILANTE".equalsIgnoreCase(usuario.getRol().getNombre())
-                && contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(usuario.getId(), LocalDate.now())) {
+        if (contratoVigilanciaRepository.existsByVigilante_IdAndFechaGreaterThanEqualAndActivoTrue(usuario.getId(), LocalDate.now())) {
             throw new VigilanteConContratoFuturoException();
         }
         return 0;

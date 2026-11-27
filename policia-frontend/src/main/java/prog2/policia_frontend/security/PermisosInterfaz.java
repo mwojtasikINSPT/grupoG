@@ -175,22 +175,20 @@ public class PermisosInterfaz {
     }
 
     public boolean puedeAsignarAbogados() {
-        return sesionUsuario.tieneRol("ADMINISTRADOR");
+        return puedeEscribir("ASALTANTE");
     }
 
     public boolean puedeConsultarDefensa() {
-        return sesionUsuario.tieneRol("ABOGADO_DEFENSOR")
-                && puedeLeerPropios("ASALTANTE")
+        return puedeLeerPropios("ASALTANTE")
                 && puedeLeerPropios("CASO_JUDICIAL")
                 && puedeLeerPropios("SENTENCIA_ASALTANTE");
     }
 
     public boolean puedeConsultarPruebas() {
-        if (sesionUsuario.tieneRol("ABOGADO_DEFENSOR")) {
+        if (puedeLeerPropios("ASALTANTE") || puedeLeerPropios("PRUEBA_DEFENSA")) {
             return puedeConsultarDefensa() && puedeLeerPropios("PRUEBA_DEFENSA");
         }
-        return (sesionUsuario.tieneRol("ADMINISTRADOR") || sesionUsuario.tieneRol("INVESTIGADOR"))
-                && puedeLeer("PRUEBA_DEFENSA");
+        return puedeLeer("PRUEBA_DEFENSA");
     }
 
     public boolean puedePresentarPruebas() {

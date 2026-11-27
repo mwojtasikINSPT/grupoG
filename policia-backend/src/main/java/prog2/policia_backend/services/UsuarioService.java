@@ -160,8 +160,8 @@ public class UsuarioService {
 
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
 
-        if (usuario.getRol().getNombre().equalsIgnoreCase("ADMINISTRADOR") && usuario.getCodigo().equals(autenticacion.getName())) {
-            throw new OperacionNoPermitidaException("Un administrador no puede darse de baja a sí mismo");
+        if (usuario.getCodigo().equals(autenticacion.getName())) {
+            throw new OperacionNoPermitidaException("Un usuario no puede darse de baja a sí mismo");
         }
 
         if (!usuario.isActivo()) {
@@ -177,12 +177,12 @@ public class UsuarioService {
         usuario.setActivo(false);
 
         usuarioRepository.save(usuario);
-        boolean esAbogado = "ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getRol().getNombre());
+        boolean teniaDefendidos = desvinculados > 0;
         String mensaje = "Usuario dado de baja.";
-        if (esAbogado) {
+        if (teniaDefendidos) {
             mensaje += " Defendidos desvinculados: " + desvinculados;
         }
-        return new ResultadoBajaUsuarioDTO(usuario.getCodigo(), esAbogado ? desvinculados : null, mensaje);
+        return new ResultadoBajaUsuarioDTO(usuario.getCodigo(), teniaDefendidos ? desvinculados : null, mensaje);
     }
 
     private int prepararBajaUsuario(Usuario usuario) {

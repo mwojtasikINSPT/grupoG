@@ -1,6 +1,7 @@
 package prog2.policia_frontend.security;
 
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
+import jakarta.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +41,7 @@ public class SesionUsuario {
         encabezados.setBasicAuth(usuario.getCodigo(), contrasena);
     }
 
+    @PreDestroy
     public void cerrarSesion() {
         usuario = null;
         contrasena = null;
@@ -54,13 +56,6 @@ public class SesionUsuario {
             throw new IllegalArgumentException("La nueva contraseña es obligatoria.");
         }
         this.contrasena = nuevaContrasena;
-    }
-
-    public boolean tieneRol(String rol) {
-        if (!estaAutenticado() || usuario.getRol() == null) {
-            return false;
-        }
-        return usuario.getRol().equalsIgnoreCase(rol);
     }
 
     public boolean tienePermiso(String permisoBuscado) {

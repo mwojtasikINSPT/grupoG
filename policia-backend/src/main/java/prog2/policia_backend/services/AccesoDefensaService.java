@@ -22,7 +22,6 @@ import prog2.policia_backend.repositories.SentenciaAsaltanteRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.security.UsuarioDetails;
-import prog2.policia_backend.security.SeguridadAdministrativa;
 
 /** Acceso vigente a defendidos y participaciones, reutilizable por futuros servicios. */
 @Service
@@ -34,7 +33,6 @@ public class AccesoDefensaService {
     private final CasoJudicialRepository casoJudicialRepository;
     private final SentenciaAsaltanteRepository sentenciaAsaltanteRepository;
     private final AutorizadorPermisos autorizadorPermisos;
-    private final SeguridadAdministrativa seguridadAdministrativa;
 
     public Usuario obtenerAbogadoAutenticado() {
         Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
@@ -44,9 +42,8 @@ public class AccesoDefensaService {
             throw new AccesoDefensaDenegadoException("El usuario autenticado no esta disponible");
         }
         Usuario abogado = resultado.get();
-        if (!abogado.isActivo() || !"ABOGADO_DEFENSOR".equalsIgnoreCase(abogado.getRol().getNombre())
-                || !Boolean.TRUE.equals(abogado.getRol().getActivo())) {
-            throw new AccesoDefensaDenegadoException("Se requiere un abogado defensor con usuario y rol activos");
+        if (!abogado.isActivo() || !Boolean.TRUE.equals(abogado.getRol().getActivo())) {
+            throw new AccesoDefensaDenegadoException("Se requiere un usuario y un rol activos para consultar la defensa");
         }
         return abogado;
     }
@@ -96,15 +93,13 @@ public class AccesoDefensaService {
                 || !(autenticacion.getPrincipal() instanceof UsuarioDetails)) {
             throw new AccesoDefensaDenegadoException("Se requiere un usuario autenticado para consultar pruebas");
         }
-        UsuarioDetails usuario = (UsuarioDetails) autenticacion.getPrincipal();
-        // La lectura general nunca permite a un abogado eludir la asignacion actual.
-        if ("ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getNombreRol())) {
+        // El alcance propio de defensa prevalece sobre la lectura general.
+        if (autorizadorPermisos.puedeLeerPropios(autenticacion, Entidad.ASALTANTE)
+                || autorizadorPermisos.puedeLeerPropios(autenticacion, Entidad.PRUEBA_DEFENSA)) {
             exigirPermisoPropio(autenticacion, Entidad.PRUEBA_DEFENSA);
             return obtenerParticipacionAutorizada(codigo, casoCodigo);
         }
-        boolean lectorGeneral = seguridadAdministrativa.esAdministrador(autenticacion)
-                || "INVESTIGADOR".equalsIgnoreCase(usuario.getNombreRol());
-        if (!lectorGeneral || !autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.PRUEBA_DEFENSA)) {
+        if (!autorizadorPermisos.puedeLeerTodo(autenticacion, Entidad.PRUEBA_DEFENSA)) {
             throw new AccesoDefensaDenegadoException("No tiene permiso para consultar estas pruebas de defensa");
         }
         return obtenerParticipacion(obtenerAsaltante(codigo, false), casoCodigo, false);

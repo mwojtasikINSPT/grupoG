@@ -185,7 +185,7 @@ public class GlobalExceptionHandler {
     // Devuelve 500 ante errores inesperados.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> manejarErrorGeneral(Exception ex) {
-        logger.error("Error inesperado: tipo={}, mensaje={}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        logger.error("Error inesperado: tipo={}", ex.getClass().getSimpleName());
 
         return crearRespuesta(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_INTERNO", "Error interno del servidor");
     }

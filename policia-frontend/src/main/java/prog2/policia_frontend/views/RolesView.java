@@ -70,6 +70,8 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         tablaRoles.addColumn(RolDTO::getCodigo).setHeader("Código").setAutoWidth(true);
         tablaRoles.addColumn(RolDTO::getNombre).setHeader("Nombre").setAutoWidth(true);
         tablaRoles.addColumn(RolDTO::getPrefijo).setHeader("Prefijo").setAutoWidth(true);
+        tablaRoles.addColumn(rol -> Boolean.TRUE.equals(rol.getHabilitadoParaDefensa()) ? "Sí" : "No").setHeader("Habilitado para defensa").setAutoWidth(true);
+        tablaRoles.addColumn(rol -> Boolean.TRUE.equals(rol.getHabilitadoParaVigilancia()) ? "Sí" : "No").setHeader("Habilitado para vigilancia").setAutoWidth(true);
         tablaRoles.addComponentColumn(rol -> new Button("Ver permisos", evento -> mostrarPermisos(rol))).setHeader("Permisos").setAutoWidth(true);
         tablaRoles.addColumn(rol -> rol.getDescripcion() != null ? rol.getDescripcion() : "-").setHeader("Descripción").setAutoWidth(true);
         tablaRoles.addColumn(rol -> Boolean.TRUE.equals(rol.getActivo()) ? "Activo" : "Inactivo").setHeader("Estado").setAutoWidth(true);
@@ -133,6 +135,8 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
         TextField campoPrefijo = new TextField("Prefijo");
         TextArea campoDescripcion = new TextArea("Descripción");
         Checkbox cambiarContrasena = new Checkbox("Puede cambiar su contraseña");
+        Checkbox habilitadoParaDefensa = new Checkbox("Habilitado para recibir asignaciones de defensa");
+        Checkbox habilitadoParaVigilancia = new Checkbox("Habilitado para recibir contratos de vigilancia");
 
         Select<String> tipoPermiso = new Select<>();
         tipoPermiso.setLabel("1. Elegí un permiso");
@@ -185,6 +189,8 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
             campoNombre.setValue(valorSeguro(rol.getNombre()));
             campoPrefijo.setValue(valorSeguro(rol.getPrefijo()));
             campoDescripcion.setValue(valorSeguro(rol.getDescripcion()));
+            habilitadoParaDefensa.setValue(Boolean.TRUE.equals(rol.getHabilitadoParaDefensa()));
+            habilitadoParaVigilancia.setValue(Boolean.TRUE.equals(rol.getHabilitadoParaVigilancia()));
             if (rol.getPermisosPorEntidad() != null) {
                 incluirEntidadesExistentes(escritura, PermisosApp.ESCRITURA, rol.getPermisosPorEntidad());
                 incluirEntidadesExistentes(lectura, PermisosApp.LECTURA, rol.getPermisosPorEntidad());
@@ -283,6 +289,8 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                 datos.setNombre(nombre);
                 datos.setPrefijo(prefijo);
                 datos.setDescripcion(campoDescripcion.getValue().trim());
+                datos.setHabilitadoParaDefensa(habilitadoParaDefensa.getValue());
+                datos.setHabilitadoParaVigilancia(habilitadoParaVigilancia.getValue());
                 datos.setPermisosPorEntidad(convertirPermisos(permisos));
                 if (rol == null) {
                     rolClient.crear(datos);
@@ -305,6 +313,9 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
                         campoNombre,
                         campoPrefijo,
                         campoDescripcion,
+                        new Span("Las habilitaciones profesionales permiten recibir asignaciones; no conceden permisos de acceso."),
+                        habilitadoParaDefensa,
+                        habilitadoParaVigilancia,
                         cambiarContrasena,
                         tipoPermiso,
                         opcionesEscritura,
@@ -378,7 +389,8 @@ public class RolesView extends VerticalLayout implements BeforeEnterObserver {
 
         for (String entidad : entidadesDisponibles) {
             for (String permiso : PermisosApp.todos()) {
-                if (PermisosApp.LECTURA_DATOS_PROPIOS.equals(permiso) && !"USUARIO".equals(entidad) && !"CONTRATO_VIGILANCIA".equals(entidad)) {
+                if (PermisosApp.LECTURA_DATOS_PROPIOS.equals(permiso)
+                        && !List.of("USUARIO", "CONTRATO_VIGILANCIA", "ASALTANTE", "CASO_JUDICIAL", "SENTENCIA_ASALTANTE", "PRUEBA_DEFENSA").contains(entidad)) {
                     continue;
                 }
                 opciones.add(permiso + " · " + entidad);

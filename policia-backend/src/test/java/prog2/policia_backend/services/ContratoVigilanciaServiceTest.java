@@ -14,6 +14,8 @@ import prog2.policia_backend.models.*;
 import prog2.policia_backend.repositories.*;
 import prog2.policia_backend.security.AutorizadorPermisos;
 
+import org.springframework.security.core.Authentication;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -22,6 +24,8 @@ class ContratoVigilanciaServiceTest {
     private ContratoVigilanciaRepository contratoRepository;
     private UsuarioRepository usuarioRepository;
     private SucursalRepository sucursalRepository;
+    private AutorizadorPermisos autorizadorPermisos;
+    private RolRepository rolRepository;
     private ContratoVigilanciaService contratoService;
 
     @BeforeEach
@@ -29,9 +33,12 @@ class ContratoVigilanciaServiceTest {
         contratoRepository = mock(ContratoVigilanciaRepository.class);
         usuarioRepository = mock(UsuarioRepository.class);
         sucursalRepository = mock(SucursalRepository.class);
-        AutorizadorPermisos autorizadorPermisos = mock(AutorizadorPermisos.class);
+        autorizadorPermisos = mock(AutorizadorPermisos.class);
+        rolRepository = mock(RolRepository.class);
+        when(rolRepository.findConBloqueoParaVigilanciaByUsuarioCodigo(anyString()))
+                .thenReturn(Optional.of(new Rol()));
 
-        contratoService = new ContratoVigilanciaService(contratoRepository, usuarioRepository, sucursalRepository, autorizadorPermisos);
+        contratoService = new ContratoVigilanciaService(contratoRepository, usuarioRepository, sucursalRepository, autorizadorPermisos, rolRepository);
     }
 
     private Usuario crearVigilante() {
@@ -45,6 +52,8 @@ class ContratoVigilanciaServiceTest {
         Rol rol = new Rol();
         rol.setNombre("VIGILANTE");
         rol.setPrefijo("VIG");
+        rol.setActivo(true);
+        rol.setHabilitadoParaVigilancia(true);
         vigilante.asignarRolInicial(rol);
 
         return vigilante;
@@ -119,8 +128,12 @@ class ContratoVigilanciaServiceTest {
         when(contratoRepository.findAll())
                 .thenReturn(contratos);
 
+        Authentication auth = mock(Authentication.class);
+        when(autorizadorPermisos.puedeLeerTodo(eq(auth), eq(Entidad.CONTRATO_VIGILANCIA)))
+                .thenReturn(true);
+
         List<ContratoVigilanciaDTO> resultado
-                = contratoService.listar();
+                = contratoService.listar(auth);
 
         assertEquals(1, resultado.size());
         assertEquals("CDV00001", resultado.get(0).getCodigo());

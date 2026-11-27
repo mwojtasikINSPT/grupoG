@@ -71,11 +71,11 @@ public class AutorizadorPermisos implements AuthorizationManager<RequestAuthoriz
         }
         if (ruta.matches("/api/asaltantes/[^/]+/abogado-defensor/?")) {
             boolean metodoValido = metodo.equals(HttpMethod.PUT.name()) || metodo.equals(HttpMethod.DELETE.name());
-            return new AuthorizationDecision(metodoValido && seguridadAdministrativa.esAdministrador(usuario));
+            return new AuthorizationDecision(metodoValido && seguridadAdministrativa.puedeAsignarAbogados(usuario));
         }
         if (ruta.matches("/api/usuarios/abogados-disponibles/?")) {
             return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name())
-                    && seguridadAdministrativa.esAdministrador(usuario));
+                    && seguridadAdministrativa.puedeAsignarAbogados(usuario));
         }
         if (ruta.equals("/api/usuarios/mi-perfil") || ruta.equals("/api/usuarios/mis-permisos")) {
             return new AuthorizationDecision(metodo.equals(HttpMethod.GET.name()));

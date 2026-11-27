@@ -29,6 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Usuario usuario = resultado.get();
 
-        return new UsuarioDetails(usuario.getId(), usuario.getCodigo(), usuario.getPassword(), usuario.getRol().getNombre(), usuario.getRol().getPermisosPorEntidad(), usuario.isActivo());
+        // isEnabled() exige que tanto el usuario como su rol estén activos.
+        return new UsuarioDetails(usuario.getId(), usuario.getCodigo(), usuario.getPassword(), usuario.getRol().getNombre(), usuario.getRol().getPermisosPorEntidad(), usuario.isActivo() && Boolean.TRUE.equals(usuario.getRol().getActivo()));
     }
 }

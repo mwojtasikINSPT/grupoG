@@ -28,6 +28,10 @@ public interface ContratoVigilanciaRepository extends JpaRepository<ContratoVigi
             Long vigilanteId,
             LocalDate fecha);
 
+    boolean existsByVigilante_Rol_IdAndFechaGreaterThanEqualAndActivoTrue(
+            Long rolId,
+            LocalDate fecha);
+
     // Obtiene todos los contratos asociados a un vigilante, incluidos los inactivos.
     List<ContratoVigilancia> findByVigilante_Id(Long vigilanteId);
 

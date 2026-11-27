@@ -20,6 +20,7 @@ import prog2.policia_backend.exceptions.ContratoVigilanciaDuplicadoException;
 import prog2.policia_backend.exceptions.FechaPasadaException;
 import prog2.policia_backend.exceptions.MotivoBajaObligatorioException;
 import prog2.policia_backend.exceptions.PersonaInactivaException;
+import prog2.policia_backend.exceptions.OperacionNoPermitidaException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.exceptions.SucursalYaCerradaException;
 import prog2.policia_backend.models.ContratoVigilancia;
@@ -29,6 +30,7 @@ import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.SucursalRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
+import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.security.AutorizadorPermisos;
 import prog2.policia_backend.utils.GeneradorCodigo;
 
@@ -40,8 +42,16 @@ public class ContratoVigilanciaService {
     private final UsuarioRepository usuarioRepository;
     private final SucursalRepository sucursalRepository;
     private final AutorizadorPermisos autorizadorPermisos;
+    private final RolRepository rolRepository;
 
-    public List<ContratoVigilanciaDTO> listar() {
+    public List<ContratoVigilanciaDTO> listar(Authentication authentication) {
+        if (!autorizadorPermisos.puedeLeerTodo(authentication, Entidad.CONTRATO_VIGILANCIA)) {
+            if (autorizadorPermisos.puedeLeerPropios(authentication, Entidad.CONTRATO_VIGILANCIA)) {
+                return listarPorVigilante(authentication.getName());
+            }
+            throw new AccessDeniedException("No tiene permisos para consultar contratos");
+        }
+
         List<ContratoVigilancia> contratos = contratoVigilanciaRepository.findAll();
         List<ContratoVigilanciaDTO> resultado = new ArrayList<>();
         for (ContratoVigilancia entidad : contratos) {
@@ -85,10 +95,11 @@ public class ContratoVigilanciaService {
 
         LocalDate fecha = dto.getFecha() != null ? dto.getFecha() : contrato.getFecha();
 
-        Usuario vigilante = obtenerVigilanteActivo(contrato.getVigilante().getCodigo());
-
+        Usuario vigilante;
         if (dto.getVigilanteCodigo() != null && !dto.getVigilanteCodigo().isBlank()) {
             vigilante = obtenerVigilanteActivo(dto.getVigilanteCodigo());
+        } else {
+            vigilante = obtenerVigilanteActivo(contrato.getVigilante().getCodigo());
         }
 
         boolean existeOtroContrato = estaOcupado(vigilante, fecha, contrato.getId());
@@ -211,20 +222,21 @@ public class ContratoVigilanciaService {
             throw new RecursoNoEncontradoException("Vigilante", codigo);
         }
 
-        Usuario vigilante = resultado.get();
-
-        if (vigilante.getRol() == null || !"VIGILANTE".equalsIgnoreCase(vigilante.getRol().getNombre())) {
-            throw new RecursoNoEncontradoException("Vigilante", codigo);
-        }
-
-        return vigilante;
+        return resultado.get();
     }
 
     private Usuario obtenerVigilanteActivo(String codigo) {
         Usuario vigilante = obtenerVigilante(codigo);
 
-        if (!vigilante.isActivo()) {
+        if (vigilante.getRol() == null || !vigilante.getRol().isHabilitadoParaVigilancia()) {
+            throw new RecursoNoEncontradoException("Vigilante habilitado", codigo);
+        }
+        if (!vigilante.isActivo() || !Boolean.TRUE.equals(vigilante.getRol().getActivo())) {
             throw new PersonaInactivaException();
+        }
+        // Revalida con bloqueo para coordinar la asignación con el retiro de la habilitación.
+        if (rolRepository.findConBloqueoParaVigilanciaByUsuarioCodigo(codigo).isEmpty()) {
+            throw new OperacionNoPermitidaException("El vigilante debe tener usuario y rol activos y habilitación para vigilancia.");
         }
 
         return vigilante;
@@ -254,7 +266,7 @@ public class ContratoVigilanciaService {
             contratoId = obtenerContrato(contratoCodigo).getId();
         }
         List<UsuarioDTO> resultado = new ArrayList<>();
-        for (Usuario vigilante : usuarioRepository.findByRol_NombreAndActivoTrue("VIGILANTE")) {
+        for (Usuario vigilante : usuarioRepository.findByActivoTrueAndRol_ActivoTrueAndRol_HabilitadoParaVigilanciaTrue()) {
             if (!estaOcupado(vigilante, fecha, contratoId)) {
                 UsuarioDTO dto = new UsuarioDTO();
                 dto.setCodigo(vigilante.getCodigo());

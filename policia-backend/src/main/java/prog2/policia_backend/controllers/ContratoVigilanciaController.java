@@ -42,8 +42,7 @@ public class ContratoVigilanciaController {
 
     @GetMapping
     public ResponseEntity<List<ContratoVigilanciaDTO>> listar(Authentication authentication) {
-        List<ContratoVigilanciaDTO> contratos = contratoVigilanciaService.listar();
-        return ResponseEntity.ok(contratoVigilanciaService.filtrarPorPermisos(contratos, authentication));
+        return ResponseEntity.ok(contratoVigilanciaService.listar(authentication));
     }
 
     @GetMapping("/{codigo}")

@@ -72,6 +72,7 @@ class ContratoVigilanciaIntegrationTest {
         rol.setPrefijo("VIG");
         rol.setDescripcion("Rol de vigilancia");
         rol.setActivo(true);
+        rol.setHabilitadoParaVigilancia(true);
         rol = rolRepository.saveAndFlush(rol);
 
         vigilante = new Usuario();

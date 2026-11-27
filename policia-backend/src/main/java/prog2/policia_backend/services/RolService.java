@@ -1,5 +1,6 @@
 package prog2.policia_backend.services;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +22,8 @@ import prog2.policia_backend.exceptions.RolYaInactivoException;
 import prog2.policia_backend.models.Rol;
 import prog2.policia_backend.models.RolPermisoEntidad;
 import prog2.policia_backend.repositories.RolRepository;
+import prog2.policia_backend.repositories.AsaltanteRepository;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import prog2.policia_backend.utils.GeneradorCodigo;
 import prog2.policia_backend.utils.NormalizadorTexto;
@@ -31,6 +34,8 @@ public class RolService {
 
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AsaltanteRepository asaltanteRepository;
+    private final ContratoVigilanciaRepository contratoVigilanciaRepository;
 
     public List<RolDTO> listar(Boolean activo) {
         List<Rol> roles;
@@ -78,7 +83,8 @@ public class RolService {
 
     @Transactional
     public RolDTO actualizar(String codigo, RolDTO dto) {
-        Rol rol = obtenerRol(codigo);
+        Rol rol = obtenerRol(codigo, true);
+        validarRetiroHabilitaciones(rol, dto);
 
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             String nombreNormalizado = NormalizadorTexto.normalizarConstante(dto.getNombre());
@@ -105,6 +111,13 @@ public class RolService {
 
         if (dto.getPermisosPorEntidad() != null) {
             asignarPermisos(rol, dto.getPermisosPorEntidad());
+        }
+
+        if (dto.getHabilitadoParaDefensa() != null) {
+            rol.setHabilitadoParaDefensa(dto.getHabilitadoParaDefensa());
+        }
+        if (dto.getHabilitadoParaVigilancia() != null) {
+            rol.setHabilitadoParaVigilancia(dto.getHabilitadoParaVigilancia());
         }
 
         return convertirADTO(rolRepository.save(rol));
@@ -146,6 +159,8 @@ public class RolService {
         dto.setNombre(rol.getNombre());
         dto.setDescripcion(rol.getDescripcion());
         dto.setPrefijo(rol.getPrefijo());
+        dto.setHabilitadoParaDefensa(rol.isHabilitadoParaDefensa());
+        dto.setHabilitadoParaVigilancia(rol.isHabilitadoParaVigilancia());
 
         Set<RolPermisoEntidadDTO> permisos = new HashSet<>();
 
@@ -173,6 +188,8 @@ public class RolService {
         rol.setCodigo(NormalizadorTexto.normalizarConstante(dto.getCodigo()));
         rol.setNombre(NormalizadorTexto.normalizarConstante(dto.getNombre()));
         rol.setDescripcion(NormalizadorTexto.normalizarParaGuardar(dto.getDescripcion()));
+        rol.setHabilitadoParaDefensa(Boolean.TRUE.equals(dto.getHabilitadoParaDefensa()));
+        rol.setHabilitadoParaVigilancia(Boolean.TRUE.equals(dto.getHabilitadoParaVigilancia()));
 
         asignarPermisos(rol, dto.getPermisosPorEntidad());
 
@@ -181,15 +198,35 @@ public class RolService {
 
     // --- Métodos Auxiliares ---
     private Rol obtenerRol(String codigo) {
+        return obtenerRol(codigo, false);
+    }
+
+    private Rol obtenerRol(String codigo, boolean bloquear) {
         String codigoNormalizado = codigo != null ? codigo.trim().toUpperCase() : null;
 
-        Optional<Rol> resultado = rolRepository.findByCodigo(codigoNormalizado);
+        Optional<Rol> resultado;
+        if (bloquear) {
+            resultado = rolRepository.findConBloqueoByCodigo(codigoNormalizado);
+        } else {
+            resultado = rolRepository.findByCodigo(codigoNormalizado);
+        }
 
         if (resultado.isEmpty()) {
             throw new RecursoNoEncontradoException("Rol", "código: " + codigo);
         }
 
         return resultado.get();
+    }
+
+    private void validarRetiroHabilitaciones(Rol rol, RolDTO dto) {
+        if (rol.isHabilitadoParaDefensa() && Boolean.FALSE.equals(dto.getHabilitadoParaDefensa())
+                && asaltanteRepository.existsByAbogadoDefensor_Rol_Id(rol.getId())) {
+            throw new OperacionNoPermitidaException("No se puede retirar la habilitación de defensa: hay usuarios del rol con defendidos asignados.");
+        }
+        if (rol.isHabilitadoParaVigilancia() && Boolean.FALSE.equals(dto.getHabilitadoParaVigilancia())
+                && contratoVigilanciaRepository.existsByVigilante_Rol_IdAndFechaGreaterThanEqualAndActivoTrue(rol.getId(), LocalDate.now())) {
+            throw new OperacionNoPermitidaException("No se puede retirar la habilitación de vigilancia: hay usuarios del rol con contratos activos de hoy o futuros.");
+        }
     }
 
     private void asignarPermisos(Rol rol, Set<RolPermisoEntidadDTO> permisosDTO) {

@@ -14,9 +14,6 @@ public class ReglaBajaAbogado implements ReglaBajaUsuario {
 
     @Override
     public int prepararBaja(Usuario usuario) {
-        if (!"ABOGADO_DEFENSOR".equalsIgnoreCase(usuario.getRol().getNombre())) {
-            return 0;
-        }
         List<Asaltante> defendidos = asaltanteRepository.findByAbogadoDefensor_Id(usuario.getId());
         for (Asaltante defendido : defendidos) {
             defendido.desvincularAbogadoDefensor();

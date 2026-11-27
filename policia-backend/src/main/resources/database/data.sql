@@ -12,10 +12,10 @@
 -- =========================================================
 
 
-INSERT INTO rol (id, activo, fecha_creacion, codigo, creado_por, descripcion, nombre, prefijo) VALUES
-(1, true, NOW(), 'ROL00001', 'SISTEMA', 'Rol con permisos administrativos del sistema', 'ADMINISTRADOR', 'ADM'),
-(2, true, NOW(), 'ROL00002', 'SISTEMA', 'Rol para personal de investigación', 'INVESTIGADOR', 'INV'),
-(3, true, NOW(), 'ROL00003', 'SISTEMA', 'Rol para personal de vigilancia', 'VIGILANTE', 'VIG');
+INSERT INTO rol (id, activo, fecha_creacion, codigo, creado_por, descripcion, nombre, prefijo, habilitado_para_defensa, habilitado_para_vigilancia) VALUES
+(1, true, NOW(), 'ROL00001', 'SISTEMA', 'Rol con permisos administrativos del sistema', 'ADMINISTRADOR', 'ADM', false, false),
+(2, true, NOW(), 'ROL00002', 'SISTEMA', 'Rol para personal de investigación', 'INVESTIGADOR', 'INV', false, false),
+(3, true, NOW(), 'ROL00003', 'SISTEMA', 'Rol para personal de vigilancia', 'VIGILANTE', 'VIG', false, true);
 
 
 -- Permisos vinculados a cada entidad del modelo actual.
@@ -414,8 +414,8 @@ INSERT INTO sentencia_asaltante (caso_judicial_id, asaltante_id, sentenciado, co
 (10, 30, false, false, 0, 'PENDIENTE', 'SISTEMA', NOW());
 
 -- Rol y permisos de abogado defensor para la carga inicial de una base vacia.
-INSERT INTO rol (activo, fecha_creacion, codigo, creado_por, descripcion, nombre, prefijo)
-VALUES (true, NOW(), 'ROL00004', 'SISTEMA', 'Abogado defensor', 'ABOGADO_DEFENSOR', 'ABO');
+INSERT INTO rol (activo, fecha_creacion, codigo, creado_por, descripcion, nombre, prefijo, habilitado_para_defensa, habilitado_para_vigilancia)
+VALUES (true, NOW(), 'ROL00004', 'SISTEMA', 'Abogado defensor', 'ABOGADO_DEFENSOR', 'ABO', true, false);
 
 INSERT INTO rol_permiso_entidad (rol_id, permiso, entidad)
 SELECT r.id, 'LECTURA_DATOS_PROPIOS', 'USUARIO' FROM rol r

@@ -18,6 +18,8 @@ public class RolDTO {
     private String nombre;
     private String prefijo;
     private String descripcion;
+    private Boolean habilitadoParaDefensa;
+    private Boolean habilitadoParaVigilancia;
     private Set<RolPermisoEntidadDTO> permisosPorEntidad = new HashSet<>();
     private Boolean activo;
 
@@ -62,6 +64,22 @@ public class RolDTO {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public Boolean getHabilitadoParaDefensa() {
+        return habilitadoParaDefensa;
+    }
+
+    public void setHabilitadoParaDefensa(Boolean habilitadoParaDefensa) {
+        this.habilitadoParaDefensa = habilitadoParaDefensa;
+    }
+
+    public Boolean getHabilitadoParaVigilancia() {
+        return habilitadoParaVigilancia;
+    }
+
+    public void setHabilitadoParaVigilancia(Boolean habilitadoParaVigilancia) {
+        this.habilitadoParaVigilancia = habilitadoParaVigilancia;
     }
 
     public Set<RolPermisoEntidadDTO> getPermisosPorEntidad() {

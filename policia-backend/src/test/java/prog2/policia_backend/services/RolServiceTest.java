@@ -11,6 +11,8 @@ import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Entidad;
 import prog2.policia_backend.models.Permiso;
 import prog2.policia_backend.models.Rol;
+import prog2.policia_backend.repositories.AsaltanteRepository;
+import prog2.policia_backend.repositories.ContratoVigilanciaRepository;
 import prog2.policia_backend.repositories.RolRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +27,9 @@ class RolServiceTest {
     void setUp() {
         roles = mock(RolRepository.class);
         usuarios = mock(UsuarioRepository.class);
-        servicio = new RolService(roles, usuarios);
+        AsaltanteRepository asaltantes = mock(AsaltanteRepository.class);
+        ContratoVigilanciaRepository contratos = mock(ContratoVigilanciaRepository.class);
+        servicio = new RolService(roles, usuarios, asaltantes, contratos);
     }
 
     @Test
@@ -58,12 +62,13 @@ class RolServiceTest {
     void actualizaPermisosPorEntidad() {
         Rol rol = new Rol();
         rol.setNombre("VIGILANTE");
+        rol.setActivo(true);
         RolPermisoEntidadDTO permiso = new RolPermisoEntidadDTO();
         permiso.setEntidad(Entidad.CONTRATO_VIGILANCIA);
         permiso.setPermiso(Permiso.LECTURA_DATOS_PROPIOS);
         RolDTO dto = new RolDTO();
         dto.setPermisosPorEntidad(Set.of(permiso));
-        when(roles.findByCodigo("ROL1")).thenReturn(Optional.of(rol));
+        when(roles.findConBloqueoByCodigo("ROL1")).thenReturn(Optional.of(rol));
         when(roles.save(rol)).thenReturn(rol);
         RolDTO resultado = servicio.actualizar("ROL1", dto);
         assertEquals(1, resultado.getPermisosPorEntidad().size());

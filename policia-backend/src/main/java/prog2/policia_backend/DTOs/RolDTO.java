@@ -37,6 +37,9 @@ public class RolDTO {
 
     private String descripcion;
 
+    private Boolean habilitadoParaDefensa;
+    private Boolean habilitadoParaVigilancia;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean activo;
 

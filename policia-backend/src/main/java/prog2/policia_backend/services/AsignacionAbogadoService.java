@@ -10,26 +10,27 @@ import org.springframework.transaction.annotation.Transactional;
 import prog2.policia_backend.DTOs.AbogadoDisponibleDTO;
 import prog2.policia_backend.DTOs.ResultadoAsignacionAbogadoDTO;
 import prog2.policia_backend.exceptions.AbogadoNoEncontradoException;
+import prog2.policia_backend.exceptions.RolAbogadoInvalidoException;
 import prog2.policia_backend.exceptions.RecursoNoEncontradoException;
 import prog2.policia_backend.models.Asaltante;
 import prog2.policia_backend.models.Usuario;
 import prog2.policia_backend.repositories.AsaltanteRepository;
 import prog2.policia_backend.repositories.UsuarioRepository;
+import prog2.policia_backend.repositories.RolRepository;
 
 @Service
 @RequiredArgsConstructor
-@PreAuthorize("@seguridadAdministrativa.esAdministrador(authentication)")
+@PreAuthorize("hasAuthority('ESCRITURA_ASALTANTE')")
 public class AsignacionAbogadoService {
     private final AsaltanteRepository asaltanteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final RolRepository rolRepository;
 
     @Transactional(readOnly = true)
     public List<AbogadoDisponibleDTO> listarDisponibles() {
         List<AbogadoDisponibleDTO> resultado = new ArrayList<>();
-        for (Usuario usuario : usuarioRepository.findByRol_NombreAndActivoTrue("ABOGADO_DEFENSOR")) {
-            if (Boolean.TRUE.equals(usuario.getRol().getActivo())) {
-                resultado.add(new AbogadoDisponibleDTO(usuario.getCodigo(), usuario.getNombre()));
-            }
+        for (Usuario usuario : usuarioRepository.findByActivoTrueAndRol_ActivoTrueAndRol_HabilitadoParaDefensaTrue()) {
+            resultado.add(new AbogadoDisponibleDTO(usuario.getCodigo(), usuario.getNombre()));
         }
         return resultado;
     }
@@ -73,9 +74,14 @@ public class AsignacionAbogadoService {
     }
 
     private Usuario obtenerAbogado(String codigo) {
-        Optional<Usuario> resultado = usuarioRepository.findConBloqueoByCodigo(codigo.trim().toUpperCase(java.util.Locale.ROOT));
+        String codigoNormalizado = codigo.trim().toUpperCase(java.util.Locale.ROOT);
+        Optional<Usuario> resultado = usuarioRepository.findConBloqueoByCodigo(codigoNormalizado);
         if (resultado.isEmpty()) {
             throw new AbogadoNoEncontradoException(codigo);
+        }
+        // La consulta bloqueada valida el estado actual, incluso si el rol ya estaba cargado.
+        if (rolRepository.findConBloqueoParaDefensaByUsuarioCodigo(codigoNormalizado).isEmpty()) {
+            throw new RolAbogadoInvalidoException();
         }
         return resultado.get();
     }

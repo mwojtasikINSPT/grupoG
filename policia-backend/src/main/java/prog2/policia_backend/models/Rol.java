@@ -41,6 +41,12 @@ public class Rol extends EntidadAuditable {
 
     private Boolean activo = true;
 
+    @Column(nullable = false)
+    private boolean habilitadoParaDefensa;
+
+    @Column(nullable = false)
+    private boolean habilitadoParaVigilancia;
+
     @OneToMany(mappedBy = "rol")
     @Setter(AccessLevel.NONE)
     private List<Usuario> usuarios = new ArrayList<>();

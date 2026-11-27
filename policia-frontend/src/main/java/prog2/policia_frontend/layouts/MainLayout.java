@@ -186,7 +186,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     // Borra los datos de la sesión y regresa al login.
     private void cerrarSesion() {
         sesionUsuario.cerrarSesion();
-        UI.getCurrent().getSession().close();
+        UI.getCurrent().getSession().getSession().invalidate();
         UI.getCurrent().getPage().setLocation("/login");
     }
 }
